@@ -1,0 +1,11 @@
+[project]
+name = "my-project"
+requirements = []
+costs_version = 1
+[contracts.auction]
+path = "contracts/auction.clar"
+depends_on = []
+
+[contracts.bbtc]
+path = "contracts/bbtc.clar"
+depends_on = []
