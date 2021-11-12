@@ -18,8 +18,16 @@
 
 (define-constant contract-owner tx-sender)
 
-(define-constant err-owner-only (err u100))
-(define-constant err-buy-bid-token (err u101))
+(define-constant owner-only u100)
+(define-constant unable-to-buy-bid-token u101)
+(define-constant useless-bid u102)
+(define-constant auction-already-happened u103)
+(define-constant auction-not-started u104)
+(define-constant highest-bidder-unable-to-cover-bid u105)
+(define-constant nft-already-minted u106)
+(define-constant requested-zero-bid-tokens u107)
+(define-constant maximum-number-of-bidders-reached u108)
+(define-constant no-bid-token u109)
 
 
 ;; data maps and vars
