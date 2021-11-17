@@ -1,0 +1,10 @@
+[project]
+name = "liquidity-pool"
+costs_version = 1
+
+[[project.requirements]]
+contract_id = "SP23DAB333A5CPFXNK13E5YMX1DZJ07112QNZEBCF.sip-010-v0a"
+
+[contracts.liquidity-pool]
+path = "contracts/liquidity-pool.clar"
+depends_on = []
