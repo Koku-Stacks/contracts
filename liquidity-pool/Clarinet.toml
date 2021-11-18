@@ -6,6 +6,10 @@ costs_version = 1
 path = "contracts/liquidity-pool.clar"
 depends_on = []
 
+[contracts.liquidity-token]
+path = "contracts/liquidity-token.clar"
+depends_on = ["sip-010-v0a"]
+
 [contracts.sip-010-v0a]
 path = "contracts/sip-010-v0a.clar"
 depends_on = []
