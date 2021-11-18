@@ -97,11 +97,79 @@
         error
         (err error)))))
 
-;; data maps and vars
-;;
+(define-read-only (x-to-y-exact (state (tuple (x uint) (y uint) (l uint)))
+                                (dy uint)
+                                (fee uint)
+                                (unit uint))
+  (begin
+    (asserts! (< u0 dy) (err non-positive-dy))
+    (asserts! (< dy (get y state)) (err dy-not-less-than-y))
+    (let ((x (get x state))
+          (y (get y state))
+          (l (get l state)))
+      (match (get-output-price x y dy fee unit)
+        output-price
+        (ok {x: (+ x output-price),
+             y: (- y dy),
+             l: l})
+        error
+        (err error)))))
 
-;; private functions
-;;
+;; inter-market trading
 
-;; public functions
-;;
+(define-read-only (y-to-y (state-a (tuple (x uint) (y uint) (l uint)))
+                          (state-b (tuple (x uint) (y uint) (l uint)))
+                          (dy-a uint)
+                          (fee uint)
+                          (unit uint))
+  (begin
+    (asserts! (> dy-a u0) (err non-positive-dy))
+    (let ((x-a (get x state-a))
+          (y-a (get y state-a))
+          (l-a (get l state-a))
+          (x-b (get x state-b))
+          (y-b (get y state-b))
+          (l-b (get l state-b)))
+      (match (get-input-price y-a x-a dy-a fee unit)
+        dx-a
+        (match (get-input-price x-b y-b dx-a fee unit)
+          dy-b
+          (ok {state-a: {x: (- x-a dx-a),
+                         y: (+ y-a dy-a),
+                         l: l-a},
+               state-b: {x: (+ x-b dx-a),
+                         y: (- y-b dy-b),
+                         l: l-b}})
+          error
+          (err error))
+        error
+        (err error)))))
+
+(define-read-only (y-to-y-exact (state-a (tuple (x uint) (y uint) (l uint)))
+                                (state-b (tuple (x uint) (y uint) (l uint)))
+                                (dy-b uint)
+                                (fee uint)
+                                (unit uint))
+  (begin
+    (asserts! (< u0 dy-b) (err non-positive-dy))
+    (asserts! (< dy-b (get y state-b)) (err dy-not-less-than-y))
+    (let ((x-a (get x state-a))
+          (y-a (get y state-a))
+          (l-a (get l state-a))
+          (x-b (get x state-b))
+          (y-b (get y state-b))
+          (l-b (get l state-b)))
+      (match (get-output-price x-b y-b dy-b fee unit)
+        dx-b
+        (match (get-output-price y-a x-a dx-b fee unit)
+          dy-a
+          (ok {state-a: {x: (- x-a dx-b),
+                         y: (+ y-a dy-a),
+                         l: l-a},
+               state-b: {x: (+ x-b dx-b),
+                         y: (- y-b dy-b),
+                         l: l-b}})
+          error
+          (err error))
+        error
+        (err error)))))
