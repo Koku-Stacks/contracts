@@ -1,13 +1,15 @@
 ;; liquidity-pool
 ;; a simple liquidity pool implementation
 
-;; constants
-;;
-
 (define-constant non-positive-dx u1)
 (define-constant invalid-dl u2)
 (define-constant non-positive-dy u3)
 (define-constant dy-not-less-than-y u4)
+
+(define-constant this-contract (as-contract tx-sender))
+
+(define-read-only (contract-principal)
+  this-contract)
 
 ;; this is based on https://github.com/runtimeverification/verified-smart-contracts/blob/uniswap/uniswap/x-y-k.pdf
 
