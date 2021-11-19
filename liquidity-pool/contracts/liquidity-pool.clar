@@ -1,10 +1,20 @@
 ;; liquidity-pool
 ;; a simple liquidity pool implementation
 
+(use-trait sip-010-token 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sip-010-v0a.ft-trait)
+
 (define-constant non-positive-dx u1)
 (define-constant invalid-dl u2)
 (define-constant non-positive-dy u3)
 (define-constant dy-not-less-than-y u4)
+(define-constant asset-identifier-already-in-use u5)
+(define-constant unregistered-asset-identifier u6)
+(define-constant invalid-asset u7)
+(define-constant asset-does-not-match-id u8)
+(define-constant market-identifier-already-in-use u9)
+(define-constant unregistered-market-identifier u10)
+(define-constant market-asset-x-does-not-match-requested-asset-x u11)
+(define-constant market-asset-y-does-not-match-requested-asset-y u11)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -175,3 +185,76 @@
           (err error))
         error
         (err error)))))
+
+;; market implementation
+
+(define-map assets {id: (string-ascii 32)} {asset: principal})
+
+(define-public (register-asset (identifier (string-ascii 32)) (asset <sip-010-token>))
+  (if (map-insert assets {id: identifier} {asset: (contract-of asset)})
+      (ok true)
+      (err asset-identifier-already-in-use)))
+
+(define-map markets {id: (string-ascii 32)} {asset-x: (string-ascii 32),
+                                             asset-y: (string-ascii 32),
+                                             amount-x: uint,
+                                             amount-y: uint,
+                                             liquidity: uint,
+                                             fee: uint})
+
+(define-public (register-market (identifier (string-ascii 32))
+                                (asset-x-id (string-ascii 32))
+                                (asset-x <sip-010-token>)
+                                (asset-y-id (string-ascii 32))
+                                (asset-y <sip-010-token>)
+                                (fee uint))
+  (match (map-get? assets {id: asset-x-id})
+    registered-asset-x
+    (match (map-get? assets {id: asset-y-id})
+      registered-asset-y
+      (begin
+        (asserts! (is-eq {asset: (contract-of asset-x)} registered-asset-x) (err asset-does-not-match-id))
+        (asserts! (is-eq {asset: (contract-of asset-y)} registered-asset-y) (err asset-does-not-match-id))
+        (if (map-insert markets {id: identifier} {asset-x: asset-x-id,
+                                                  asset-y: asset-y-id,
+                                                  amount-x: u0,
+                                                  amount-y: u0,
+                                                  liquidity: u0,
+                                                  fee: fee})
+          (ok true)
+          (err market-identifier-already-in-use)))
+      (err unregistered-asset-identifier))
+    (err unregistered-asset-identifier)))
+
+(define-public (add-liquidity-to-market (market-id (string-ascii 32))
+                                        (asset-x <sip-010-token>)
+                                        (asset-y <sip-010-token>)
+                                        (amount-dx uint))
+  (match (map-get? markets {id: market-id})
+    market
+    (let ((asset-x-id (get asset-x market))
+          (asset-y-id (get asset-y market))
+          (amount-x (get amount-x market))
+          (amount-y (get amount-y market))
+          (liquidity (get liquidity market))
+          (fee (get fee market)))
+      (match (map-get? assets {id: asset-x-id})
+        registered-asset-x
+        (match (map-get? assets {id: asset-y-id})
+          registered-asset-y
+          (begin
+            (asserts! (is-eq {asset: (contract-of asset-x)} registered-asset-x) (err market-asset-x-does-not-match-requested-asset-x))
+            (asserts! (is-eq {asset: (contract-of asset-y)} registered-asset-y) (err market-asset-y-does-not-match-requested-asset-y))
+            (let ((current-market-state {x: amount-x,
+                                         y: amount-y,
+                                         l: liquidity}))
+              (match (add-liquidity current-market-state amount-dx)
+                new-market-state
+                (let ((amount-dy (- (get y new-market-state)
+                                    (get y current-market-state)))
+                      (amount-dl (- (get l new-market-state)
+                                    (get l current-market-state)))))
+                error error)))
+          (err unregistered-asset-identifier)
+        (err unregistered-asset-identifier)))
+    (err unregistered-market-identifier)))
