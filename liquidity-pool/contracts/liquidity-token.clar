@@ -12,29 +12,20 @@
 
 (define-constant number-of-decimals u3)
 
-(define-data-var total-supply uint u0)
+(define-public (transfer (amount uint) (sender principal) (recipient principal))
+  (begin
+    (asserts! (is-eq tx-sender sender) (err not-tx-sender))
+    (ft-transfer? liquidity-token amount sender recipient)))
 
 (define-public (mint (amount uint) (recipient principal))
   (begin
     (asserts! (is-eq tx-sender allowed-minter) (err unauthorized-minter))
-    (match (ft-mint? liquidity-token amount recipient)
-      ok-value
-      (begin
-        (var-set total-supply (+ (var-get total-supply) amount))
-        (ok true))
-      err-value
-      (err err-value))))
+    (ft-mint? liquidity-token amount recipient)))
 
 (define-public (burn (amount uint) (sender principal))
   (begin
     (asserts! (is-eq tx-sender allowed-minter) (err unauthorized-minter))
-    (match (ft-burn? liquidity-token amount sender)
-      ok-value
-      (begin
-        (var-set total-supply (- (var-get total-supply) amount))
-        (ok true))
-      err-value
-      (err err-value))))
+    (ft-burn? liquidity-token amount sender)))
 
 (define-read-only (get-balance-of (from principal))
   (begin
@@ -54,9 +45,4 @@
   (ok (some u"TODO add uri later")))
 
 (define-read-only (get-total-supply)
-  (ok (var-get total-supply)))
-
-(define-public (transfer (amount uint) (sender principal) (recipient principal))
-  (begin
-    (asserts! (is-eq tx-sender sender) (err not-tx-sender))
-    (ft-transfer? liquidity-token amount sender recipient)))
+  (ok (ft-get-supply liquidity-token)))
