@@ -14,7 +14,9 @@
 (define-constant market-identifier-already-in-use u9)
 (define-constant unregistered-market-identifier u10)
 (define-constant market-asset-x-does-not-match-requested-asset-x u11)
-(define-constant market-asset-y-does-not-match-requested-asset-y u11)
+(define-constant market-asset-y-does-not-match-requested-asset-y u12)
+(define-constant liquidity-provider-does-not-have-enough-funds u13)
+(define-constant this-case-should-be-unreachable u14)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -257,8 +259,37 @@
                 (let ((amount-dy (- (get y new-market-state)
                                     (get y current-market-state)))
                       (amount-dl (- (get l new-market-state)
-                                    (get l current-market-state)))))
-                error error)))
-          (err unregistered-asset-identifier)
-        (err unregistered-asset-identifier)))
+                                    (get l current-market-state))))
+                  (match (contract-call? asset-x transfer amount-dx tx-sender this-contract)
+                    ok-asset-x-transfer
+                    (match (contract-call? asset-y transfer amount-dy tx-sender this-contract)
+                      ok-asset-y-transfer
+                      (let ((liquidity-provider tx-sender))
+                        (match (as-contract
+                                 (contract-call? .liquidity-token
+                                                 mint amount-dl liquidity-provider))
+                          ok-mint
+                          (let ((market-provider-id {market-id: market-id,
+                                                    liquidity-provider: tx-sender})
+                                (liquidity-provider-data (default-to {amount-liquidity: u0}
+                                                                     (map-get? market-provider market-provider-id))))
+                            (map-set market-provider market-provider-id
+                                     {amount-liquidity: (+ (get amount-liquidity liquidity-provider-data)
+                                                           amount-dl)})
+                            (map-set markets {id: market-id} {asset-x: asset-x-id,
+                                                              asset-y: asset-y-id,
+                                                              amount-x: (get x new-market-state),
+                                                              amount-y: (get y new-market-state),
+                                                              liquidity: (get l new-market-state),
+                                                              fee: fee})
+                            (ok amount-dl))
+                          err-mint
+                          (err this-case-should-be-unreachable)))
+                      err-asset-y-transfer
+                      (err liquidity-provider-does-not-have-enough-funds))
+                    err-asset-x-transfer
+                    (err liquidity-provider-does-not-have-enough-funds)))
+                error (err error))))
+          (err this-case-should-be-unreachable))
+        (err this-case-should-be-unreachable)))
     (err unregistered-market-identifier)))
