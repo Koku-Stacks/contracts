@@ -202,6 +202,10 @@
                                              liquidity: uint,
                                              fee: uint})
 
+(define-map market-provider {market-id: (string-ascii 32),
+                             liquidity-provider: principal}
+                            {amount-liquidity: uint})
+
 (define-public (register-market (identifier (string-ascii 32))
                                 (asset-x-id (string-ascii 32))
                                 (asset-x <sip-010-token>)
