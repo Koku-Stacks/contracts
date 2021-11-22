@@ -1,4 +1,4 @@
-(impl-trait 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sip-010-v0a.ft-trait)
+(impl-trait .sip-010-v0a.ft-trait)
 
 ;; liquidity-token
 ;; a fungible token to represent liquidity inside a market
@@ -6,7 +6,7 @@
 (define-constant not-tx-sender u1)
 (define-constant unauthorized-minter u2)
 
-(define-constant allowed-minter 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.liquidity-pool)
+(define-constant allowed-minter .liquidity-pool)
 
 (define-fungible-token liquidity-token)
 
