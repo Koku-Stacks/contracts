@@ -4,7 +4,7 @@ requirements = []
 costs_version = 1
 [contracts.liquidity-pool]
 path = "contracts/liquidity-pool.clar"
-depends_on = ["sip-010-v0a"]
+depends_on = ["sip-010-v0a", "liquidity-token"]
 
 [contracts.liquidity-token]
 path = "contracts/liquidity-token.clar"
