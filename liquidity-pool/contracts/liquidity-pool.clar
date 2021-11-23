@@ -18,6 +18,7 @@
 (define-constant liquidity-provider-does-not-have-enough-funds u13)
 (define-constant this-case-should-be-unreachable u14)
 (define-constant liquidity-provider-does-not-have-enough-liquidity-tokens u15)
+(define-constant liquidity-sender-does-not-have-enough-liquidity-tokens u16)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -359,3 +360,30 @@
           (err this-case-should-be-unreachable))
         (err this-case-should-be-unreachable)))
     (err unregistered-market-identifier)))
+
+(define-public (transfer-market-liquidity (market-id (string-ascii 32))
+                                          (sender principal)
+                                          (recipient principal)
+                                          (amount-dl uint))
+  (let ((market-sender-id {market-id: market-id,
+                           liquidity-provider: sender})
+        (market-recipient-id {market-id: market-id,
+                              liquidity-provider: recipient})
+        (liquidity-sender-data (default-to {amount-liquidity: u0}
+                                           (map-get? market-provider market-sender-id)))
+        (liquidity-recipient-data (default-to {amount-liquidity: u0}
+                                              (map-get? market-provider market-recipient-id))))
+    (asserts! (is-some (map-get? markets {id: market-id})) (err unregistered-market-identifier))
+    (asserts! (<= amount-dl (get amount-liquidity liquidity-sender-data)) (err liquidity-sender-does-not-have-enough-liquidity-tokens))
+    (match (as-contract
+             (contract-call? .liquidity-token
+                             transfer amount-dl sender recipient))
+      ok-transfer
+      (begin
+        (map-set market-provider market-sender-id
+                 {amount-liquidity: (- (get amount-liquidity liquidity-sender-data) amount-dl)})
+        (map-set market-provider market-recipient-id
+                 {amount-liquidity: (+ (get amount-liquidity liquidity-recipient-data) amount-dl)})
+        (ok amount-dl))
+      err-transfer
+      (err err-transfer))))
