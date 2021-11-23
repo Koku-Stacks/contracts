@@ -17,6 +17,7 @@
 (define-constant market-asset-y-does-not-match-requested-asset-y u12)
 (define-constant liquidity-provider-does-not-have-enough-funds u13)
 (define-constant this-case-should-be-unreachable u14)
+(define-constant liquidity-provider-does-not-have-enough-liquidity-tokens u15)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -270,7 +271,7 @@
                                                  mint amount-dl liquidity-provider))
                           ok-mint
                           (let ((market-provider-id {market-id: market-id,
-                                                    liquidity-provider: tx-sender})
+                                                     liquidity-provider: tx-sender})
                                 (liquidity-provider-data (default-to {amount-liquidity: u0}
                                                                      (map-get? market-provider market-provider-id))))
                             (map-set market-provider market-provider-id
@@ -289,6 +290,71 @@
                       (err liquidity-provider-does-not-have-enough-funds))
                     err-asset-x-transfer
                     (err liquidity-provider-does-not-have-enough-funds)))
+                error (err error))))
+          (err this-case-should-be-unreachable))
+        (err this-case-should-be-unreachable)))
+    (err unregistered-market-identifier)))
+
+(define-public (remove-liquidity-from-market (market-id (string-ascii 32))
+                                             (asset-x <sip-010-token>)
+                                             (asset-y <sip-010-token>)
+                                             (amount-dl uint))
+  (match (map-get? markets {id: market-id})
+    market
+    (let ((asset-x-id (get asset-x market))
+          (asset-y-id (get asset-y market))
+          (amount-x (get amount-x market))
+          (amount-y (get amount-y market))
+          (liquidity (get liquidity market))
+          (fee (get fee market)))
+      (match (map-get? assets {id: asset-x-id})
+        registered-asset-x
+        (match (map-get? assets {id: asset-y-id})
+          registered-asset-y
+          (begin
+            (asserts! (is-eq {asset: (contract-of asset-x)} registered-asset-x) (err market-asset-x-does-not-match-requested-asset-x))
+            (asserts! (is-eq {asset: (contract-of asset-y)} registered-asset-y) (err market-asset-y-does-not-match-requested-asset-y))
+            (let ((current-market-state {x: amount-x,
+                                         y: amount-y,
+                                         l: liquidity}))
+              (match (remove-liquidity current-market-state amount-dl)
+                new-market-state
+                (let ((amount-dx (- (get x current-market-state)
+                                    (get x new-market-state)))
+                      (amount-dy (- (get y current-market-state)
+                                    (get y new-market-state))))
+                  (let ((liquidity-provider tx-sender)
+                        (market-provider-id {market-id: market-id,
+                                             liquidity-provider: liquidity-provider})
+                        (liquidity-provider-data (default-to {amount-liquidity: u0}
+                                                             (map-get? market-provider market-provider-id))))
+                    (if (<= amount-dl (get amount-liquidity liquidity-provider-data))
+                      (match (as-contract
+                               (contract-call? .liquidity-token
+                                               burn amount-dl liquidity-provider))
+                        ok-burn
+                        (match (contract-call? asset-x transfer amount-dx this-contract tx-sender)
+                          ok-asset-x-transfer
+                          (match (contract-call? asset-y transfer amount-dy this-contract tx-sender)
+                            ok-asset-y-transfer
+                            (begin
+                              (map-set market-provider market-provider-id
+                                       {amount-liquidity: (- (get amount-liquidity liquidity-provider-data)
+                                                             amount-dl)})
+                              (map-set markets {id: market-id} {asset-x: asset-x-id,
+                                                                asset-y: asset-y-id,
+                                                                amount-x: (get x new-market-state),
+                                                                amount-y: (get y new-market-state),
+                                                                liquidity: (get l new-market-state),
+                                                                fee: fee})
+                              (ok amount-dl))
+                            err-asset-y-transfer
+                            (err this-case-should-be-unreachable))
+                          err-asset-x-transfer
+                          (err this-case-should-be-unreachable))
+                        err-burn
+                        (err this-case-should-be-unreachable))
+                      (err liquidity-provider-does-not-have-enough-liquidity-tokens))))
                 error (err error))))
           (err this-case-should-be-unreachable))
         (err this-case-should-be-unreachable)))

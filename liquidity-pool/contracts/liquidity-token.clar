@@ -5,8 +5,10 @@
 
 (define-constant not-tx-sender u1)
 (define-constant unauthorized-minter u2)
+(define-constant unauthorized-burner u3)
+(define-constant unauthorized-transferer u4)
 
-(define-constant allowed-minter .liquidity-pool)
+(define-constant allowed-user .liquidity-pool)
 
 (define-fungible-token liquidity-token)
 
@@ -14,17 +16,17 @@
 
 (define-public (transfer (amount uint) (sender principal) (recipient principal))
   (begin
-    (asserts! (is-eq tx-sender sender) (err not-tx-sender))
+    (asserts! (is-eq tx-sender allowed-user) (err unauthorized-transferer))
     (ft-transfer? liquidity-token amount sender recipient)))
 
 (define-public (mint (amount uint) (recipient principal))
   (begin
-    (asserts! (is-eq tx-sender allowed-minter) (err unauthorized-minter))
+    (asserts! (is-eq tx-sender allowed-user) (err unauthorized-minter))
     (ft-mint? liquidity-token amount recipient)))
 
 (define-public (burn (amount uint) (sender principal))
   (begin
-    (asserts! (is-eq tx-sender allowed-minter) (err unauthorized-minter))
+    (asserts! (is-eq tx-sender allowed-user) (err unauthorized-burner))
     (ft-burn? liquidity-token amount sender)))
 
 (define-read-only (get-balance-of (from principal))
