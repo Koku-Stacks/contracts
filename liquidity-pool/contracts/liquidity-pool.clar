@@ -19,11 +19,12 @@
 (define-constant this-case-should-be-unreachable u14)
 (define-constant liquidity-provider-does-not-have-enough-liquidity-tokens u15)
 (define-constant liquidity-sender-does-not-have-enough-liquidity-tokens u16)
+(define-constant not-enough-amount-dx-provided u17)
+(define-constant not-enough-amount-dy-provided u18)
+(define-constant user-does-not-have-enough-asset-x u19)
+(define-constant user-does-not-have-enough-asset-y u20)
 
 (define-constant this-contract (as-contract tx-sender))
-
-(define-read-only (contract-principal)
-  this-contract)
 
 ;; this is based on https://github.com/runtimeverification/verified-smart-contracts/blob/uniswap/uniswap/x-y-k.pdf
 
@@ -387,3 +388,133 @@
         (ok amount-dl))
       err-transfer
       (err err-transfer))))
+
+(define-public (swap-x-to-y (market-id (string-ascii 32))
+                            (asset-x <sip-010-token>)
+                            (asset-y <sip-010-token>)
+                            (amount-dx uint))
+  (match (map-get? markets {id: market-id})
+    market
+    (let ((asset-x-id (get asset-x market))
+          (asset-y-id (get asset-y market))
+          (amount-x (get amount-x market))
+          (amount-y (get amount-y market))
+          (liquidity (get liquidity market))
+          (fee (get fee market)))
+      (match (map-get? assets {id: asset-x-id})
+        registered-asset-x
+        (match (map-get? assets {id: asset-y-id})
+          registered-asset-y
+          (begin
+            (asserts! (is-eq {asset: (contract-of asset-x)} registered-asset-x) (err market-asset-x-does-not-match-requested-asset-x))
+            (asserts! (is-eq {asset: (contract-of asset-y)} registered-asset-y) (err market-asset-y-does-not-match-requested-asset-y))
+            (let ((current-market-state {x: amount-x,
+                                         y: amount-y,
+                                         l: liquidity})
+                  (decimals-x (try! (contract-call? asset-x get-decimals)))
+                  (decimals-y (try! (contract-call? asset-y get-decimals)))
+                  (y-less-precise-than-x (< decimals-y decimals-x))
+                  (decimals-diff (if y-less-precise-than-x
+                                   (- decimals-x decimals-y)
+                                   (- decimals-y decimals-x)))
+                  (min-amount-dx (if y-less-precise-than-x
+                                   (pow u10 decimals-diff)
+                                   u1))
+                  (min-amount-dy (if y-less-precise-than-x
+                                   u1
+                                   (pow u10 decimals-diff)))
+                  (unit (pow u10 (if y-less-precise-than-x
+                                   decimals-y
+                                   decimals-x))))
+              (asserts! (>= amount-dx min-amount-dx) (err not-enough-amount-dx-provided))
+              (match (x-to-y current-market-state amount-dx fee unit)
+                new-market-state
+                (let ((amount-dy (* min-amount-dy
+                                    (- (get y current-market-state)
+                                       (get y new-market-state)))))
+                  (match (contract-call? asset-x transfer amount-dx tx-sender this-contract)
+                    ok-asset-x-transfer
+                    (match (contract-call? asset-y transfer amount-dy this-contract tx-sender)
+                      ok-asset-y-transfer
+                      (begin
+                        (map-set markets {id: market-id} {asset-x: asset-x-id,
+                                                          asset-y: asset-y-id,
+                                                          amount-x: (get x new-market-state),
+                                                          amount-y: (get y new-market-state),
+                                                          liquidity: liquidity,
+                                                          fee: fee})
+                        (ok amount-dy))
+                      err-asset-y-transfer
+                      (err this-case-should-be-unreachable))
+                    err-asset-x-transfer
+                    (err user-does-not-have-enough-asset-x)))
+                error
+                (err error))))
+          (err this-case-should-be-unreachable))
+        (err this-case-should-be-unreachable)))
+    (err unregistered-market-identifier)))
+
+(define-public (swap-y-to-x (market-id (string-ascii 32))
+                            (asset-x <sip-010-token>)
+                            (asset-y <sip-010-token>)
+                            (amount-dy uint))
+  (match (map-get? markets {id: market-id})
+    market
+    (let ((asset-x-id (get asset-x market))
+          (asset-y-id (get asset-y market))
+          (amount-x (get amount-x market))
+          (amount-y (get amount-y market))
+          (liquidity (get liquidity market))
+          (fee (get fee market)))
+      (match (map-get? assets {id: asset-x-id})
+        registered-asset-x
+        (match (map-get? assets {id: asset-y-id})
+          registered-asset-y
+          (begin
+            (asserts! (is-eq {asset: (contract-of asset-x)} registered-asset-x) (err market-asset-x-does-not-match-requested-asset-x))
+            (asserts! (is-eq {asset: (contract-of asset-y)} registered-asset-y) (err market-asset-y-does-not-match-requested-asset-y))
+            (let ((current-inverse-market-state {x: amount-y,
+                                                 y: amount-x,
+                                                 l: liquidity})
+                  (decimals-x (try! (contract-call? asset-x get-decimals)))
+                  (decimals-y (try! (contract-call? asset-y get-decimals)))
+                  (y-less-precise-than-x (< decimals-y decimals-x))
+                  (decimals-diff (if y-less-precise-than-x
+                                   (- decimals-x decimals-y)
+                                   (- decimals-y decimals-x)))
+                  (min-amount-dx (if y-less-precise-than-x
+                                   (pow u10 decimals-diff)
+                                   u1))
+                  (min-amount-dy (if y-less-precise-than-x
+                                   u1
+                                   (pow u10 decimals-diff)))
+                  (unit (pow u10 (if y-less-precise-than-x
+                                   decimals-y
+                                   decimals-x))))
+              (asserts! (>= amount-dy min-amount-dy) (err not-enough-amount-dy-provided))
+              (match (x-to-y current-inverse-market-state amount-dy fee unit)
+                new-inverse-market-state
+                (let ((amount-dx (* min-amount-dx
+                                    (- (get y current-inverse-market-state)
+                                       (get y new-inverse-market-state)))))
+                  (match (contract-call? asset-y transfer amount-dy tx-sender this-contract)
+                    ok-asset-y-transfer
+                    (match (contract-call? asset-x transfer amount-dx this-contract tx-sender)
+                      ok-asset-x-transfer
+                      (begin
+                        (map-set markets {id: market-id} {asset-x: asset-x-id,
+                                                          asset-y: asset-y-id,
+                                                          amount-x: (get y new-inverse-market-state),
+                                                          amount-y: (get x new-inverse-market-state),
+                                                          liquidity: liquidity,
+                                                          fee: fee})
+                        (ok amount-dx))
+                      err-asset-x-trasnfer
+                      (err this-case-should-be-unreachable))
+                    err-asset-y-transfer
+                    (err user-does-not-have-enough-asset-y)))
+                error
+                (err error))))
+          (err this-case-should-be-unreachable))
+        (err this-case-should-be-unreachable)))
+    (err unregistered-market-identifier)))
