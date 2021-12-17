@@ -1,0 +1,99 @@
+* Requests :verb:
+
+  template https://stacks-node-api.testnet.stacks.co/
+
+** v1 endpoints
+
+   template /extended/v1
+
+*** status endpoint
+
+    get /status
+
+*** info endpoint
+
+    template /info
+
+**** network block times
+
+     get /network_block_times
+
+*** faucets
+
+    # these seem to always give a fixed amount, as there is no
+    # parameter regarding amount.
+
+    template /faucets
+
+**** stx
+
+
+     post /stx?address=ST2MS242NQPHMPNQRJ5YZDZQZQDVBBC14J8XM3JT7
+
+**** btc
+
+     post /btc?address=aaa
+
+*** transactions endpoint
+
+    template /tx
+
+**** limit
+
+     get ?limit=1
+
+**** type
+
+     get ?type=smart_contract
+
+**** get transaction by id
+
+     get /8cdf9b99f4e3986eca6a2e152db5469aafb5b0abaee5814252a1d43e2b30c19c
+
+*** contracts endpoint
+
+    template /contract
+
+**** info by id
+
+     get /ST2MS242NQPHMPNQRJ5YZDZQZQDVBBC14J8XM3JT7.testing
+
+*** address endpoint
+
+    get /address/ST2MS242NQPHMPNQRJ5YZDZQZQDVBBC14J8XM3JT7
+
+**** get balances
+
+     get /balances
+
+**** get transactions
+
+     get /transactions
+
+**** get assets
+
+     get /assets
+
+** v2 endpoints
+
+   template /v2
+
+*** info endpoint
+
+   get /info
+
+*** fess endpoint
+
+   template /fees
+
+**** transfer fee
+
+     get /transfer
+
+**** transaction fee
+
+     get /transaction
+
+*** accounts endpoint
+
+   get /accounts
