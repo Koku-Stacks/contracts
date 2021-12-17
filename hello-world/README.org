@@ -1,3 +1,0 @@
-* Hello World
-
-  This repo contains code created by following https://github.com/clarity-lang/overview/blob/master/tutorial-hello-world.md.
