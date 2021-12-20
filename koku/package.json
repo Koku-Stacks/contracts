@@ -1,11 +1,11 @@
 {
-  "name": "liquidity-pool-v02",
+  "name": "koku",
   "version": "0.0.0",
   "author": {
     "name": "Luiz Alberto do Carmo Viana",
     "email": "luizalbertocviana@gmail.com"
   },
-  "repository": "https://github.com/luizalbertocviana/liquidity-pool-v02.git",
+  "repository": "https://github.com/koku-network/testnet.git",
   "private": true,
   "engines": {
     "node": ">=10"
