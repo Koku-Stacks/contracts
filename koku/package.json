@@ -11,9 +11,9 @@
     "node": ">=10"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "clarinet test",
     "test:watch": "mocha --watch",
-    "deploy": "ts-node deploy.ts"
+    "deploy": "ts-node scripts/script_deploy.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
