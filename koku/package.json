@@ -12,7 +12,6 @@
   },
   "scripts": {
     "test": "clarinet test",
-    "test:watch": "mocha --watch",
     "deploy": "ts-node scripts/script_deploy.ts"
   },
   "devDependencies": {
