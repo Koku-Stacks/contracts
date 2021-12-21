@@ -4,10 +4,9 @@
 (impl-trait .sip-010-v0a.ft-trait)
 
 (define-constant unauthorized-minter u100)
-(define-constant unauthorized-burner u101)
-(define-constant unauthorized-transfer u102)
-(define-constant unauthorized-allowance-query u103)
-(define-constant attempt-to-decrease-inexistent-allowance u104)
+(define-constant unauthorized-transfer u101)
+(define-constant unauthorized-allowance-query u102)
+(define-constant attempt-to-decrease-inexistent-allowance u103)
 
 (define-constant contract-owner tx-sender)
 
@@ -20,7 +19,6 @@
 
 (define-public (burn (amount uint))
   (begin
-    (asserts! (is-eq tx-sender contract-owner) (err unauthorized-burner))
     (ft-burn? token amount tx-sender)))
 
 (define-map approvals {approver: principal, approvee: principal} {amount: uint})
