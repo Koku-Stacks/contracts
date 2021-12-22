@@ -1,6 +1,7 @@
 * Requests :verb:
 
   template https://stacks-node-api.testnet.stacks.co/
+  # template http://localhost:20443
 
 ** v1 endpoints
 

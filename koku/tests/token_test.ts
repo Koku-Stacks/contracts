@@ -23,7 +23,6 @@ Clarinet.test({
     name: "Ensure mint and burn functions work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const unauthorizedMinter = 100;
-        const unauthorizedBurner = 101;
 
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
@@ -51,14 +50,12 @@ Clarinet.test({
 
         const block2 = chain.mineBlock([
             Tx.contractCall('token', 'burn', [types.uint(10)], deployer.address),
-            Tx.contractCall('token', 'burn', [types.uint(10)], wallet1.address),
             Tx.contractCall('token', 'burn', [types.uint(0)], deployer.address)
         ]);
 
-        const [goodBurnCall, badBurnCall, zeroBurnCall] = block2.receipts;
+        const [goodBurnCall, zeroBurnCall] = block2.receipts;
 
         goodBurnCall.result.expectOk().expectBool(true);
-        badBurnCall.result.expectErr().expectUint(unauthorizedBurner);
         zeroBurnCall.result.expectErr().expectUint(1);
 
         deployerBalance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(deployer.address)], deployer.address);
@@ -72,9 +69,9 @@ Clarinet.test({
 Clarinet.test({
     name: "Ensure transfer facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const unauthorizedTransfer = 102;
-        const unauthorizedAllowanceQuery = 103;
-        const attemptToDecreaseInexistentAllowance = 104;
+        const unauthorizedTransfer = 101;
+        const unauthorizedAllowanceQuery = 102;
+        const attemptToDecreaseInexistentAllowance = 103;
 
         const deployer = accounts.get('deployer')!;
 

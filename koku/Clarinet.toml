@@ -1,15 +1,19 @@
 [project]
-name = "liquidity-pool"
+name = "koku"
 requirements = []
 costs_version = 1
 [contracts.liquidity-pool]
-path = "contracts/liquidity-pool.clar"
+path = "draft/liquidity-pool.clar"
 depends_on = ["sip-010-v0a", "liquidity-token"]
 
 [contracts.liquidity-token]
-path = "contracts/liquidity-token.clar"
+path = "draft/liquidity-token.clar"
 depends_on = ["sip-010-v0a"]
 
 [contracts.sip-010-v0a]
 path = "contracts/sip-010-v0a.clar"
 depends_on = []
+
+[contracts.token]
+path = "contracts/token.clar"
+depends_on = ["sip-010-v0a"]
