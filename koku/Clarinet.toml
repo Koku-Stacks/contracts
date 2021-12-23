@@ -17,3 +17,7 @@ depends_on = []
 [contracts.token]
 path = "contracts/token.clar"
 depends_on = ["sip-010-v0a"]
+
+[contracts.hello-world]
+path = "contracts/hello-world.clar"
+depends_on = []
