@@ -23,7 +23,7 @@ In order to properly use this repository, an installation of `node` is required 
 
 ## Development environment
 
-It is adivisable to use VSCode for editing Clarity smart contracts, as this is the text editor officially supported by the Clarity language server (https://github.com/hirosystems/clarity-lsp). Once VSCode is installed, add the extension `Clarity for Visual Studio Code` to it.
+It is adivisable to use VSCode for editing Clarity smart contracts, as this is the text editor officially supported by the Clarity language server (https://github.com/hirosystems/clarity-lsp). Once VSCode is installed, add the extension `Clarity for Visual Studio Code` to it. Another useful extension is `Rainbow Brackets`, as Clarity is a LISP language.
 
 Tests are based on the `clarinet` unit test framework, which is powered by `deno`. So, in order to have a good editor support for writing them, add the `Deno` extension to VSCode, which depends on a proper installation of `deno`. A `deno` binary can be downloaded from the releases section of its github page (https://github.com/denoland/deno).
 
