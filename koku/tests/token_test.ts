@@ -179,3 +179,44 @@ Clarinet.test({
         allowanceQuery5.result.expectOk().expectUint(5);
     }
 });
+
+Clarinet.test({
+    name: "Not enough balance for transfer",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const notEnoughBalanceErr = 1;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+        const wallet2 = accounts.get('wallet_2')!;
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(50), types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [mintCallToOtherWallet] = block1.receipts;
+
+        mintCallToOtherWallet.result.expectOk().expectBool(true);
+
+        const supply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(50);
+
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(50);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(50), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
+        ]);
+
+        const [goodTransferCall, notEnoughBalance] = block2.receipts;
+
+        goodTransferCall.result.expectOk().expectBool(true);
+        notEnoughBalance.result.expectErr().expectUint(notEnoughBalanceErr);
+
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(40);
+
+        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet2.address)], wallet2.address);
+        wallet2Balance.result.expectOk().expectUint(10);
+    }
+});
