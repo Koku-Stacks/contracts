@@ -7,14 +7,26 @@
 (define-constant unauthorized-transfer u101)
 (define-constant unauthorized-allowance-query u102)
 (define-constant attempt-to-decrease-inexistent-allowance u103)
+(define-constant unauthorized-ownership-transfer u104)
+(define-constant attempt-to-transfer-ownership-to-owner u105)
 
-(define-constant contract-owner tx-sender)
+(define-data-var contract-owner principal tx-sender)
+
+(define-read-only (get-contract-owner)
+  (var-get contract-owner))
+
+(define-public (transfer-ownership (new-owner principal))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) (err unauthorized-ownership-transfer))
+    (asserts! (not (is-eq new-owner (var-get contract-owner))) (err attempt-to-transfer-ownership-to-owner))
+    (var-set contract-owner new-owner)
+    (ok true)))
 
 (define-fungible-token token)
 
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-eq tx-sender contract-owner) (err unauthorized-minter))
+    (asserts! (is-eq tx-sender (var-get contract-owner)) (err unauthorized-minter))
     (ft-mint? token amount to)))
 
 (define-public (burn (amount uint))
