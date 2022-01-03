@@ -1,6 +1,49 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
 Clarinet.test({
+    name: "Ensure the ownership related functions work as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const unauthorizedOwnershipTransfer = 104;
+        const attemptToTransferOwnershipToOwner = 105;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let contractOwner = chain.callReadOnlyFn('token', 'get-contract-owner', [], wallet1.address);
+        contractOwner.result.expectPrincipal(deployer.address);
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token', 'transfer-ownership', [types.principal(deployer.address)], deployer.address),
+            Tx.contractCall('token', 'transfer-ownership', [types.principal(wallet1.address)], wallet1.address)
+        ]);
+
+        const [badOwnershipTransferCall1, badOwnershipTransferCall2] = block1.receipts;
+
+        badOwnershipTransferCall1.result.expectErr().expectUint(attemptToTransferOwnershipToOwner);
+        badOwnershipTransferCall2.result.expectErr().expectUint(unauthorizedOwnershipTransfer);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token', 'transfer-ownership', [types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [goodOwnershipTransferCall1] = block2.receipts;
+
+        goodOwnershipTransferCall1.result.expectOk().expectBool(true);
+        contractOwner = chain.callReadOnlyFn('token', 'get-contract-owner', [], wallet1.address);
+        contractOwner.result.expectPrincipal(wallet1.address);
+
+        const block3 = chain.mineBlock([
+            Tx.contractCall('token', 'transfer-ownership', [types.principal(deployer.address)], wallet1.address)
+        ]);
+
+        const [goodOwnershipTransferCall2] = block3.receipts;
+        goodOwnershipTransferCall2.result.expectOk().expectBool(true);
+        contractOwner = chain.callReadOnlyFn('token', 'get-contract-owner', [], wallet1.address);
+        contractOwner.result.expectPrincipal(deployer.address);
+    }
+});
+
+Clarinet.test({
     name: "Ensure the constant read only functions are returning as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
