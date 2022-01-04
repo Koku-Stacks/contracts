@@ -24,11 +24,10 @@
 (define-map approvals {approver: principal, approvee: principal} {amount: uint})
 
 (define-private (approved-transfer? (from principal) (amount uint))
-  (or (is-eq tx-sender from)
-      (match (map-get? approvals {approver: from, approvee: tx-sender})
-        approved-amount-tuple
-        (<= amount (get amount approved-amount-tuple))
-        false)))
+  (match (map-get? approvals {approver: from, approvee: tx-sender})
+    approved-amount-tuple
+    (<= amount (get amount approved-amount-tuple))
+    false))
 
 (define-private (update-approval (from principal) (transferred-amount uint))
   (let ((approval-tuple {approver: from, approvee: tx-sender}))
