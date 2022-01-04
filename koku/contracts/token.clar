@@ -7,8 +7,19 @@
 (define-constant unauthorized-transfer u101)
 (define-constant unauthorized-allowance-query u102)
 (define-constant attempt-to-decrease-inexistent-allowance u103)
+(define-constant unauthorized-uri-update u104)
 
 (define-constant contract-owner tx-sender)
+
+(define-data-var token-uri (optional (string-utf8 64)) none)
+
+(define-public (set-token-uri (new-uri (string-utf8 64)))
+  (begin
+    (asserts! (is-eq tx-sender contract-owner) (err unauthorized-uri-update))
+    (ok (var-set token-uri (some new-uri)))))
+
+(define-read-only (get-token-uri)
+  (ok (var-get token-uri)))
 
 (define-fungible-token token)
 
@@ -88,6 +99,3 @@
 
 (define-read-only (get-total-supply)
   (ok (ft-get-supply token)))
-
-(define-read-only (get-token-uri)
-  (ok (some u"www.token.com")))
