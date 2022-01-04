@@ -38,14 +38,19 @@
 
 (define-public (transfer (amount uint) (from principal) (to principal))
   (begin
+    (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
+    (match (ft-transfer? token amount from to)
+      ok-transfer
+      (ok true)
+      err-transfer
+      (err err-transfer))))
+
+(define-public (transfer-from (amount uint) (from principal) (to principal))
+  (begin
     (asserts! (approved-transfer? from amount) (err unauthorized-transfer))
     (match (ft-transfer? token amount from to)
       ok-transfer
-      (if (not (is-eq from tx-sender))
-        (begin
-          (update-approval from amount)
-          (ok true))
-        (ok true))
+      (ok (update-approval from amount))
       err-transfer
       (err err-transfer))))
 
