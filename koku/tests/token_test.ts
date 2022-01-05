@@ -5,41 +5,93 @@ Clarinet.test({
     fn(chain: Chain, accounts: Map<string, Account>) {
         const unauthorizedOwnershipTransfer = 104;
         const attemptToTransferOwnershipToOwner = 105;
+        const noOwnershipTransferSubmitted = 106;
+        const unauthorizedOwnershipTransferConfirmation = 107;
+        const unauthorizedOnwershipTransferCancellation = 108;
+        const previousOwnershipTransferSubmissionNotCancelled = 109;
 
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
+        const wallet2 = accounts.get('wallet_2')!;
 
         let contractOwner = chain.callReadOnlyFn('token', 'get-contract-owner', [], wallet1.address);
         contractOwner.result.expectPrincipal(deployer.address);
 
         const block1 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer-ownership', [types.principal(deployer.address)], deployer.address),
-            Tx.contractCall('token', 'transfer-ownership', [types.principal(wallet1.address)], wallet1.address)
+            Tx.contractCall('token', 'submit-ownership-transfer', [types.principal(deployer.address)], deployer.address),
+            Tx.contractCall('token', 'submit-ownership-transfer', [types.principal(wallet1.address)], wallet1.address)
         ]);
 
-        const [badOwnershipTransferCall1, badOwnershipTransferCall2] = block1.receipts;
+        const [badOwnershipTransferSubmissionCall1, badOwnershipTransferSubmissionCall2] = block1.receipts;
 
-        badOwnershipTransferCall1.result.expectErr().expectUint(attemptToTransferOwnershipToOwner);
-        badOwnershipTransferCall2.result.expectErr().expectUint(unauthorizedOwnershipTransfer);
+        badOwnershipTransferSubmissionCall1.result.expectErr().expectUint(attemptToTransferOwnershipToOwner);
+        badOwnershipTransferSubmissionCall2.result.expectErr().expectUint(unauthorizedOwnershipTransfer);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer-ownership', [types.principal(wallet1.address)], deployer.address)
+            Tx.contractCall('token', 'submit-ownership-transfer', [types.principal(wallet2.address)], deployer.address)
         ]);
 
-        const [goodOwnershipTransferCall1] = block2.receipts;
+        const [goodOwnershipTransferSubmissionCall1] = block2.receipts;
 
-        goodOwnershipTransferCall1.result.expectOk().expectBool(true);
-        contractOwner = chain.callReadOnlyFn('token', 'get-contract-owner', [], wallet1.address);
-        contractOwner.result.expectPrincipal(wallet1.address);
+        goodOwnershipTransferSubmissionCall1.result.expectOk().expectBool(true);
 
         const block3 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer-ownership', [types.principal(deployer.address)], wallet1.address)
+            Tx.contractCall('token', 'submit-ownership-transfer', [types.principal(wallet1.address)], deployer.address)
         ]);
 
-        const [goodOwnershipTransferCall2] = block3.receipts;
-        goodOwnershipTransferCall2.result.expectOk().expectBool(true);
+        const [badOwnershipTransferSubmissionCall3] = block3.receipts;
+        badOwnershipTransferSubmissionCall3.result.expectErr().expectUint(previousOwnershipTransferSubmissionNotCancelled);
+
+        const block4 = chain.mineBlock([
+            Tx.contractCall('token', 'cancel-ownership-transfer', [], wallet1.address)
+        ]);
+
+        const [badCancelOwnershipTransferCall] = block4.receipts;
+
+        badCancelOwnershipTransferCall.result.expectErr().expectUint(unauthorizedOnwershipTransferCancellation);
+
+        const block5 = chain.mineBlock([
+            Tx.contractCall('token', 'cancel-ownership-transfer', [], deployer.address)
+        ]);
+
+        const [goodCancelOwnershipTransferCall] = block5.receipts;
+
+        goodCancelOwnershipTransferCall.result.expectOk().expectBool(true);
+
+        const block6 = chain.mineBlock([
+            Tx.contractCall('token', 'confirm-ownership-transfer', [], deployer.address)
+        ]);
+
+        const [badConfirmOwnershipTransferCall1] = block6.receipts;
+
+        badConfirmOwnershipTransferCall1.result.expectErr().expectUint(noOwnershipTransferSubmitted);
+
+        const block7 = chain.mineBlock([
+            Tx.contractCall('token', 'submit-ownership-transfer', [types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [goodOwnershipTransferSubmissionCall2] = block7.receipts;
+
+        goodOwnershipTransferSubmissionCall2.result.expectOk().expectBool(true);
+
+        const block8 = chain.mineBlock([
+            Tx.contractCall('token', 'confirm-ownership-transfer', [], deployer.address)
+        ]);
+
+        const [badConfirmOwnershipTransferCall2] = block8.receipts;
+
+        badConfirmOwnershipTransferCall2.result.expectErr().expectUint(unauthorizedOwnershipTransferConfirmation);
+
+        const block9 = chain.mineBlock([
+            Tx.contractCall('token', 'confirm-ownership-transfer', [], wallet1.address)
+        ]);
+
+        const [goodConfirmOwnershipTransferCall] = block9.receipts;
+
+        goodConfirmOwnershipTransferCall.result.expectOk().expectBool(true);
+
         contractOwner = chain.callReadOnlyFn('token', 'get-contract-owner', [], wallet1.address);
-        contractOwner.result.expectPrincipal(deployer.address);
+        contractOwner.result.expectPrincipal(wallet1.address);
     }
 });
 
