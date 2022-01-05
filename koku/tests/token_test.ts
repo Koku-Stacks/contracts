@@ -46,7 +46,7 @@ Clarinet.test({
 Clarinet.test({
     name: "Ensure the token uri facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const unauthorizedUriUpdate = 104;
+        const unauthorizedUriUpdate = 110;
 
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
