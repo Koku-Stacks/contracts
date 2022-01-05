@@ -1,12 +1,44 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
 Clarinet.test({
+    name: "Ensure the token uri facilities work as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const unauthorizedUriUpdate = 104;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let uri = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
+        uri.result.expectOk().expectNone();
+
+        const newUri = 'www.token.com';
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
+        ]);
+
+        const [goodSetTokenUriCall] = block1.receipts;
+        goodSetTokenUriCall.result.expectOk().expectBool(true);
+
+        let uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token', 'set-token-uri', [types.utf8('www.bad.com')], wallet1.address)
+        ]);
+
+        const [badSetTokenUriCall] = block2.receipts;
+        badSetTokenUriCall.result.expectErr().expectUint(unauthorizedUriUpdate);
+
+        uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+    }
+});
+
+Clarinet.test({
     name: "Ensure the constant read only functions are returning as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
-
-        const uri = chain.callReadOnlyFn('token', 'get-token-uri', [], deployer.address);
-        uri.result.expectOk().expectSome().expectUtf8('www.token.com');
 
         const decimals = chain.callReadOnlyFn('token', 'get-decimals', [], deployer.address);
         decimals.result.expectOk().expectUint(2);
