@@ -174,16 +174,16 @@ Clarinet.test({
         badAllowanceQuery.result.expectErr().expectUint(unauthorizedAllowanceQuery);
 
         const block4 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet1.address),
-            Tx.contractCall('token', 'transfer', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet2.address),
-            Tx.contractCall('token', 'transfer', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet4.address)
+            Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet1.address),
+            Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet2.address),
+            Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet4.address)
         ]);
 
-        const [goodTransferCall3, goodTransferCall4, badTransferCall2] = block4.receipts;
+        const [goodTransferFromCall1, goodTransferFromCall2, badTransferFromCall] = block4.receipts;
 
-        goodTransferCall3.result.expectOk().expectBool(true);
-        goodTransferCall4.result.expectOk().expectBool(true);
-        badTransferCall2.result.expectErr().expectUint(unauthorizedTransfer);
+        goodTransferFromCall1.result.expectOk().expectBool(true);
+        goodTransferFromCall2.result.expectOk().expectBool(true);
+        badTransferFromCall.result.expectErr().expectUint(unauthorizedTransfer);
 
         wallet3Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(110);
