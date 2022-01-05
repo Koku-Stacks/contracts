@@ -44,12 +44,44 @@ Clarinet.test({
 });
 
 Clarinet.test({
+    name: "Ensure the token uri facilities work as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const unauthorizedUriUpdate = 104;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let uri = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
+        uri.result.expectOk().expectNone();
+
+        const newUri = 'www.token.com';
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
+        ]);
+
+        const [goodSetTokenUriCall] = block1.receipts;
+        goodSetTokenUriCall.result.expectOk().expectBool(true);
+
+        let uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token', 'set-token-uri', [types.utf8('www.bad.com')], wallet1.address)
+        ]);
+
+        const [badSetTokenUriCall] = block2.receipts;
+        badSetTokenUriCall.result.expectErr().expectUint(unauthorizedUriUpdate);
+
+        uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+    }
+});
+
+Clarinet.test({
     name: "Ensure the constant read only functions are returning as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
-
-        const uri = chain.callReadOnlyFn('token', 'get-token-uri', [], deployer.address);
-        uri.result.expectOk().expectSome().expectUtf8('www.token.com');
 
         const decimals = chain.callReadOnlyFn('token', 'get-decimals', [], deployer.address);
         decimals.result.expectOk().expectUint(2);
@@ -185,16 +217,16 @@ Clarinet.test({
         badAllowanceQuery.result.expectErr().expectUint(unauthorizedAllowanceQuery);
 
         const block4 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet1.address),
-            Tx.contractCall('token', 'transfer', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet2.address),
-            Tx.contractCall('token', 'transfer', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet4.address)
+            Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet1.address),
+            Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet2.address),
+            Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet4.address)
         ]);
 
-        const [goodTransferCall3, goodTransferCall4, badTransferCall2] = block4.receipts;
+        const [goodTransferFromCall1, goodTransferFromCall2, badTransferFromCall] = block4.receipts;
 
-        goodTransferCall3.result.expectOk().expectBool(true);
-        goodTransferCall4.result.expectOk().expectBool(true);
-        badTransferCall2.result.expectErr().expectUint(unauthorizedTransfer);
+        goodTransferFromCall1.result.expectOk().expectBool(true);
+        goodTransferFromCall2.result.expectOk().expectBool(true);
+        badTransferFromCall.result.expectErr().expectUint(unauthorizedTransfer);
 
         wallet3Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(110);
@@ -220,5 +252,46 @@ Clarinet.test({
 
         const allowanceQuery5 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address);
         allowanceQuery5.result.expectOk().expectUint(5);
+    }
+});
+
+Clarinet.test({
+    name: "Not enough balance for transfer",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const notEnoughBalanceErr = 1;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+        const wallet2 = accounts.get('wallet_2')!;
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(50), types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [mintCallToOtherWallet] = block1.receipts;
+
+        mintCallToOtherWallet.result.expectOk().expectBool(true);
+
+        const supply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(50);
+
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(50);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(50), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
+        ]);
+
+        const [goodTransferCall, notEnoughBalance] = block2.receipts;
+
+        goodTransferCall.result.expectOk().expectBool(true);
+        notEnoughBalance.result.expectErr().expectUint(notEnoughBalanceErr);
+
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(40);
+
+        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet2.address)], wallet2.address);
+        wallet2Balance.result.expectOk().expectUint(10);
     }
 });

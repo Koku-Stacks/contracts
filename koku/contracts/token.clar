@@ -9,6 +9,7 @@
 (define-constant attempt-to-decrease-inexistent-allowance u103)
 (define-constant unauthorized-ownership-transfer u104)
 (define-constant attempt-to-transfer-ownership-to-owner u105)
+(define-constant unauthorized-uri-update u106)
 
 (define-data-var contract-owner principal tx-sender)
 
@@ -21,6 +22,16 @@
     (asserts! (not (is-eq new-owner (var-get contract-owner))) (err attempt-to-transfer-ownership-to-owner))
     (var-set contract-owner new-owner)
     (ok true)))
+
+(define-data-var token-uri (optional (string-utf8 64)) none)
+
+(define-public (set-token-uri (new-uri (string-utf8 64)))
+  (begin
+    (asserts! (is-eq tx-sender contract-owner) (err unauthorized-uri-update))
+    (ok (var-set token-uri (some new-uri)))))
+
+(define-read-only (get-token-uri)
+  (ok (var-get token-uri)))
 
 (define-fungible-token token)
 
@@ -36,11 +47,10 @@
 (define-map approvals {approver: principal, approvee: principal} {amount: uint})
 
 (define-private (approved-transfer? (from principal) (amount uint))
-  (or (is-eq tx-sender from)
-      (match (map-get? approvals {approver: from, approvee: tx-sender})
-        approved-amount-tuple
-        (<= amount (get amount approved-amount-tuple))
-        false)))
+  (match (map-get? approvals {approver: from, approvee: tx-sender})
+    approved-amount-tuple
+    (<= amount (get amount approved-amount-tuple))
+    false))
 
 (define-private (update-approval (from principal) (transferred-amount uint))
   (let ((approval-tuple {approver: from, approvee: tx-sender}))
@@ -51,14 +61,19 @@
 
 (define-public (transfer (amount uint) (from principal) (to principal))
   (begin
+    (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
+    (match (ft-transfer? token amount from to)
+      ok-transfer
+      (ok true)
+      err-transfer
+      (err err-transfer))))
+
+(define-public (transfer-from (amount uint) (from principal) (to principal))
+  (begin
     (asserts! (approved-transfer? from amount) (err unauthorized-transfer))
     (match (ft-transfer? token amount from to)
       ok-transfer
-      (if (not (is-eq from tx-sender))
-        (begin
-          (update-approval from amount)
-          (ok true))
-        (ok true))
+      (ok (update-approval from amount))
       err-transfer
       (err err-transfer))))
 
@@ -100,6 +115,3 @@
 
 (define-read-only (get-total-supply)
   (ok (ft-get-supply token)))
-
-(define-read-only (get-token-uri)
-  (ok (some u"www.token.com")))
