@@ -47,12 +47,14 @@
       (map-set approvals approval-tuple {amount: (- (get amount approved-amount-tuple) transferred-amount)})
       true)))
 
-(define-public (transfer (amount uint) (from principal) (to principal))
+(define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
     (match (ft-transfer? token amount from to)
       ok-transfer
-      (ok true)
+      (begin
+        (match memo some-memo (print some-memo) 0x)
+        (ok true))
       err-transfer
       (err err-transfer))))
 

@@ -14,7 +14,7 @@
 
 (define-constant number-of-decimals u3)
 
-(define-public (transfer (amount uint) (sender principal) (recipient principal))
+(define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender allowed-user) (err unauthorized-transferer))
     (ft-transfer? liquidity-token amount sender recipient)))
