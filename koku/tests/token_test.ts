@@ -134,9 +134,9 @@ Clarinet.test({
         wallet3Balance.result.expectOk().expectUint(100);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address)], wallet1.address),
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address)], wallet2.address),
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address)
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.none()], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address), types.none()], wallet2.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet3.address), types.principal(wallet1.address), types.none()], wallet1.address)
         ]);
 
         const [goodTransferCall1, goodTransferCall2, badTransferCall1] = block2.receipts;
@@ -236,8 +236,8 @@ Clarinet.test({
         wallet1Balance.result.expectOk().expectUint(50);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
-            Tx.contractCall('token', 'transfer', [types.uint(50), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet2.address), types.none()], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(50), types.principal(wallet1.address), types.principal(wallet2.address), types.none()], wallet1.address),
         ]);
 
         const [goodTransferCall, notEnoughBalance] = block2.receipts;
