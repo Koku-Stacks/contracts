@@ -21,7 +21,8 @@
 (define-read-only (get-token-uri)
   (ok (var-get token-uri)))
 
-(define-fungible-token token)
+;; this considers a max supply of 21_000_000_000 tokens with two decimal places
+(define-fungible-token token u2100000000000)
 
 (define-public (mint (amount uint) (to principal))
   (begin
