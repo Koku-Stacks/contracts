@@ -1,6 +1,58 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
 Clarinet.test({
+    name: "Ensure the token max supply constraint is respected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        let totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
+        totalSupply.result.expectOk().expectUint(0);
+
+        let block1 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(21_000_000_000), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [goodMmintCall1] = block1.receipts;
+
+        goodMmintCall1.result.expectOk().expectBool(true);
+
+        let block2 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(21_000_000_000), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [goodMintCall2] = block2.receipts;
+
+        // we can see here that minting an amount of 21_000_000_000 actually means 210_000_000.00 tokens,
+        // as the mint amount argument refers to indivisible part of our token, that is, the amount of 0.01 tokens we intend to mint.
+        goodMintCall2.result.expectOk().expectBool(true);
+
+        let block3 = chain.mineBlock([
+            Tx.contractCall('token', 'burn', [types.uint(42_000_000_000)], deployer.address)
+        ])
+
+        const [goodBurnCall] = block3.receipts;
+
+        goodBurnCall.result.expectOk().expectBool(true);
+
+        let block4 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(2_100_000_000_000), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [goodMintCall3] = block4.receipts;
+
+        goodMintCall3.result.expectOk().expectBool(true);
+
+        let block5 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(1), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [badMintCall] = block5.receipts;
+
+        badMintCall.result.expectErr();
+    }
+});
+
+Clarinet.test({
     name: "Ensure the token uri facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const unauthorizedUriUpdate = 104;
