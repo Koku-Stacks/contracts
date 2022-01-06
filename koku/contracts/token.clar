@@ -1,7 +1,7 @@
 ;; token
 ;; sample token implementation
 
-(impl-trait .sip-010-v0a.ft-trait)
+(impl-trait .sip-010-trait-ft-standard.ft-trait)
 
 (define-constant unauthorized-minter u100)
 (define-constant unauthorized-transfer u101)

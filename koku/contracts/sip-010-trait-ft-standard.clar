@@ -1,4 +1,4 @@
-;; this is an exact copy of SP23DAB333A5CPFXNK13E5YMX1DZJ07112QNZEBCF.sip-010-v0a
+;; this is an exact copy of SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard
 
 ;; sip-010 trait
 ;; use https://explorer.stacks.co/txid/SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-10-ft-standard
@@ -6,7 +6,7 @@
 (define-trait ft-trait
   (
     ;; Transfer from the caller to a new principal
-    (transfer (uint principal principal) (response bool uint))
+    (transfer (uint principal principal (optional (buff 34))) (response bool uint))
 
     ;; the human readable name of the token
     (get-name () (response (string-ascii 32) uint))

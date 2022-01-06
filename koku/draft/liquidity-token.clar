@@ -1,4 +1,4 @@
-(impl-trait .sip-010-v0a.ft-trait)
+(impl-trait .sip-010-trait-ft-standard.ft-trait)
 
 ;; liquidity-token
 ;; a fungible token to represent liquidity inside a market

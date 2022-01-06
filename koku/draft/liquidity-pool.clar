@@ -1,7 +1,7 @@
 ;; liquidity-pool
 ;; a simple liquidity pool implementation
 
-(use-trait sip-010-token .sip-010-v0a.ft-trait)
+(use-trait sip-010-token .sip-010-trait-ft-standard.ft-trait)
 
 (define-constant non-positive-dx u1)
 (define-constant invalid-dl u2)
