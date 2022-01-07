@@ -42,13 +42,21 @@ Clarinet.test({
 
         goodMintCall3.result.expectOk().expectBool(true);
 
+        totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
+        totalSupply.result.expectOk().expectUint(2_100_000_000_000);
+
         let block5 = chain.mineBlock([
             Tx.contractCall('token', 'mint', [types.uint(1), types.principal(deployer.address)], deployer.address)
         ]);
 
         const [badMintCall] = block5.receipts;
 
-        badMintCall.result.expectErr();
+        // badMintCall is actually undefined, so it is not possible to properly cover this case with unit tests.
+        // badMintCall.result.expectErr();
+
+        // we can see that the total supply remains unchanged after block5, as the circulating token supply was already at its upper bound.
+        totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
+        totalSupply.result.expectOk().expectUint(2_100_000_000_000);
     }
 });
 
