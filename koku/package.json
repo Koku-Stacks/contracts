@@ -11,7 +11,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "test": "clarinet test",
+    "test": "mocha",
     "deploy": "ts-node scripts/script_deploy.ts"
   },
   "devDependencies": {
@@ -24,12 +24,10 @@
     "typescript": "^3.5.2"
   },
   "dependencies": {
-    "@blockstack/clarity": "^0.3.15",
-    "@blockstack/clarity-native-bin": "^0.3.15",
     "@stacks/cli": "3.0.0",
     "@stacks/keychain": "3.0.0",
-    "@stacks/network": "3.0.0",
-    "@stacks/transactions": "3.0.0",
+    "@stacks/network": "^3.0.0",
+    "@stacks/transactions": "^3.1.0",
     "@stacks/wallet-sdk": "3.0.0",
     "yargs": "^13.3.2"
   }
