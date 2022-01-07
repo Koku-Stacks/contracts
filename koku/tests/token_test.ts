@@ -169,8 +169,8 @@ Clarinet.test({
         const allowanceQuery2 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet2.address)], wallet2.address);
         allowanceQuery2.result.expectOk().expectUint(20);
 
-        const badAllowanceQuery = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet2.address)], wallet1.address);
-        badAllowanceQuery.result.expectErr().expectUint(unauthorizedAllowanceQuery);
+        const allowanceQuery3 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet2.address)], wallet1.address);
+        allowanceQuery3.result.expectOk().expectUint(20);
 
         const block4 = chain.mineBlock([
             Tx.contractCall('token', 'transfer-from', [types.uint(5), types.principal(wallet3.address), types.principal(wallet4.address)], wallet1.address),
@@ -190,11 +190,11 @@ Clarinet.test({
         const wallet4Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet4.address)], wallet4.address);
         wallet4Balance.result.expectOk().expectUint(10);
 
-        const allowanceQuery3 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address);
-        allowanceQuery3.result.expectOk().expectUint(15);
-
-        const allowanceQuery4 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet2.address)], wallet3.address);
+        const allowanceQuery4 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address);
         allowanceQuery4.result.expectOk().expectUint(15);
+
+        const allowanceQuery5 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet2.address)], wallet3.address);
+        allowanceQuery5.result.expectOk().expectUint(15);
 
         const block5 = chain.mineBlock([
             Tx.contractCall('token', 'decrease-allowance', [types.principal(wallet1.address), types.uint(10)], wallet3.address),
@@ -206,8 +206,8 @@ Clarinet.test({
         goodDecreaseAllowanceCall.result.expectOk().expectBool(true);
         badDecreaseAllowanceCall.result.expectErr().expectUint(attemptToDecreaseInexistentAllowance);
 
-        const allowanceQuery5 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address);
-        allowanceQuery5.result.expectOk().expectUint(5);
+        const allowanceQuery6 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address);
+        allowanceQuery6.result.expectOk().expectUint(5);
     }
 });
 
