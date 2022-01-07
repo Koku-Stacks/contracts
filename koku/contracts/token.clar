@@ -5,7 +5,6 @@
 
 (define-constant unauthorized-minter u100)
 (define-constant unauthorized-transfer u101)
-(define-constant unauthorized-allowance-query u102)
 (define-constant attempt-to-decrease-inexistent-allowance u103)
 (define-constant unauthorized-uri-update u104)
 

@@ -102,7 +102,6 @@ Clarinet.test({
     name: "Ensure transfer facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const unauthorizedTransfer = 101;
-        const unauthorizedAllowanceQuery = 102;
         const attemptToDecreaseInexistentAllowance = 103;
 
         const deployer = accounts.get('deployer')!;
