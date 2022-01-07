@@ -84,10 +84,7 @@
       (ok true))))
 
 (define-read-only (allowance (approver principal) (approvee principal))
-  (begin
-    (asserts! (or (is-eq tx-sender approver)
-                  (is-eq tx-sender approvee)) (err unauthorized-allowance-query))
-    (ok (get amount (default-to {amount: u0} (map-get? approvals {approver: approver, approvee: approvee}))))))
+  (ok (get amount (default-to {amount: u0} (map-get? approvals {approver: approver, approvee: approvee})))))
 
 (define-read-only (get-name)
   (ok "token"))
