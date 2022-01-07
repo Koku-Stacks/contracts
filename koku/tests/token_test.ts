@@ -23,7 +23,7 @@ Clarinet.test({
         const [goodMintCall2] = block2.receipts;
 
         // we can see here that minting an amount of 21_000_000_000 actually means 210_000_000.00 tokens,
-        // as the mint amount argument refers to indivisible part of our token, that is, the amount of 0.01 tokens we intend to mint.
+        // as the mint amount argument refers to the indivisible part of our token, that is, the amount of 0.01 tokens we intend to mint.
         goodMintCall2.result.expectOk().expectBool(true);
 
         let block3 = chain.mineBlock([
