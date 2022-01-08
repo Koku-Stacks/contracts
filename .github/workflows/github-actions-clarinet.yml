@@ -1,0 +1,24 @@
+name: CI
+on: [push]
+jobs:
+  tests:
+    name: "Test contracts using Clarinet"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Execute unit tests"
+        uses: docker://hirosystems/clarinet:latest
+        with:
+          args: test --coverage --manifest-path=./koku/Clarinet.toml
+
+      - name: "Export code coverage"
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./coverage.lcov
+          verbose: true
+
+      - name: Remove coverage report
+        shell: bash
+        run: |
+          rm coverage.lcov
