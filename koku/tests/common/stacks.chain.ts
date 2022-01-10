@@ -75,8 +75,7 @@ export class StacksChain {
     const transaction = await makeContractCall({
       network: this.network,
       contractAddress,
-      contractName: "",
-      validateWithAbi: true,
+      contractName,
       functionName: method,
       functionArgs: args,
       senderKey: senderSecretKey,
@@ -119,7 +118,7 @@ export class StacksChain {
       fee,
     });
 
-    console.log("deploy", transaction);
+    // console.log("deploy", transaction);
 
     const broadcast_response = await broadcastTransaction(
       transaction,
@@ -127,12 +126,18 @@ export class StacksChain {
     );
 
     console.log("deploy br", broadcast_response);
+    let transactionInfo;
 
-    const transactionInfo = await fetch(
-      `${this.url}/extended/v1/tx/${broadcast_response.txid}`
-    ).then((x) => x.json());
+    do {
+      transactionInfo = await fetch(
+        `${this.url}/extended/v1/tx/${broadcast_response.txid}`
+      ).then((x) => x.json());
+    } while (transactionInfo.tx_status === "pending");
 
-    console.log("deploy tr", transactionInfo);
+    if (transactionInfo.tx_status !== "success") {
+      console.warn(transactionInfo);
+      throw new Error(transactionInfo);
+    }
 
     return transactionInfo?.smart_contract?.contract_id;
   }

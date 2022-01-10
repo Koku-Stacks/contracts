@@ -1,30 +1,15 @@
-import { HIRO_TESTNET_DEFAULT, StacksTestnet } from "@stacks/network";
-import {
-  AnchorMode,
-  broadcastTransaction,
-  makeContractCall,
-  makeSTXTokenTransfer,
-  callReadOnlyFunction,
-  estimateContractFunctionCall,
-  broadcastRawTransaction,
-  ClarityType,
-  stringUtf8CV,
-  makeContractDeploy,
-} from "@stacks/transactions";
 import { expect } from "chai";
-import fetch from "node-fetch";
 import { accounts } from "./common/accounts";
+import { delay } from "./common/helpers";
 import { StacksChain } from "./common/stacks.chain";
-
-const contractAddress = "";
 
 const chain = new StacksChain("http://localhost:3999");
 
-describe("test", () => {
-  it("should have a valid syntax", async () => {
-    const deployer = accounts.get("wallet_1")!;
+describe("contract test", () => {
+  it("should deploy and next call the contract", async () => {
+    const deployer = accounts.get("deployer")!;
 
-    const contractName = "hello26";
+    const contractName = "hello" + Date.now().toString();
 
     const smartContractId = await chain.deployContract(
       contractName,
@@ -40,16 +25,21 @@ describe("test", () => {
 
     expect(smartContractId).to.be.ok;
 
-    console.log("smartContractId", smartContractId);
+    // const smartContractId =
+    //   "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.hello1641817558867";
 
-    const callResult = await chain.callContract(
-      smartContractId.split(".")[0],
-      contractName,
-      "say-hi",
-      [],
-      "753b7cc01a1a2e86221266a154af739463fce51219d97e4f856cd7200c3bd2a601"
-    );
+    // await delay(1000);
 
-    console.log("call result", callResult);
+    // console.log("smartContractId", smartContractId);
+
+    // const callResult = await chain.callContract(
+    //   smartContractId.split(".")[0],
+    //   smartContractId.split(".")[1],
+    //   "say-hi",
+    //   [],
+    //   "753b7cc01a1a2e86221266a154af739463fce51219d97e4f856cd7200c3bd2a601"
+    // );
+
+    // console.log("call result", callResult);
   });
 });
