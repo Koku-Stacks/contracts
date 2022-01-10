@@ -21,8 +21,8 @@
 (define-read-only (get-token-uri)
   (ok (var-get token-uri)))
 
-;; this considers a max supply of 21_000_000_000 tokens with two decimal places
-(define-fungible-token token u2100000000000)
+;; this considers a max supply of 21_000_000 tokens with six decimal places
+(define-fungible-token token u21000000000000)
 
 (define-public (mint (amount uint) (to principal))
   (begin
@@ -97,7 +97,7 @@
   (ok "TKN"))
 
 (define-read-only (get-decimals)
-  (ok u2))
+  (ok u6))
 
 (define-read-only (get-balance-of (account principal))
   (ok (ft-get-balance token account)))

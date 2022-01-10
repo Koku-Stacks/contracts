@@ -9,7 +9,7 @@ Clarinet.test({
         totalSupply.result.expectOk().expectUint(0);
 
         let block1 = chain.mineBlock([
-            Tx.contractCall('token', 'mint', [types.uint(21_000_000_000), types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(21_000_000), types.principal(deployer.address)], deployer.address)
         ]);
 
         const [goodMmintCall1] = block1.receipts;
@@ -17,7 +17,7 @@ Clarinet.test({
         goodMmintCall1.result.expectOk().expectBool(true);
 
         let block2 = chain.mineBlock([
-            Tx.contractCall('token', 'mint', [types.uint(21_000_000_000), types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(21_000_000), types.principal(deployer.address)], deployer.address)
         ]);
 
         const [goodMintCall2] = block2.receipts;
@@ -27,7 +27,7 @@ Clarinet.test({
         goodMintCall2.result.expectOk().expectBool(true);
 
         let block3 = chain.mineBlock([
-            Tx.contractCall('token', 'burn', [types.uint(42_000_000_000)], deployer.address)
+            Tx.contractCall('token', 'burn', [types.uint(42_000_000)], deployer.address)
         ])
 
         const [goodBurnCall] = block3.receipts;
@@ -35,7 +35,7 @@ Clarinet.test({
         goodBurnCall.result.expectOk().expectBool(true);
 
         let block4 = chain.mineBlock([
-            Tx.contractCall('token', 'mint', [types.uint(2_100_000_000_000), types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(21_000_000_000_000), types.principal(deployer.address)], deployer.address)
         ]);
 
         const [goodMintCall3] = block4.receipts;
@@ -43,7 +43,7 @@ Clarinet.test({
         goodMintCall3.result.expectOk().expectBool(true);
 
         totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
-        totalSupply.result.expectOk().expectUint(2_100_000_000_000);
+        totalSupply.result.expectOk().expectUint(21_000_000_000_000);
 
         let block5 = chain.mineBlock([
             Tx.contractCall('token', 'mint', [types.uint(1), types.principal(deployer.address)], deployer.address)
@@ -56,7 +56,7 @@ Clarinet.test({
 
         // we can see that the total supply remains unchanged after block5, as the circulating token supply was already at its upper bound.
         totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
-        totalSupply.result.expectOk().expectUint(2_100_000_000_000);
+        totalSupply.result.expectOk().expectUint(21_000_000_000_000);
     }
 });
 
@@ -101,7 +101,7 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
 
         const decimals = chain.callReadOnlyFn('token', 'get-decimals', [], deployer.address);
-        decimals.result.expectOk().expectUint(2);
+        decimals.result.expectOk().expectUint(6);
 
         const symbol = chain.callReadOnlyFn('token', 'get-symbol', [], deployer.address);
         symbol.result.expectOk().expectAscii('TKN');
