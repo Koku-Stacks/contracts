@@ -7,15 +7,47 @@
 (define-constant unauthorized-transfer u101)
 (define-constant unauthorized-allowance-query u102)
 (define-constant attempt-to-decrease-inexistent-allowance u103)
-(define-constant unauthorized-uri-update u104)
+(define-constant unauthorized-ownership-transfer u104)
+(define-constant attempt-to-transfer-ownership-to-owner u105)
+(define-constant no-ownership-transfer-submitted u106)
+(define-constant unauthorized-ownership-transfer-confirmation u107)
+(define-constant unauthorized-ownership-transfer-cancellation u108)
+(define-constant previous-ownership-transfer-submission-not-cancelled u109)
+(define-constant unauthorized-uri-update u110)
 
-(define-constant contract-owner tx-sender)
+(define-data-var contract-owner principal tx-sender)
+(define-data-var submitted-new-owner (optional principal) none)
+
+(define-read-only (get-contract-owner)
+  (var-get contract-owner))
+
+(define-public (submit-ownership-transfer (new-owner principal))
+  (begin
+    (asserts! (is-eq tx-sender (get-contract-owner)) (err unauthorized-ownership-transfer))
+    (asserts! (not (is-eq new-owner (get-contract-owner))) (err attempt-to-transfer-ownership-to-owner))
+    (asserts! (is-none (var-get submitted-new-owner)) (err previous-ownership-transfer-submission-not-cancelled))
+    (var-set submitted-new-owner (some new-owner))
+    (ok true)))
+
+(define-public (cancel-ownership-transfer)
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) (err unauthorized-ownership-transfer-cancellation))
+    (var-set submitted-new-owner none)
+    (ok true)))
+
+(define-public (confirm-ownership-transfer)
+  (begin
+    (asserts! (is-some (var-get submitted-new-owner)) (err no-ownership-transfer-submitted))
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) (err unauthorized-ownership-transfer-confirmation))
+    (var-set contract-owner (unwrap! (var-get submitted-new-owner) (err no-ownership-transfer-submitted)))
+    (var-set submitted-new-owner none)
+    (ok true)))
 
 (define-data-var token-uri (optional (string-utf8 64)) none)
 
 (define-public (set-token-uri (new-uri (string-utf8 64)))
   (begin
-    (asserts! (is-eq tx-sender contract-owner) (err unauthorized-uri-update))
+    (asserts! (is-eq tx-sender (var-get contract-owner)) (err unauthorized-uri-update))
     (ok (var-set token-uri (some new-uri)))))
 
 (define-read-only (get-token-uri)
@@ -26,7 +58,7 @@
 
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-eq tx-sender contract-owner) (err unauthorized-minter))
+    (asserts! (is-eq tx-sender (var-get contract-owner)) (err unauthorized-minter))
     (ft-mint? token amount to)))
 
 (define-public (burn (amount uint))
