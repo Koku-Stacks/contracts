@@ -1,7 +1,7 @@
 ;; token
 ;; sample token implementation
 
-(impl-trait .sip-010-trait-ft-standard.ft-trait)
+(impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
 (define-constant unauthorized-minter u100)
 (define-constant unauthorized-transfer u101)
@@ -100,7 +100,7 @@
 (define-read-only (get-decimals)
   (ok u2))
 
-(define-read-only (get-balance-of (account principal))
+(define-read-only (get-balance (account principal))
   (ok (ft-get-balance token account)))
 
 (define-read-only (get-total-supply)

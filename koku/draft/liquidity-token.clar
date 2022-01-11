@@ -1,4 +1,4 @@
-(impl-trait .sip-010-trait-ft-standard.ft-trait)
+(impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
 ;; liquidity-token
 ;; a fungible token to represent liquidity inside a market
@@ -29,7 +29,7 @@
     (asserts! (is-eq tx-sender allowed-user) (err unauthorized-burner))
     (ft-burn? liquidity-token amount sender)))
 
-(define-read-only (get-balance-of (from principal))
+(define-read-only (get-balance (from principal))
   (begin
     (asserts! (is-eq tx-sender from) (err not-tx-sender))
     (ok (ft-get-balance liquidity-token from))))
