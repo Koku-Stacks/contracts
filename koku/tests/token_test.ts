@@ -134,8 +134,12 @@ Clarinet.test({
         let wallet3Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(100);
 
+        const buffer = new ArrayBuffer(8);
+        const view = new Int8Array(buffer);
+        view[0] = 12;
+
         const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.none()], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.some(types.buff(buffer))], wallet1.address),
             Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address), types.none()], wallet2.address),
             Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet3.address), types.principal(wallet1.address), types.none()], wallet1.address)
         ]);
@@ -143,7 +147,25 @@ Clarinet.test({
         const [goodTransferCall1, goodTransferCall2, badTransferCall1] = block2.receipts;
 
         goodTransferCall1.result.expectOk().expectBool(true);
+        assertEquals(goodTransferCall1.events[0],
+            {ft_transfer_event: {
+                amount: '10',
+                asset_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token::token',
+                recipient: 'ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC',
+                sender: 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5'
+            },
+             type: 'ft_transfer_event'});
+        assertEquals(goodTransferCall1.events[1],
+            {contract_event: {
+                contract_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token',
+                topic: 'print',
+                value: '0x0c00000000000000'
+            },
+             type: 'contract_event'});
+
         goodTransferCall2.result.expectOk().expectBool(true);
+        assertEquals(goodTransferCall2.events.length, 1)
+
         badTransferCall1.result.expectErr().expectUint(unauthorizedTransfer);
 
         wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
