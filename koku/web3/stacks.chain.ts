@@ -3,11 +3,15 @@ import {
   AnchorMode,
   broadcastTransaction,
   callReadOnlyFunction,
+  ClarityType,
+  cvToJSON,
+  hexToCV,
   makeContractCall,
   makeContractDeploy,
   makeSTXTokenTransfer,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
+import { delay } from "./helpers";
 
 export class StacksChain {
   private network: StacksTestnet;
@@ -25,7 +29,7 @@ export class StacksChain {
       fee?: number;
     }
   ) {
-    const { memo = "", fee = 200 } = options ?? {};
+    const { memo = "", fee = 500 } = options ?? {};
 
     const transaction = await makeSTXTokenTransfer({
       network: this.network,
@@ -33,7 +37,6 @@ export class StacksChain {
       amount,
       senderKey,
       memo,
-      nonce: 0, // set a nonce manually if you don't want builder to fetch from a Stacks node
       fee, // set a tx fee if you don't want the builder to estimate
       anchorMode: AnchorMode.Any,
     });
@@ -57,7 +60,11 @@ export class StacksChain {
       senderAddress,
     });
 
-    return readResult;
+    if (readResult.type !== ClarityType.ResponseOk) {
+      throw new Error(ClarityType[readResult.type]);
+    }
+
+    return cvToJSON(readResult);
   }
 
   async callContract(
@@ -70,7 +77,7 @@ export class StacksChain {
       fee?: number;
     }
   ) {
-    const { fee = 200 } = options ?? {};
+    const { fee = 500 } = options ?? {};
 
     const transaction = await makeContractCall({
       network: this.network,
@@ -88,15 +95,17 @@ export class StacksChain {
       this.network
     );
 
-    console.log("call", transaction, broadcast_response);
+    if (broadcast_response.error) {
+      throw new Error(broadcast_response.reason);
+    }
 
-    const transactionInfo = await fetch(
-      `${this.url}/extended/v1/tx/${broadcast_response.txid}`
-    ).then((x) => x.json());
+    // console.log("call broadcasted transaction", broadcast_response.txid);
 
-    console.log("call br", transactionInfo);
+    const transactionInfo = await this.waitTransaction(broadcast_response.txid);
 
-    return transactionInfo;
+    // console.log("call br", transactionInfo);
+
+    return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
 
   async deployContract(
@@ -107,7 +116,7 @@ export class StacksChain {
       fee?: number;
     }
   ) {
-    const { fee = 200 } = options ?? {};
+    const { fee = 500 } = options ?? {};
 
     const transaction = await makeContractDeploy({
       network: this.network,
@@ -118,27 +127,38 @@ export class StacksChain {
       fee,
     });
 
-    // console.log("deploy", transaction);
-
     const broadcast_response = await broadcastTransaction(
       transaction,
       this.network
     );
 
-    console.log("deploy br", broadcast_response);
+    if (broadcast_response.error) {
+      throw new Error(broadcast_response.reason);
+    }
+
+    const transactionInfo = await this.waitTransaction(broadcast_response.txid);
+
+    // console.log("deploy broadcasted transaction", broadcast_response.txid);
+
+    return transactionInfo?.smart_contract?.contract_id;
+  }
+
+  private async waitTransaction(txId: string) {
     let transactionInfo;
 
     do {
-      transactionInfo = await fetch(
-        `${this.url}/extended/v1/tx/${broadcast_response.txid}`
-      ).then((x) => x.json());
+      await delay(500);
+
+      transactionInfo = await fetch(`${this.url}/extended/v1/tx/${txId}`).then(
+        (x) => x.json()
+      );
     } while (transactionInfo.tx_status === "pending");
 
     if (transactionInfo.tx_status !== "success") {
       console.warn(transactionInfo);
-      throw new Error(transactionInfo);
+      throw new Error(`${txId} ${transactionInfo.tx_status}`);
     }
 
-    return transactionInfo?.smart_contract?.contract_id;
+    return transactionInfo;
   }
 }
