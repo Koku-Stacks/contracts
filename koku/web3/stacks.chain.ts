@@ -9,6 +9,7 @@ import {
   makeContractCall,
   makeContractDeploy,
   makeSTXTokenTransfer,
+  PostConditionMode,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
@@ -87,6 +88,7 @@ export class StacksChain {
       functionArgs: args,
       senderKey: senderSecretKey,
       anchorMode: AnchorMode.Any,
+      postConditionMode: PostConditionMode.Allow,
       fee,
     });
 
@@ -96,6 +98,7 @@ export class StacksChain {
     );
 
     if (broadcast_response.error) {
+      console.error(broadcast_response);
       throw new Error(broadcast_response.reason);
     }
 
@@ -153,11 +156,6 @@ export class StacksChain {
         (x) => x.json()
       );
     } while (transactionInfo.tx_status === "pending");
-
-    if (transactionInfo.tx_status !== "success") {
-      console.warn(transactionInfo);
-      throw new Error(`${txId} ${transactionInfo.tx_status}`);
-    }
 
     return transactionInfo;
   }

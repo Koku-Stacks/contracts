@@ -2,6 +2,7 @@
 name = "koku"
 requirements = []
 costs_version = 1
+
 [contracts.liquidity-pool]
 path = "draft/liquidity-pool.clar"
 depends_on = ["sip-010-v0a", "liquidity-token"]
