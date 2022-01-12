@@ -26,9 +26,11 @@ describe("stacks.chain", () => {
     expect(smartContractId).to.be.ok;
 
     // call the contract
+    const [contractPrincipal] = smartContractId.split(".");
+
     const callResult = await chain.callContract(
-      smartContractId.split(".")[0],
-      smartContractId.split(".")[1],
+      contractPrincipal,
+      contractName,
       "say-hi",
       [],
       "753b7cc01a1a2e86221266a154af739463fce51219d97e4f856cd7200c3bd2a601"
@@ -40,8 +42,8 @@ describe("stacks.chain", () => {
 
     // call readOnly function
     const readResult = await chain.callReadOnlyFn(
-      smartContractId.split(".")[0],
-      smartContractId.split(".")[1],
+      contractPrincipal,
+      contractName,
       "echo-number",
       [intCV(11)],
       deployer.address
