@@ -25,8 +25,6 @@ describe("stacks.chain", () => {
 
     expect(smartContractId).to.be.ok;
 
-    console.log("deployContract completed", smartContractId);
-
     // call the contract
     const callResult = await chain.callContract(
       smartContractId.split(".")[0],
@@ -39,8 +37,6 @@ describe("stacks.chain", () => {
     expect(callResult).to.be.ok;
     expect(callResult.success).to.be.true;
     expect(callResult.value.value).to.be.equal("hello world");
-
-    console.log("callContract completed", callResult.value.value);
 
     // call readOnly function
     const readResult = await chain.callReadOnlyFn(
@@ -55,7 +51,5 @@ describe("stacks.chain", () => {
     expect(readResult.success).to.be.true;
     expect(readResult.value.type).to.be.equal("int");
     expect(readResult.value.value).to.be.equal("11");
-
-    console.log("callReadOnlyFn completed", readResult.value);
   });
 });

@@ -25,8 +25,6 @@ describe("token contract", () => {
       wallet1.address
     );
 
-    console.log("readResult", readResult);
-
     expect(readResult).to.be.ok;
     expect(readResult.success).to.be.true;
 
@@ -41,8 +39,6 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    console.log("updateResult", updateResult);
-
     expect(updateResult).to.be.ok;
     expect(updateResult.success).to.be.true;
 
@@ -54,8 +50,6 @@ describe("token contract", () => {
       [],
       wallet1.address
     );
-
-    console.log("checkResult", checkResult);
 
     expect(checkResult).to.be.ok;
     expect(checkResult.success).to.be.true;
@@ -70,8 +64,6 @@ describe("token contract", () => {
       wallet1.secretKey
     );
 
-    console.log("wrongUpdateResult", wrongUpdateResult);
-
     expect(wrongUpdateResult).to.be.ok;
     expect(wrongUpdateResult.success).to.be.false;
     expect(wrongUpdateResult.value.value).to.be.eq("104");
@@ -84,8 +76,6 @@ describe("token contract", () => {
       [],
       wallet1.address
     );
-
-    console.log("doubleCheckResult", doubleCheckResult);
 
     expect(doubleCheckResult).to.be.ok;
     expect(doubleCheckResult.success).to.be.true;
@@ -148,8 +138,6 @@ describe("token contract", () => {
     expect(initialSupply).to.be.ok;
     expect(initialSupply.success).to.be.true;
 
-    console.log("initialSupply", initialSupply);
-
     const initialDeployerBalance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
@@ -158,7 +146,6 @@ describe("token contract", () => {
       deployer.address
     );
 
-    console.log("initialDeployerBalance", initialDeployerBalance);
     expect(initialDeployerBalance).to.be.ok;
     expect(initialDeployerBalance.success).to.be.true;
 
@@ -215,8 +202,6 @@ describe("token contract", () => {
       deployer.address
     );
 
-    console.log("supply", supply);
-
     expect(supply).to.be.ok;
     expect(supply.success).to.be.true;
     expect(+supply.value.value).to.be.equal(+initialSupply.value.value + 150);
@@ -228,8 +213,6 @@ describe("token contract", () => {
       [principalCV(deployer.address)],
       deployer.address
     );
-
-    console.log("deployerBalance", deployerBalance);
 
     expect(deployerBalance).to.be.ok;
     expect(deployerBalance.success).to.be.true;
@@ -245,8 +228,6 @@ describe("token contract", () => {
       wallet1.address
     );
 
-    console.log("wallet1Balance", wallet1Balance);
-
     expect(wallet1Balance).to.be.ok;
     expect(wallet1Balance.success).to.be.true;
     expect(+wallet1Balance.value.value).to.be.equal(
@@ -261,8 +242,6 @@ describe("token contract", () => {
       [uintCV(10)],
       deployer.secretKey
     );
-
-    // console.log("goodBurnCall", goodBurnCall);
 
     expect(goodBurnCall).to.be.ok;
     expect(goodBurnCall.success).to.be.true;
@@ -289,8 +268,6 @@ describe("token contract", () => {
       [principalCV(deployer.address)],
       deployer.address
     );
-
-    console.log({ updatedDeployerBalance, initialDeployerBalance });
 
     expect(updatedDeployerBalance).to.be.ok;
     expect(updatedDeployerBalance.success).to.be.true;

@@ -102,11 +102,7 @@ export class StacksChain {
       throw new Error(broadcast_response.reason);
     }
 
-    // console.log("call broadcasted transaction", broadcast_response.txid);
-
     const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-
-    // console.log("call br", transactionInfo);
 
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
@@ -140,8 +136,6 @@ export class StacksChain {
     }
 
     const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-
-    // console.log("deploy broadcasted transaction", broadcast_response.txid);
 
     return transactionInfo?.smart_contract?.contract_id;
   }
