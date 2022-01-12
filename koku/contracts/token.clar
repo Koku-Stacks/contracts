@@ -1,7 +1,7 @@
 ;; token
 ;; sample token implementation
 
-(impl-trait .sip-010-v0a.ft-trait)
+(impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
 (define-constant unauthorized-minter u100)
 (define-constant unauthorized-transfer u101)
@@ -79,12 +79,14 @@
       (map-set approvals approval-tuple {amount: (- (get amount approved-amount-tuple) transferred-amount)})
       true)))
 
-(define-public (transfer (amount uint) (from principal) (to principal))
+(define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
     (match (ft-transfer? token amount from to)
       ok-transfer
-      (ok true)
+      (begin
+        (match memo some-memo (print some-memo) 0x)
+        (ok true))
       err-transfer
       (err err-transfer))))
 
@@ -130,7 +132,7 @@
 (define-read-only (get-decimals)
   (ok u2))
 
-(define-read-only (get-balance-of (account principal))
+(define-read-only (get-balance (account principal))
   (ok (ft-get-balance token account)))
 
 (define-read-only (get-total-supply)

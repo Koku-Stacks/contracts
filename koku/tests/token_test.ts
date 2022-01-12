@@ -1,4 +1,5 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
+import { assertEquals } from "https://deno.land/std@0.120.0/testing/asserts.ts";
 
 Clarinet.test({
     name: "Ensure the ownership related functions work as expected",
@@ -169,10 +170,10 @@ Clarinet.test({
         const supply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
         supply.result.expectOk().expectUint(150);
 
-        let deployerBalance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(deployer.address)], deployer.address);
+        let deployerBalance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(deployer.address)], deployer.address);
         deployerBalance.result.expectOk().expectUint(100);
 
-        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(50);
 
         const block2 = chain.mineBlock([
@@ -185,10 +186,10 @@ Clarinet.test({
         goodBurnCall.result.expectOk().expectBool(true);
         zeroBurnCall.result.expectErr().expectUint(1);
 
-        deployerBalance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(deployer.address)], deployer.address);
+        deployerBalance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(deployer.address)], deployer.address);
         deployerBalance.result.expectOk().expectUint(90);
 
-        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(50);
     }
 });
@@ -219,34 +220,56 @@ Clarinet.test({
         mintCall2.result.expectOk().expectBool(true);
         mintCall3.result.expectOk().expectBool(true);
 
-        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(100);
 
-        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet2.address)], wallet2.address);
+        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
         wallet2Balance.result.expectOk().expectUint(100);
 
-        let wallet3Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet3.address)], wallet3.address);
+        let wallet3Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(100);
 
+        const buffer = new ArrayBuffer(8);
+        const view = new Int8Array(buffer);
+        view[0] = 12;
+
         const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address)], wallet1.address),
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address)], wallet2.address),
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address)
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.some(types.buff(buffer))], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address), types.none()], wallet2.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet3.address), types.principal(wallet1.address), types.none()], wallet1.address)
         ]);
 
         const [goodTransferCall1, goodTransferCall2, badTransferCall1] = block2.receipts;
 
         goodTransferCall1.result.expectOk().expectBool(true);
+        assertEquals(goodTransferCall1.events[0],
+            {ft_transfer_event: {
+                amount: '10',
+                asset_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token::token',
+                recipient: 'ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC',
+                sender: 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5'
+            },
+             type: 'ft_transfer_event'});
+        assertEquals(goodTransferCall1.events[1],
+            {contract_event: {
+                contract_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token',
+                topic: 'print',
+                value: '0x0c00000000000000'
+            },
+             type: 'contract_event'});
+
         goodTransferCall2.result.expectOk().expectBool(true);
+        assertEquals(goodTransferCall2.events.length, 1)
+
         badTransferCall1.result.expectErr().expectUint(unauthorizedTransfer);
 
-        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(90);
 
-        wallet2Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet2.address)], wallet2.address);
+        wallet2Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
         wallet2Balance.result.expectOk().expectUint(90);
 
-        wallet3Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet3.address)], wallet3.address);
+        wallet3Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(120);
 
         const block3 = chain.mineBlock([
@@ -280,10 +303,10 @@ Clarinet.test({
         goodTransferFromCall2.result.expectOk().expectBool(true);
         badTransferFromCall.result.expectErr().expectUint(unauthorizedTransfer);
 
-        wallet3Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet3.address)], wallet3.address);
+        wallet3Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(110);
 
-        const wallet4Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet4.address)], wallet4.address);
+        const wallet4Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet4.address)], wallet4.address);
         wallet4Balance.result.expectOk().expectUint(10);
 
         const allowanceQuery3 = chain.callReadOnlyFn('token', 'allowance', [types.principal(wallet3.address), types.principal(wallet1.address)], wallet1.address);
@@ -327,12 +350,12 @@ Clarinet.test({
         const supply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
         supply.result.expectOk().expectUint(50);
 
-        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(50);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
-            Tx.contractCall('token', 'transfer', [types.uint(50), types.principal(wallet1.address), types.principal(wallet2.address)], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet2.address), types.none()], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(50), types.principal(wallet1.address), types.principal(wallet2.address), types.none()], wallet1.address),
         ]);
 
         const [goodTransferCall, notEnoughBalance] = block2.receipts;
@@ -340,10 +363,10 @@ Clarinet.test({
         goodTransferCall.result.expectOk().expectBool(true);
         notEnoughBalance.result.expectErr().expectUint(notEnoughBalanceErr);
 
-        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(40);
 
-        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance-of', [types.principal(wallet2.address)], wallet2.address);
+        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
         wallet2Balance.result.expectOk().expectUint(10);
     }
 });

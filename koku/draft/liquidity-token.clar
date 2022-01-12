@@ -1,4 +1,4 @@
-(impl-trait .sip-010-v0a.ft-trait)
+(impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
 ;; liquidity-token
 ;; a fungible token to represent liquidity inside a market
@@ -14,7 +14,7 @@
 
 (define-constant number-of-decimals u3)
 
-(define-public (transfer (amount uint) (sender principal) (recipient principal))
+(define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender allowed-user) (err unauthorized-transferer))
     (ft-transfer? liquidity-token amount sender recipient)))
@@ -29,7 +29,7 @@
     (asserts! (is-eq tx-sender allowed-user) (err unauthorized-burner))
     (ft-burn? liquidity-token amount sender)))
 
-(define-read-only (get-balance-of (from principal))
+(define-read-only (get-balance (from principal))
   (begin
     (asserts! (is-eq tx-sender from) (err not-tx-sender))
     (ok (ft-get-balance liquidity-token from))))

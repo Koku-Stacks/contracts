@@ -1,12 +1,12 @@
-;; this is an exact copy of SP23DAB333A5CPFXNK13E5YMX1DZJ07112QNZEBCF.sip-010-v0a
+;; this is an exact copy of SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard
 
 ;; sip-010 trait
-;; use https://explorer.stacks.co/txid/SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-10-ft-standard
+;; use https://explorer.stacks.co/txid/0x99e01721e57adc2c24f7d371b9d302d581dba1d27250c7e25ea5f241af14c387?chain=mainnet
 
-(define-trait ft-trait
+(define-trait sip-010-trait
   (
     ;; Transfer from the caller to a new principal
-    (transfer (uint principal principal) (response bool uint))
+    (transfer (uint principal principal (optional (buff 34))) (response bool uint))
 
     ;; the human readable name of the token
     (get-name () (response (string-ascii 32) uint))
@@ -18,7 +18,7 @@
     (get-decimals () (response uint uint))
 
     ;; the balance of the passed principal
-    (get-balance-of (principal) (response uint uint))
+    (get-balance (principal) (response uint uint))
 
     ;; the current total supply (which does not need to be a constant)
     (get-total-supply () (response uint uint))

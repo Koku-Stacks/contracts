@@ -1,7 +1,7 @@
 ;; liquidity-pool
 ;; a simple liquidity pool implementation
 
-(use-trait sip-010-token .sip-010-v0a.ft-trait)
+(use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
 
 (define-constant non-positive-dx u1)
 (define-constant invalid-dl u2)
@@ -263,9 +263,9 @@
                                     (get y current-market-state)))
                       (amount-dl (- (get l new-market-state)
                                     (get l current-market-state))))
-                  (match (contract-call? asset-x transfer amount-dx tx-sender this-contract)
+                  (match (contract-call? asset-x transfer amount-dx tx-sender this-contract none)
                     ok-asset-x-transfer
-                    (match (contract-call? asset-y transfer amount-dy tx-sender this-contract)
+                    (match (contract-call? asset-y transfer amount-dy tx-sender this-contract none)
                       ok-asset-y-transfer
                       (let ((liquidity-provider tx-sender))
                         (match (as-contract
@@ -335,9 +335,9 @@
                                (contract-call? .liquidity-token
                                                burn amount-dl liquidity-provider))
                         ok-burn
-                        (match (contract-call? asset-x transfer amount-dx this-contract tx-sender)
+                        (match (contract-call? asset-x transfer amount-dx this-contract tx-sender none)
                           ok-asset-x-transfer
-                          (match (contract-call? asset-y transfer amount-dy this-contract tx-sender)
+                          (match (contract-call? asset-y transfer amount-dy this-contract tx-sender none)
                             ok-asset-y-transfer
                             (begin
                               (map-set market-provider market-provider-id
@@ -378,7 +378,7 @@
     (asserts! (<= amount-dl (get amount-liquidity liquidity-sender-data)) (err liquidity-sender-does-not-have-enough-liquidity-tokens))
     (match (as-contract
              (contract-call? .liquidity-token
-                             transfer amount-dl sender recipient))
+                             transfer amount-dl sender recipient none))
       ok-transfer
       (begin
         (map-set market-provider market-sender-id
@@ -432,9 +432,9 @@
                 (let ((amount-dy (* min-amount-dy
                                     (- (get y current-market-state)
                                        (get y new-market-state)))))
-                  (match (contract-call? asset-x transfer amount-dx tx-sender this-contract)
+                  (match (contract-call? asset-x transfer amount-dx tx-sender this-contract none)
                     ok-asset-x-transfer
-                    (match (contract-call? asset-y transfer amount-dy this-contract tx-sender)
+                    (match (contract-call? asset-y transfer amount-dy this-contract tx-sender none)
                       ok-asset-y-transfer
                       (begin
                         (map-set markets {id: market-id} {asset-x: asset-x-id,
@@ -497,9 +497,9 @@
                 (let ((amount-dx (* min-amount-dx
                                     (- (get y current-inverse-market-state)
                                        (get y new-inverse-market-state)))))
-                  (match (contract-call? asset-y transfer amount-dy tx-sender this-contract)
+                  (match (contract-call? asset-y transfer amount-dy tx-sender this-contract none)
                     ok-asset-y-transfer
-                    (match (contract-call? asset-x transfer amount-dx this-contract tx-sender)
+                    (match (contract-call? asset-x transfer amount-dx this-contract tx-sender none)
                       ok-asset-x-transfer
                       (begin
                         (map-set markets {id: market-id} {asset-x: asset-x-id,
