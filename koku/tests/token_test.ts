@@ -3,60 +3,84 @@ import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarine
 Clarinet.test({
     name: "Ensure the token max supply constraint is respected",
     fn(chain: Chain, accounts: Map<string, Account>) {
+        const insufficientTokensToMint = 111;
+
         const deployer = accounts.get('deployer')!;
 
-        let totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
-        totalSupply.result.expectOk().expectUint(0);
+        const maxTokensToMint = 21_000_000_000_000;
+
+        let remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint);
+
+        const amountToMint = 21_000_000;
 
         let block1 = chain.mineBlock([
-            Tx.contractCall('token', 'mint', [types.uint(21_000_000), types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(amountToMint), types.principal(deployer.address)], deployer.address)
         ]);
 
-        const [goodMmintCall1] = block1.receipts;
+        const [goodMintCall1] = block1.receipts;
 
-        goodMmintCall1.result.expectOk().expectBool(true);
+        goodMintCall1.result.expectOk().expectBool(true);
+
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint - 1 * amountToMint);
 
         let block2 = chain.mineBlock([
-            Tx.contractCall('token', 'mint', [types.uint(21_000_000), types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(amountToMint), types.principal(deployer.address)], deployer.address)
         ]);
 
         const [goodMintCall2] = block2.receipts;
 
-        // we can see here that minting an amount of 21_000_000_000 actually means 210_000_000.00 tokens,
-        // as the mint amount argument refers to the indivisible part of our token, that is, the amount of 0.01 tokens we intend to mint.
+        // we can see here that minting an amount of 21_000_000 actually means 21.000000 tokens,
+        // as the mint amount argument refers to the indivisible part of our token, that is, the amount of 0.000001 tokens we intend to mint.
         goodMintCall2.result.expectOk().expectBool(true);
 
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint - 2 * amountToMint);
+
         let block3 = chain.mineBlock([
-            Tx.contractCall('token', 'burn', [types.uint(42_000_000)], deployer.address)
+            Tx.contractCall('token', 'burn', [types.uint(2 * amountToMint)], deployer.address)
         ])
 
         const [goodBurnCall] = block3.receipts;
 
         goodBurnCall.result.expectOk().expectBool(true);
 
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint - 2 * amountToMint);
+
         let block4 = chain.mineBlock([
-            Tx.contractCall('token', 'mint', [types.uint(21_000_000_000_000), types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(maxTokensToMint), types.principal(deployer.address)], deployer.address)
         ]);
 
-        const [goodMintCall3] = block4.receipts;
+        const [badMintCall1] = block4.receipts;
+
+        badMintCall1.result.expectErr().expectUint(insufficientTokensToMint);
+
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint - 2 * amountToMint);
+
+        let block5 = chain.mineBlock([
+            Tx.contractCall('token', 'mint', [types.uint(maxTokensToMint - 2 * amountToMint), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [goodMintCall3] = block5.receipts;
 
         goodMintCall3.result.expectOk().expectBool(true);
 
-        totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
-        totalSupply.result.expectOk().expectUint(21_000_000_000_000);
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(0);
 
-        let block5 = chain.mineBlock([
+        let block6 = chain.mineBlock([
             Tx.contractCall('token', 'mint', [types.uint(1), types.principal(deployer.address)], deployer.address)
         ]);
 
-        const [badMintCall] = block5.receipts;
+        const [badMintCall2] = block6.receipts;
 
-        // badMintCall is actually undefined, so it is not possible to properly cover this case with unit tests.
-        // badMintCall.result.expectErr();
+        badMintCall2.result.expectErr().expectUint(insufficientTokensToMint);
 
-        // we can see that the total supply remains unchanged after block5, as the circulating token supply was already at its upper bound.
-        totalSupply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
-        totalSupply.result.expectOk().expectUint(21_000_000_000_000);
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(0);
     }
 });
 
