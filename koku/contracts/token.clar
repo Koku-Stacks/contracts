@@ -14,6 +14,7 @@
 (define-constant unauthorized-ownership-transfer-cancellation u108)
 (define-constant previous-ownership-transfer-submission-not-cancelled u109)
 (define-constant unauthorized-uri-update u110)
+(define-constant insuficcient-tokens-to-mint u111)
 
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
@@ -56,10 +57,25 @@
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)
 
+(define-data-var remaining-tokens-to-mint uint u21000000000000)
+
+(define-read-only (get-remaining-tokens-to-mint)
+  (var-get remaining-tokens-to-mint))
+
+(define-private (decrease-remaining-tokens-to-mint (amount uint))
+  (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount)))
+
 (define-public (mint (amount uint) (to principal))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) (err unauthorized-minter))
-    (ft-mint? token amount to)))
+    (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
+    (match (ft-mint? token amount to)
+    ok-mint
+    (begin
+      (decrease-remaining-tokens-to-mint amount)
+      (ok true))
+    err-mint
+    (err err-mint))))
 
 (define-public (burn (amount uint))
   (begin
