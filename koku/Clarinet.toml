@@ -21,3 +21,7 @@ depends_on = ["sip-010-trait-ft-standard"]
 [contracts.hello-world]
 path = "contracts/hello-world.clar"
 depends_on = []
+
+[contracts.ownership-registry]
+path = "contracts/ownership-registry.clar"
+depends_on = []
