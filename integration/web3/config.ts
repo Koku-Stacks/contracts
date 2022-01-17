@@ -4,7 +4,7 @@ export type Account = {
   secretKey: string;
 };
 
-export const STACKS_API_URL = "http://localhost:3999";
+export const STACKS_API_URL = "http://3.64.221.107:3999/";
 
 export const accounts = new Map<string, Account>([
   [
