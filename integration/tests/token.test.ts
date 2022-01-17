@@ -1,10 +1,10 @@
 import { stringUtf8CV, uintCV } from "@stacks/transactions";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
 import { expect } from "chai";
-import { accounts } from "../web3/accounts";
+import { accounts, STACKS_API_URL } from "../web3/config";
 import { StacksChain } from "../web3/stacks.chain";
 
-const chain = new StacksChain("http://localhost:3999");
+const chain = new StacksChain(STACKS_API_URL);
 
 const contractAddress = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM";
 const contractName = "token";
