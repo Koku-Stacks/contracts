@@ -1,6 +1,6 @@
 import { intCV } from "@stacks/transactions";
 import { expect } from "chai";
-import { accounts } from "./accounts";
+import { accounts } from "../config";
 import { StacksChain } from "./stacks.chain";
 
 const chain = new StacksChain("http://localhost:3999");

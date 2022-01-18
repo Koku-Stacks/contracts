@@ -11,7 +11,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "test": "mocha --timeout 500000",
+    "test": "mocha --timeout 500000 ",
     "deploy": "ts-node scripts/script_deploy.ts"
   },
   "devDependencies": {

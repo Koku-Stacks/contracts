@@ -1,18 +1,47 @@
 import { stringUtf8CV, uintCV } from "@stacks/transactions";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
 import { expect } from "chai";
-import { accounts, STACKS_API_URL } from "../web3/config";
-import { StacksChain } from "../web3/stacks.chain";
+import * as fs from "fs";
+import * as path from "path";
+import { accounts, CONTRACT_FOLDER, STACKS_API_URL } from "../config";
+import { StacksChain } from "../framework/stacks.chain";
 
-const chain = new StacksChain(STACKS_API_URL);
+const chain = new StacksChain(STACKS_API_URL, { defaultFee: 100000 });
 
-const contractAddress = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM";
-const contractName = "token";
+let contractAddress: string;
+let contractName = "token";
 
 describe("token contract", () => {
-  it("Ensures the token uri facilities work as expected", async () => {
-    const unauthorizedUriUpdate = 104;
+  before(async () => {
+    const deployer = accounts.get("deployer")!;
 
+    const sipContractCode = fs.readFileSync(
+      path.join(CONTRACT_FOLDER, `sip-010-v0a.clar`),
+      { encoding: "utf8" }
+    );
+
+    const contractCode = fs.readFileSync(
+      path.join(CONTRACT_FOLDER, `${contractName}.clar`),
+      { encoding: "utf8" }
+    );
+
+    // deploy the dependency contract first
+    await chain.deployContract(
+      "sip-010-v0a",
+      sipContractCode,
+      deployer.secretKey
+    );
+
+    const contractId = await chain.deployContract(
+      contractName,
+      contractCode,
+      deployer.secretKey
+    );
+
+    contractAddress = contractId.split(".")[0];
+  });
+
+  it("Ensures the token uri facilities work as expected", async () => {
     const deployer = accounts.get("deployer")!;
     const wallet1 = accounts.get("wallet_1")!;
 

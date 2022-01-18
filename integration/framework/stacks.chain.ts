@@ -16,9 +16,14 @@ import { delay } from "./helpers";
 
 export class StacksChain {
   private network: StacksTestnet;
+  private options: { defaultFee: number };
 
-  constructor(private url: string) {
+  constructor(private url: string, options?: { defaultFee?: number }) {
     this.network = new StacksTestnet({ url });
+
+    this.options = {
+      defaultFee: options?.defaultFee ?? 500,
+    };
   }
 
   async transferSTX(
@@ -30,7 +35,7 @@ export class StacksChain {
       fee?: number;
     }
   ) {
-    const { memo = "", fee = 500 } = options ?? {};
+    const { memo = "", fee } = options ?? {};
 
     const transaction = await makeSTXTokenTransfer({
       network: this.network,
@@ -38,7 +43,7 @@ export class StacksChain {
       amount,
       senderKey,
       memo,
-      fee, // set a tx fee if you don't want the builder to estimate
+      fee: fee ?? this.options.defaultFee, // set a tx fee if you don't want the builder to estimate
       anchorMode: AnchorMode.Any,
     });
 
@@ -78,8 +83,6 @@ export class StacksChain {
       fee?: number;
     }
   ) {
-    const { fee = 500 } = options ?? {};
-
     const transaction = await makeContractCall({
       network: this.network,
       contractAddress,
@@ -89,7 +92,7 @@ export class StacksChain {
       senderKey: senderSecretKey,
       anchorMode: AnchorMode.Any,
       postConditionMode: PostConditionMode.Allow,
-      fee,
+      fee: options?.fee ?? this.options.defaultFee,
     });
 
     const broadcast_response = await broadcastTransaction(
@@ -114,16 +117,14 @@ export class StacksChain {
     options?: {
       fee?: number;
     }
-  ) {
-    const { fee = 500 } = options ?? {};
-
+  ): Promise<string> {
     const transaction = await makeContractDeploy({
       network: this.network,
       contractName,
       codeBody: code,
       senderKey: senderSecretKey,
       anchorMode: AnchorMode.Any,
-      fee,
+      fee: options?.fee ?? this.options.defaultFee,
     });
 
     const broadcast_response = await broadcastTransaction(
