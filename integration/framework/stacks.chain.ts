@@ -5,24 +5,40 @@ import {
   callReadOnlyFunction,
   ClarityType,
   cvToJSON,
+  getAddressFromPrivateKey,
   hexToCV,
   makeContractCall,
   makeContractDeploy,
   makeSTXTokenTransfer,
   PostConditionMode,
+  TransactionVersion,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
 
+interface Options {
+  defaultFee?: number;
+  logLevel: LogLevel;
+  isMainnet: boolean;
+}
+
+export enum LogLevel {
+  NONE = 0,
+  INFO = 1,
+  DEBUG = 2,
+}
+
 export class StacksChain {
   private network: StacksTestnet;
-  private options: { defaultFee: number };
+  private options: Options;
 
-  constructor(private url: string, options?: { defaultFee?: number }) {
+  constructor(private url: string, options?: Partial<Options>) {
     this.network = new StacksTestnet({ url });
 
     this.options = {
-      defaultFee: options?.defaultFee ?? 500,
+      defaultFee: options?.defaultFee,
+      logLevel: options?.logLevel ?? LogLevel.INFO,
+      isMainnet: options?.isMainnet ?? false,
     };
   }
 
@@ -46,6 +62,14 @@ export class StacksChain {
       fee: fee ?? this.options.defaultFee, // set a tx fee if you don't want the builder to estimate
       anchorMode: AnchorMode.Any,
     });
+
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: transferSTX",
+        `recipient: ${recipient}`,
+        `amount: ${amount}`
+      );
+    }
 
     return transaction;
   }
@@ -105,6 +129,14 @@ export class StacksChain {
       throw new Error(broadcast_response.reason);
     }
 
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: callContract",
+        `${contractAddress}.${contractName}.${method}`,
+        `txId: ${broadcast_response.txid}`
+      );
+    }
+
     const transactionInfo = await this.waitTransaction(broadcast_response.txid);
 
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
@@ -118,27 +150,56 @@ export class StacksChain {
       fee?: number;
     }
   ): Promise<string> {
-    const transaction = await makeContractDeploy({
-      network: this.network,
-      contractName,
-      codeBody: code,
-      senderKey: senderSecretKey,
-      anchorMode: AnchorMode.Any,
-      fee: options?.fee ?? this.options.defaultFee,
-    });
+    try {
+      const transaction = await makeContractDeploy({
+        network: this.network,
+        contractName,
+        codeBody: code,
+        senderKey: senderSecretKey,
+        anchorMode: AnchorMode.Any,
+        fee: options?.fee ?? this.options.defaultFee,
+      });
 
-    const broadcast_response = await broadcastTransaction(
-      transaction,
-      this.network
-    );
+      const broadcast_response = await broadcastTransaction(
+        transaction,
+        this.network
+      );
 
-    if (broadcast_response.error) {
-      throw new Error(broadcast_response.reason);
+      if (broadcast_response.error) {
+        throw new Error(broadcast_response.reason);
+      }
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log(
+          "Stacks: deployContract",
+          `${contractName}`,
+          `txId: ${broadcast_response.txid}`
+        );
+      }
+
+      const transactionInfo = await this.waitTransaction(
+        broadcast_response.txid
+      );
+
+      return transactionInfo?.smart_contract?.contract_id;
+    } catch (err) {
+      if (err instanceof Error && err.message === "ContractAlreadyExists") {
+        const address = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+
+        if (this.options.logLevel >= LogLevel.INFO) {
+          console.log("Stacks: Skipped Deployment, Contract Already Exists");
+        }
+
+        return `${address}.${contractName}`;
+      }
+
+      throw err;
     }
-
-    const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-
-    return transactionInfo?.smart_contract?.contract_id;
   }
 
   private async waitTransaction(txId: string) {
@@ -150,7 +211,15 @@ export class StacksChain {
       transactionInfo = await fetch(`${this.url}/extended/v1/tx/${txId}`).then(
         (x) => x.json()
       );
+
+      if (this.options.logLevel >= LogLevel.DEBUG) {
+        console.log("Stacks: check transaction", transactionInfo);
+      }
     } while (transactionInfo.tx_status === "pending");
+
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log("Stacks: transaction mined", `txId: ${txId}`);
+    }
 
     return transactionInfo;
   }
