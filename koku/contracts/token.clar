@@ -7,22 +7,16 @@
 (define-constant unauthorized-transfer u101)
 (define-constant unauthorized-allowance-query u102)
 (define-constant attempt-to-decrease-inexistent-allowance u103)
-(define-constant unauthorized-uri-update u110)
 (define-constant insuficcient-tokens-to-mint u111)
 
 (define-constant this-contract (as-contract tx-sender))
 
 (contract-call? .ownership-registry register-ownership this-contract)
 
-(define-data-var token-uri (optional (string-utf8 64)) none)
-
-(define-public (set-token-uri (new-uri (string-utf8 64)))
-  (begin
-    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err unauthorized-uri-update))
-    (ok (var-set token-uri (some new-uri)))))
+(contract-call? .uri-registry set-uri this-contract u"www.token.com")
 
 (define-read-only (get-token-uri)
-  (ok (var-get token-uri)))
+  (ok (contract-call? .uri-registry get-uri this-contract)))
 
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)

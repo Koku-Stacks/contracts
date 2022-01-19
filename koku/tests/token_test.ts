@@ -86,41 +86,6 @@ Clarinet.test({
 });
 
 Clarinet.test({
-    name: "Ensure the token uri facilities work as expected",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const unauthorizedUriUpdate = 110;
-
-        const deployer = accounts.get('deployer')!;
-        const wallet1 = accounts.get('wallet_1')!;
-
-        let uri = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
-        uri.result.expectOk().expectNone();
-
-        const newUri = 'www.token.com';
-
-        const block1 = chain.mineBlock([
-            Tx.contractCall('token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
-        ]);
-
-        const [goodSetTokenUriCall] = block1.receipts;
-        goodSetTokenUriCall.result.expectOk().expectBool(true);
-
-        let uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
-        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
-
-        const block2 = chain.mineBlock([
-            Tx.contractCall('token', 'set-token-uri', [types.utf8('www.bad.com')], wallet1.address)
-        ]);
-
-        const [badSetTokenUriCall] = block2.receipts;
-        badSetTokenUriCall.result.expectErr().expectUint(unauthorizedUriUpdate);
-
-        uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
-        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
-    }
-});
-
-Clarinet.test({
     name: "Ensure the constant read only functions are returning as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
@@ -232,20 +197,24 @@ Clarinet.test({
 
         goodTransferCall1.result.expectOk().expectBool(true);
         assertEquals(goodTransferCall1.events[0],
-            {ft_transfer_event: {
-                amount: '10',
-                asset_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token::token',
-                recipient: 'ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC',
-                sender: 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5'
-            },
-             type: 'ft_transfer_event'});
+            {
+                ft_transfer_event: {
+                    amount: '10',
+                    asset_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token::token',
+                    recipient: 'ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC',
+                    sender: 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5'
+                },
+                type: 'ft_transfer_event'
+            });
         assertEquals(goodTransferCall1.events[1],
-            {contract_event: {
-                contract_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token',
-                topic: 'print',
-                value: '0x0c00000000000000'
-            },
-             type: 'contract_event'});
+            {
+                contract_event: {
+                    contract_identifier: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token',
+                    topic: 'print',
+                    value: '0x0c00000000000000'
+                },
+                type: 'contract_event'
+            });
 
         goodTransferCall2.result.expectOk().expectBool(true);
         assertEquals(goodTransferCall2.events.length, 1)
