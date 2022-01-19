@@ -3,7 +3,7 @@ import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarine
 Clarinet.test({
     name: "Ensure the uri registry works as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const unauthorizedUriUpdate = 110;
+        const unauthorizedUriChange = 100;
 
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
@@ -17,18 +17,18 @@ Clarinet.test({
             Tx.contractCall('uri-registry', 'set-uri', [types.principal(`${deployer.address}.token`), types.utf8(newUri)], deployer.address)
         ]);
 
-        const [goodSetTokenUriCall] = block1.receipts;
-        goodSetTokenUriCall.result.expectOk().expectBool(true);
+        const [goodSetUriCall] = block1.receipts;
+        goodSetUriCall.result.expectOk().expectBool(true);
 
         let uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
 
-        // const block2 = chain.mineBlock([
-        //     Tx.contractCall('uri-registry', 'set-uri', [types.principal(`${deployer.address}.token`), types.utf8('www.bad.com')], wallet1.address)
-        // ]);
+        const block2 = chain.mineBlock([
+            Tx.contractCall('uri-registry', 'set-uri', [types.principal(`${deployer.address}.token`), types.utf8('www.bad.com')], wallet1.address)
+        ]);
 
-        // const [badSetTokenUriCall] = block2.receipts;
-        // badSetTokenUriCall.result.expectErr().expectUint(unauthorizedUriUpdate);
+        const [badSetUriCall] = block2.receipts;
+        badSetUriCall.result.expectErr().expectUint(unauthorizedUriChange);
 
         uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
