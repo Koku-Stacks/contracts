@@ -7,7 +7,6 @@
 (define-constant unauthorized-transfer u101)
 (define-constant unauthorized-allowance-query u102)
 (define-constant attempt-to-decrease-inexistent-allowance u103)
-(define-constant insuficcient-tokens-to-mint u111)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -21,25 +20,14 @@
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)
 
-(define-data-var remaining-tokens-to-mint uint u21000000000000)
-
-(define-read-only (get-remaining-tokens-to-mint)
-  (var-get remaining-tokens-to-mint))
-
-(define-private (decrease-remaining-tokens-to-mint (amount uint))
-  (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount)))
-
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err unauthorized-minter))
-    (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
+    (asserts! (is-eq tx-sender .minting) (err unauthorized-minter))
     (match (ft-mint? token amount to)
-    ok-mint
-    (begin
-      (decrease-remaining-tokens-to-mint amount)
-      (ok true))
-    err-mint
-    (err err-mint))))
+      ok-mint
+      (ok true)
+      err-mint
+      (err err-mint))))
 
 (define-public (burn (amount uint))
   (begin

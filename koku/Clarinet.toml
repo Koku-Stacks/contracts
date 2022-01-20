@@ -31,3 +31,6 @@ depends_on = []
 path = "contracts/uri-registry.clar"
 depends_on = ["ownership-registry"]
 
+[contracts.minting]
+path = "contracts/minting.clar"
+depends_on = ["ownership-registry", "token"]
