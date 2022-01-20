@@ -8,7 +8,7 @@
   "repository": "https://github.com/koku-network/testnet.git",
   "private": true,
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "scripts": {
     "test": "mocha --timeout 500000 ",
