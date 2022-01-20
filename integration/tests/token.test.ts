@@ -98,7 +98,6 @@ describe("token contract", () => {
 
     expect(wrongUpdateResult).to.be.ok;
     expect(wrongUpdateResult.success).to.be.false;
-    console.log("wrongUpdateResult", wrongUpdateResult);
     expect(wrongUpdateResult.value.value).to.be.eq("110");
 
     // double check that value wasn't changed
@@ -128,7 +127,6 @@ describe("token contract", () => {
 
     expect(decimals).to.be.ok;
     expect(decimals.success).to.be.true;
-    console.log("decimals", decimals);
     expect(decimals.value.value).to.be.eq("6");
 
     const symbol = await chain.callReadOnlyFn(
