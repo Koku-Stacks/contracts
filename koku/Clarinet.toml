@@ -17,7 +17,7 @@ depends_on = []
 
 [contracts.token]
 path = "contracts/token.clar"
-depends_on = ["sip-010-trait-ft-standard", "uri-registry"]
+depends_on = ["sip-010-trait-ft-standard", "uri-registry", "ownership-registry"]
 
 [contracts.hello-world]
 path = "contracts/hello-world.clar"
@@ -29,4 +29,5 @@ depends_on = []
 
 [contracts.uri-registry]
 path = "contracts/uri-registry.clar"
-depends_on = []
+depends_on = ["ownership-registry"]
+
