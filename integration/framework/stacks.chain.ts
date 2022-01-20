@@ -29,6 +29,8 @@ export enum LogLevel {
 }
 
 export class StacksChain {
+  accounts: Map<string, Account> = new Map();
+
   private network: StacksTestnet;
   private options: Options;
 
@@ -40,6 +42,28 @@ export class StacksChain {
       logLevel: options?.logLevel ?? LogLevel.INFO,
       isMainnet: options?.isMainnet ?? false,
     };
+  }
+
+  async loadAccounts() {
+    const items: RemoteAccount[] = await fetch(
+      this.url.replace(":3999", ":5000") + "/accounts"
+    ).then((x) => x.json());
+
+    this.accounts.clear();
+    items.reduce(
+      (r, x) =>
+        r.set(x.name, {
+          secretKey: x.secretKey,
+          address: getAddressFromPrivateKey(
+            x.secretKey,
+            this.options.isMainnet
+              ? TransactionVersion.Mainnet
+              : TransactionVersion.Testnet
+          ),
+          btcAddress: x.btcAddress ?? "",
+        }),
+      this.accounts
+    );
   }
 
   async transferSTX(
@@ -223,4 +247,18 @@ export class StacksChain {
 
     return transactionInfo;
   }
+}
+
+export interface Account {
+  address: string;
+  btcAddress: string;
+  secretKey: string;
+}
+
+interface RemoteAccount {
+  name: string;
+  initialBalance: number;
+  mnemonic: string;
+  secretKey: string;
+  btcAddress?: string;
 }

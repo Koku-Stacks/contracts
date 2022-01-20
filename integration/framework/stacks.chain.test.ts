@@ -1,13 +1,12 @@
 import { intCV } from "@stacks/transactions";
 import { expect } from "chai";
-import { accounts } from "../config";
 import { StacksChain } from "./stacks.chain";
 
 const chain = new StacksChain("http://localhost:3999");
 
 describe("stacks.chain", () => {
   it("should deploy and next call the contract functions", async () => {
-    const deployer = accounts.get("deployer")!;
+    const deployer = chain.accounts.get("deployer")!;
 
     const contractName = "hello" + Date.now().toString();
 
