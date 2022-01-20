@@ -34,3 +34,7 @@ depends_on = ["ownership-registry"]
 [contracts.minting]
 path = "contracts/minting.clar"
 depends_on = ["ownership-registry", "token"]
+
+[contracts.allowance]
+path = "contracts/allowance.clar"
+depends_on = ["token"]
