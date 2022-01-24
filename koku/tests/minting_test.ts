@@ -83,3 +83,29 @@ Clarinet.test({
         remainingTokensToMint.result.expectUint(0);
     }
 });
+
+Clarinet.test({
+    name: "Ensure that token max supply is respected when there are multiple mint calls in the same block",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const insufficientTokensToMint = 101;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+        const wallet2 = accounts.get('wallet_2')!;
+
+        const maxTokensToMint = 21_000_000_000_000;
+
+        let remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint);
+
+        let block1 = chain.mineBlock([
+            Tx.contractCall('minting', 'mint', [types.uint(maxTokensToMint - 1), types.principal(wallet1.address)], deployer.address),
+            Tx.contractCall('minting', 'mint', [types.uint(maxTokensToMint - 1), types.principal(wallet2.address)], deployer.address)
+        ]);
+
+        const [goodMintCall, badMintCall] = block1.receipts;
+
+        goodMintCall.result.expectOk().expectBool(true);
+        badMintCall.result.expectErr().expectUint(insufficientTokensToMint);
+    }
+});
