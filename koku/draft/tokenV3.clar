@@ -1,27 +1,25 @@
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
-(define-constant unauthorized u100)
-(define-constant unauthorized-transfer u101)
+(define-constant only-owner-can-authorize-contracts u100)
+(define-constant unauthorized-contract u101)
+(define-constant contract-already-authorized u102)
+(define-constant unauthorized-transfer u103)
 
-(define-map authorized-contracts principal bool)
+(define-map authorized-contracts {authorized: principal} bool)
 
 (define-constant this-contract (as-contract tx-sender))
 
 (contract-call? .ownership-registry register-ownership this-contract)
 
 (define-private (is-authorized)
-  (ok (asserts!
-    (is-eq true (default-to false (map-get? authorized-contracts tx-sender)))
-    (err unauthorized)
-  ))
-)
+  (is-some (map-get? authorized-contracts {authorized: tx-sender})))
 
 (define-public (add-authorized-contract (new-contract principal))
   (begin
-    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err unauthorized))
-    (ok (map-insert authorized-contracts new-contract true))
-  )
-)
+    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err only-owner-can-authorize-contracts))
+    (asserts! (is-none (map-get? authorized-contracts {authorized: new-contract})) (err contract-already-authorized))
+    (map-insert authorized-contracts new-contract true)
+    (ok true)))
 
 (define-public (revoke-authorized-contract (contract-name principal))
   (begin
