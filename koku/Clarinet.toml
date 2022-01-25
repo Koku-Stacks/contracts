@@ -11,8 +11,6 @@ depends_on = ["sip-010-trait-ft-standard", "liquidity-token"]
 path = "draft/liquidity-token.clar"
 depends_on = ["sip-010-trait-ft-standard"]
 
-[contracts.sip-010-trait-ft-standard]
-path = "contracts/sip-010-trait-ft-standard.clar"
 [contracts.uri-registry]
 path = "draft/uri-registry.clar"
 depends_on = ["ownership-registry"]
@@ -26,20 +24,17 @@ path = "draft/ownership-registry.clar"
 depends_on = []
 
 [contracts.token]
-path = "contracts/token.clar"
+path = "draft/token.clar"
 depends_on = ["sip-010-trait-ft-standard", "uri-registry", "ownership-registry"]
+
+[contracts.sip-010-trait-ft-standard]
+path = "contracts/sip-010-trait-ft-standard.clar"
+depends_on = []
 
 [contracts.token-v2]
 path = "contracts/token-v2.clar"
 depends_on = []
 
-[contracts.hello-world]
-path = "contracts/hello-world.clar"
-depends_on = []
-
-depends_on = []
-
 [contracts.minting]
 path = "contracts/minting.clar"
 depends_on = ["ownership-registry", "token"]
-
