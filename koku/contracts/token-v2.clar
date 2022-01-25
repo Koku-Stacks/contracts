@@ -20,14 +20,14 @@
 
 (define-public (add-authorized-contract (new-contract principal))
   (begin
-    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err only-owner-can-add-authorized-contracts))
+    (asserts! (is-eq (get-owner) tx-sender) (err only-owner-can-add-authorized-contracts))
     (asserts! (is-none (map-get? authorized-contracts {authorized: new-contract})) (err contract-already-authorized))
     (map-insert authorized-contracts {authorized: new-contract} true)
     (ok true)))
 
 (define-public (revoke-authorized-contract (contract principal))
   (begin
-    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err only-owner-can-revoke-authorized-contracts))
+    (asserts! (is-eq (get-owner) tx-sender) (err only-owner-can-revoke-authorized-contracts))
     (asserts! (is-some (map-get? authorized-contracts {authorized: contract})) (err contract-is-not-authorized))
     (map-delete authorized-contracts {authorized: contract})
     (ok true)))
