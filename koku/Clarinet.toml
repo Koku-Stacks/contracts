@@ -3,34 +3,14 @@ name = "koku"
 requirements = []
 costs_version = 1
 
-[contracts.liquidity-pool]
-path = "draft/liquidity-pool.clar"
-depends_on = ["sip-010-trait-ft-standard", "liquidity-token"]
-
-[contracts.liquidity-token]
-path = "draft/liquidity-token.clar"
-depends_on = ["sip-010-trait-ft-standard"]
-
-[contracts.uri-registry]
-path = "draft/uri-registry.clar"
-depends_on = ["ownership-registry"]
-
-[contracts.allowance]
-path = "draft/allowance.clar"
-depends_on = ["token"]
-
-[contracts.ownership-registry]
-path = "draft/ownership-registry.clar"
-depends_on = []
-
 [contracts.sip-010-trait-ft-standard]
 path = "contracts/sip-010-trait-ft-standard.clar"
 depends_on = []
 
 [contracts.token-v2]
 path = "contracts/token-v2.clar"
-depends_on = []
+depends_on = ["sip-010-trait-ft-standard"]
 
 [contracts.minting]
 path = "contracts/minting.clar"
-depends_on = ["ownership-registry", "token"]
+depends_on = ["token-v2"]
