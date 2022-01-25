@@ -8,10 +8,44 @@
 (define-constant only-authorized-contracts-can-set-uri u105)
 (define-constant only-authorized-contracts-can-mint-token u106)
 (define-constant unauthorized-transfer u107)
+(define-constant ownership-transfer-not-submitted-by-owner u108)
+(define-constant another-ownership-transfer-is-submitted u109)
+(define-constant ownership-transfer-not-cancelled-by-owner u110)
+(define-constant no-ownership-transfer-to-cancel u111)
+(define-constant no-ownership-transfer-to-confirm u112)
+(define-constant ownership-transfer-not-confirmed-by-new-owner u113)
 
 (define-constant this-contract (as-contract tx-sender))
 
-(contract-call? .ownership-registry register-ownership this-contract)
+(define-data-var owner principal tx-sender)
+(define-data-var submitted-new-owner (optional principal) none)
+
+(define-read-only (get-owner)
+  (var-get owner))
+
+(define-public (submit-ownership-transfer (new-owner principal))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) (err ownership-transfer-not-submitted-by-owner))
+    (asserts! (is-none (var-get submitted-new-owner)) (err another-ownership-transfer-is-submitted))
+    (var-set submitted-new-owner (some new-owner))
+    (ok true)))
+
+(define-public (cancel-ownership-transfer)
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) (err ownership-transfer-not-cancelled-by-owner))
+    (asserts! (is-some (var-get submitted-new-owner)) (err no-ownership-transfer-to-cancel))
+    (var-set submitted-new-owner none)
+    (ok true)))
+
+(define-public (confirm-ownership-transfer)
+  (match (var-get submitted-new-owner)
+    new-owner
+    (begin
+      (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) (err ownership-transfer-not-confirmed-by-new-owner))
+      (var-set submitted-new-owner none)
+      (var-set owner new-owner)
+      (ok true))
+    (err no-ownership-transfer-to-confirm)))
 
 (define-map authorized-contracts {authorized: principal} bool)
 
