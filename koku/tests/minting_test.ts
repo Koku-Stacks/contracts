@@ -39,7 +39,7 @@ Clarinet.test({
         remainingTokensToMint.result.expectUint(maxTokensToMint - 2 * amountToMint);
 
         let block3 = chain.mineBlock([
-            Tx.contractCall('token', 'burn', [types.uint(2 * amountToMint)], deployer.address)
+            Tx.contractCall('token-v2', 'burn', [types.uint(2 * amountToMint)], deployer.address)
         ])
 
         const [goodBurnCall] = block3.receipts;
