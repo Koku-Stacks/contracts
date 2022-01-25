@@ -3,7 +3,7 @@
 
 (define-constant this-contract (as-contract tx-sender))
 
-(contract-call? .ownership-registry register-ownership this-contract)
+(contract-call? .token-v2 add-authorized-contract this-contract)
 
 (define-data-var remaining-tokens-to-mint uint u21000000000000)
 
