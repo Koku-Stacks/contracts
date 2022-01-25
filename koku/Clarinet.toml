@@ -13,6 +13,10 @@ depends_on = ["sip-010-trait-ft-standard"]
 
 [contracts.sip-010-trait-ft-standard]
 path = "contracts/sip-010-trait-ft-standard.clar"
+[contracts.allowance]
+path = "draft/allowance.clar"
+depends_on = ["token"]
+
 depends_on = []
 
 [contracts.token]
@@ -39,6 +43,3 @@ depends_on = ["ownership-registry"]
 path = "contracts/minting.clar"
 depends_on = ["ownership-registry", "token"]
 
-[contracts.allowance]
-path = "contracts/allowance.clar"
-depends_on = ["token"]
