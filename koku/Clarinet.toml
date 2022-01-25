@@ -13,6 +13,10 @@ depends_on = ["sip-010-trait-ft-standard"]
 
 [contracts.sip-010-trait-ft-standard]
 path = "contracts/sip-010-trait-ft-standard.clar"
+[contracts.uri-registry]
+path = "draft/uri-registry.clar"
+depends_on = ["ownership-registry"]
+
 [contracts.allowance]
 path = "draft/allowance.clar"
 depends_on = ["token"]
@@ -34,10 +38,6 @@ path = "contracts/hello-world.clar"
 depends_on = []
 
 depends_on = []
-
-[contracts.uri-registry]
-path = "contracts/uri-registry.clar"
-depends_on = ["ownership-registry"]
 
 [contracts.minting]
 path = "contracts/minting.clar"
