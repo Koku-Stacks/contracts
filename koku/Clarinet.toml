@@ -17,6 +17,8 @@ path = "contracts/sip-010-trait-ft-standard.clar"
 path = "draft/allowance.clar"
 depends_on = ["token"]
 
+[contracts.ownership-registry]
+path = "draft/ownership-registry.clar"
 depends_on = []
 
 [contracts.token]
@@ -31,8 +33,6 @@ depends_on = []
 path = "contracts/hello-world.clar"
 depends_on = []
 
-[contracts.ownership-registry]
-path = "contracts/ownership-registry.clar"
 depends_on = []
 
 [contracts.uri-registry]
