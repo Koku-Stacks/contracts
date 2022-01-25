@@ -17,7 +17,7 @@
   (begin
     (asserts! (is-eq tx-sender (contract-call? .token-v2 get-owner)) (err unauthorized-minter))
     (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
-    (match (as-contract (contract-call? .token mint amount to))
+    (match (as-contract (contract-call? .token-v2 mint amount to))
       ok-mint
       (begin
         (decrease-remaining-tokens-to-mint amount)
