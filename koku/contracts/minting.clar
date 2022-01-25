@@ -15,7 +15,7 @@
 
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-eq {owner: tx-sender} (contract-call? .ownership-registry get-owner this-contract)) (err unauthorized-minter))
+    (asserts! (is-eq tx-sender (contract-call? .token-v2 get-owner)) (err unauthorized-minter))
     (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
     (match (as-contract (contract-call? .token mint amount to))
       ok-mint
