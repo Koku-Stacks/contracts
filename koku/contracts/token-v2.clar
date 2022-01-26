@@ -82,7 +82,7 @@
 
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-authorized) (err only-authorized-contracts-can-mint-token))
+    (asserts! (is-authorized tx-sender) (err only-authorized-contracts-can-mint-token))
     (match (ft-mint? token amount to)
       ok-mint
       (ok true)
@@ -96,7 +96,7 @@
 (define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
   (begin
     (asserts! (or (is-eq tx-sender from)
-                  (is-authorized)) (err unauthorized-transfer))
+                  (is-authorized tx-sender)) (err unauthorized-transfer))
     (match (ft-transfer? token amount from to)
       ok-transfer
       (begin
