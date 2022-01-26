@@ -13,9 +13,12 @@
 (define-private (decrease-remaining-tokens-to-mint (amount uint))
   (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount)))
 
+(define-read-only (get-owner)
+  (contract-call? .token-v2 get-owner))
+
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-eq tx-sender (contract-call? .token-v2 get-owner)) (err unauthorized-minter))
+    (asserts! (is-eq tx-sender (get-owner)) (err unauthorized-minter))
     (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
     (match (as-contract (contract-call? .token-v2 mint amount to))
       ok-mint
