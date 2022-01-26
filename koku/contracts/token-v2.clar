@@ -73,7 +73,7 @@
 
 (define-public (set-token-uri (new-token-uri (string-utf8 256)))
   (begin
-    (asserts! (is-authorized) (err only-authorized-contracts-can-set-uri))
+    (asserts! (is-eq (get-owner) tx-sender) (err only-authorized-contracts-can-set-uri))
     (var-set token-uri new-token-uri)
     (ok true)))
 
