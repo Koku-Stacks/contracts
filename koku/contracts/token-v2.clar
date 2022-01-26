@@ -49,8 +49,8 @@
 
 (define-map authorized-contracts {authorized: principal} bool)
 
-(define-private (is-authorized)
-  (is-some (map-get? authorized-contracts {authorized: tx-sender})))
+(define-read-only (is-authorized (contract principal))
+  (is-some (map-get? authorized-contracts {authorized: contract})))
 
 (define-public (add-authorized-contract (new-contract principal))
   (begin
