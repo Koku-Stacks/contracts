@@ -3,18 +3,18 @@ import { assertEquals } from "https://deno.land/std@0.120.0/testing/asserts.ts";
 
 const onlyOwnerCanAddAuthorizedContracts = 100;
 const onlyOwnerCanRevokeAuthorizedContracts = 101;
-const unauthorizedContract = 102;
-const contractAlreadyAuthorized = 103;
-const contractIsNotAuthorized = 104;
-const onlyAuthorizedContractsCanSetUri = 105;
-const onlyAuthorizedContractsCanMintToken = 106;
-const unauthorizedTransfer = 107;
-const ownershipTransferNotSubmittedByOwner = 108;
-const anotherOwnershipTransferIsSubmitted = 109;
-const ownershipTransferNotCancelledByOwner = 110;
-const noOwnershipTransferToCancel = 111;
-const noOwnershipTransferToConfirm = 112;
-const ownershipTransferNotConfirmedByNewOwner = 113;
+const contractAlreadyAuthorized = 102;
+const contractIsNotAuthorized = 103;
+const onlyAuthorizedContractsCanSetUri = 104;
+const onlyAuthorizedContractsCanMintToken = 105;
+const unauthorizedTransfer = 106;
+const ownershipTransferNotSubmittedByOwner = 107;
+const anotherOwnershipTransferIsSubmitted = 108;
+const ownershipTransferNotCancelledByOwner = 109;
+const noOwnershipTransferToCancel = 110;
+const noOwnershipTransferToConfirm = 111;
+const ownershipTransferNotConfirmedByNewOwner = 112;
+
 
 Clarinet.test({
     name: "Ensure mint and burn functions work as expected",
