@@ -278,7 +278,11 @@ export class StacksChain {
     } while (transactionInfo.tx_status === "pending");
 
     if (this.options.logLevel >= LogLevel.INFO) {
-      console.log("Stacks: transaction mined", `txId: ${txId}`);
+      console.log(
+        "Stacks: transaction mined",
+        `tx_status: ${transactionInfo.tx_status}`,
+        `txId: ${txId}`
+      );
     }
 
     return transactionInfo;
