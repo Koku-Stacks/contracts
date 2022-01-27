@@ -246,15 +246,11 @@ export class StacksChain {
             : TransactionVersion.Testnet
         );
 
-        if (this.options.logLevel >= LogLevel.INFO) {
-          console.log("Stacks: Skipped Deployment, Contract Already Exists");
-        }
-
         const contractId = `${address}.${contractName}`;
 
         if (this.options.logLevel >= LogLevel.INFO) {
           console.log(
-            "Stacks: deployContract completed",
+            "Stacks: Skipped Deployment, Contract Already Exists",
             `contractId: ${contractId}`
           );
         }
