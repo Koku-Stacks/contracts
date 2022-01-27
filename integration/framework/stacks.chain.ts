@@ -118,6 +118,14 @@ export class StacksChain {
       throw new Error(ClarityType[readResult.type]);
     }
 
+    if (this.options.logLevel >= LogLevel.DEBUG) {
+      console.log(
+        "Stacks: transferSTX",
+        `senderAddress: ${senderAddress}`,
+        cvToJSON(readResult)
+      );
+    }
+
     return cvToJSON(readResult);
   }
 
@@ -154,8 +162,16 @@ export class StacksChain {
     }
 
     if (this.options.logLevel >= LogLevel.INFO) {
+      const senderAddress = getAddressFromPrivateKey(
+        senderSecretKey,
+        this.options.isMainnet
+          ? TransactionVersion.Mainnet
+          : TransactionVersion.Testnet
+      );
+
       console.log(
         "Stacks: callContract",
+        `senderAddress: ${senderAddress}`,
         `${contractAddress}.${contractName}.${method}`,
         `txId: ${broadcast_response.txid}`
       );
@@ -194,8 +210,16 @@ export class StacksChain {
       }
 
       if (this.options.logLevel >= LogLevel.INFO) {
+        const senderAddress = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+
         console.log(
           "Stacks: deployContract",
+          `senderAddress: ${senderAddress}`,
           `${contractName}`,
           `txId: ${broadcast_response.txid}`
         );
@@ -204,6 +228,13 @@ export class StacksChain {
       const transactionInfo = await this.waitTransaction(
         broadcast_response.txid
       );
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log(
+          "Stacks: deployContract completed",
+          `contractId: ${transactionInfo?.smart_contract?.contract_id}`
+        );
+      }
 
       return transactionInfo?.smart_contract?.contract_id;
     } catch (err) {
@@ -219,7 +250,16 @@ export class StacksChain {
           console.log("Stacks: Skipped Deployment, Contract Already Exists");
         }
 
-        return `${address}.${contractName}`;
+        const contractId = `${address}.${contractName}`;
+
+        if (this.options.logLevel >= LogLevel.INFO) {
+          console.log(
+            "Stacks: deployContract completed",
+            `contractId: ${contractId}`
+          );
+        }
+
+        return contractId;
       }
 
       throw err;
