@@ -16,9 +16,8 @@ const noOwnershipTransferToConfirm = 111;
 const ownershipTransferNotConfirmedByNewOwner = 112;
 
 Clarinet.test({
-    name: "Ensure the ownership registry contract works as expected",
+    name: "Ensure the ownership facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
-
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
         const wallet2 = accounts.get('wallet_2')!;
@@ -142,7 +141,7 @@ Clarinet.test({
 });
 
 Clarinet.test({
-    name: "Ensure the uri registry works as expected",
+    name: "Ensure the uri facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
