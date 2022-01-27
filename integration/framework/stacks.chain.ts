@@ -121,6 +121,7 @@ export class StacksChain {
     if (this.options.logLevel >= LogLevel.DEBUG) {
       console.log(
         "Stacks: transferSTX",
+        `${contractAddress}.${contractName}.${method}`,
         `senderAddress: ${senderAddress}`,
         cvToJSON(readResult)
       );
