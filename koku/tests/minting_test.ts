@@ -1,135 +1,135 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
 const insufficientTokensToMint = 101;
-const ownershipTransferNotSubmittedByOwner = 107;
-const anotherOwnershipTransferIsSubmitted = 108;
-const ownershipTransferNotCancelledByOwner = 109;
-const noOwnershipTransferToCancel = 110;
-const noOwnershipTransferToConfirm = 111;
-const ownershipTransferNotConfirmedByNewOwner = 112;
+const minterTransferNotSubmittedByMinter = 107;
+const anotherMinterTransferIsSubmitted = 108;
+const minterTransferNotCancelledByMinter = 109;
+const noMinterTransferToCancel = 110;
+const noMinterTransferToConfirm = 111;
+const minterTransferNotConfirmedByNewMinter = 112;
 
 Clarinet.test({
-    name: "Ensure the ownership facilities work as expected",
+    name: "Ensure the minter management facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
         const wallet2 = accounts.get('wallet_2')!;
 
-        let tokenOwner = chain.callReadOnlyFn('minting', 'get-owner', [], wallet2.address);
-        tokenOwner.result.expectPrincipal(deployer.address);
+        let minter = chain.callReadOnlyFn('minting', 'get-minter', [], wallet2.address);
+        minter.result.expectPrincipal(deployer.address);
 
         const block1 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'submit-ownership-transfer',
+                            'submit-minter-transfer',
                             [types.principal(wallet1.address)],
                             wallet1.address)
         ]);
 
-        const [badSubmitOwnershipTransferCall1] = block1.receipts;
+        const [badSubmitMinterTransferCall1] = block1.receipts;
 
-        badSubmitOwnershipTransferCall1.result.expectErr().expectUint(ownershipTransferNotSubmittedByOwner);
+        badSubmitMinterTransferCall1.result.expectErr().expectUint(minterTransferNotSubmittedByMinter);
 
         const block2 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'submit-ownership-transfer',
+                            'submit-minter-transfer',
                             [types.principal(wallet1.address)],
                             deployer.address)
         ]);
 
-        const [goodSubmitOwnershipTransferCall1] = block2.receipts;
+        const [goodSubmitMinterTransferCall1] = block2.receipts;
 
-        goodSubmitOwnershipTransferCall1.result.expectOk().expectBool(true);
+        goodSubmitMinterTransferCall1.result.expectOk().expectBool(true);
 
         const block3 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'submit-ownership-transfer',
+                            'submit-minter-transfer',
                             [types.principal(wallet2.address)],
                             deployer.address)
         ]);
 
-        const [badSubmitOwnershipTransferCall3] = block3.receipts;
+        const [badSubmitMinterTransferCall3] = block3.receipts;
 
-        badSubmitOwnershipTransferCall3.result.expectErr().expectUint(anotherOwnershipTransferIsSubmitted);
+        badSubmitMinterTransferCall3.result.expectErr().expectUint(anotherMinterTransferIsSubmitted);
 
         const block4 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'cancel-ownership-transfer',
+                            'cancel-minter-transfer',
                             [],
                             wallet2.address)
         ]);
 
-        const [badCancelOwnershipTransferCall1] = block4.receipts;
+        const [badCancelMinterTransferCall1] = block4.receipts;
 
-        badCancelOwnershipTransferCall1.result.expectErr().expectUint(ownershipTransferNotCancelledByOwner);
+        badCancelMinterTransferCall1.result.expectErr().expectUint(minterTransferNotCancelledByMinter);
 
         const block5 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'cancel-ownership-transfer',
+                            'cancel-minter-transfer',
                             [],
                             deployer.address)
         ]);
 
-        const [goodCancelOwnershipTransferCall] = block5.receipts;
+        const [goodCancelMinterTransferCall] = block5.receipts;
 
-        goodCancelOwnershipTransferCall.result.expectOk().expectBool(true);
+        goodCancelMinterTransferCall.result.expectOk().expectBool(true);
 
         const block6 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'confirm-ownership-transfer',
+                            'confirm-minter-transfer',
                             [],
                             wallet1.address)
         ]);
 
-        const [badConfirmOwnershipTransferCall1] = block6.receipts;
+        const [badConfirmMinterTransferCall1] = block6.receipts;
 
-        badConfirmOwnershipTransferCall1.result.expectErr().expectUint(noOwnershipTransferToConfirm);
+        badConfirmMinterTransferCall1.result.expectErr().expectUint(noMinterTransferToConfirm);
 
         const block7 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'cancel-ownership-transfer',
+                            'cancel-minter-transfer',
                             [],
                             deployer.address)
         ]);
 
-        const [badCancelOwnershipTransferCall2] = block7.receipts;
+        const [badCancelMinterTransferCall2] = block7.receipts;
 
-        badCancelOwnershipTransferCall2.result.expectErr().expectUint(noOwnershipTransferToCancel);
+        badCancelMinterTransferCall2.result.expectErr().expectUint(noMinterTransferToCancel);
 
         const block8 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'submit-ownership-transfer',
+                            'submit-minter-transfer',
                             [types.principal(wallet2.address)],
                             deployer.address)
         ]);
 
-        const [goodSubmitOwnershipTransferCall2] = block8.receipts;
+        const [goodSubmitMinterTransferCall2] = block8.receipts;
 
-        goodSubmitOwnershipTransferCall2.result.expectOk().expectBool(true);
+        goodSubmitMinterTransferCall2.result.expectOk().expectBool(true);
 
         const block9 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'confirm-ownership-transfer',
+                            'confirm-minter-transfer',
                             [],
                             deployer.address)
         ]);
 
-        const [badConfirmOwnershipTransferCall2] = block9.receipts;
+        const [badConfirmMinterTransferCall2] = block9.receipts;
 
-        badConfirmOwnershipTransferCall2.result.expectErr().expectUint(ownershipTransferNotConfirmedByNewOwner);
+        badConfirmMinterTransferCall2.result.expectErr().expectUint(minterTransferNotConfirmedByNewMinter);
 
         const block10 = chain.mineBlock([
             Tx.contractCall('minting',
-                            'confirm-ownership-transfer',
+                            'confirm-minter-transfer',
                             [],
                             wallet2.address)
         ]);
 
-        const [goodConfirmOwnershipTransferCall] = block10.receipts;
+        const [goodConfirmMinterTransferCall] = block10.receipts;
 
-        goodConfirmOwnershipTransferCall.result.expectOk().expectBool(true);
+        goodConfirmMinterTransferCall.result.expectOk().expectBool(true);
 
-        tokenOwner = chain.callReadOnlyFn('minting', 'get-owner', [], wallet2.address);
-        tokenOwner.result.expectPrincipal(wallet2.address);
+        minter = chain.callReadOnlyFn('minting', 'get-minter', [], wallet2.address);
+        minter.result.expectPrincipal(wallet2.address);
     }
 });
 
