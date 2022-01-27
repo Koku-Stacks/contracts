@@ -3,20 +3,25 @@ import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
-import { accounts, CONTRACT_FOLDER, STACKS_API_URL } from "../config";
+import { CONTRACT_FOLDER, STACKS_API_URL } from "../config";
 import { StacksChain } from "../framework/stacks.chain";
 
-const chain = new StacksChain(STACKS_API_URL, { defaultFee: 100000 });
+const chain = new StacksChain(STACKS_API_URL, {
+  defaultFee: 100000,
+});
 
 let contractAddress: string;
-let contractName = "token";
+const contractName = "token";
+const sipContractName = "sip-010-trait-ft-standard";
 
 describe("token contract", () => {
   before(async () => {
-    const deployer = accounts.get("deployer")!;
+    await chain.loadAccounts();
+
+    const deployer = chain.accounts.get("deployer")!;
 
     const sipContractCode = fs.readFileSync(
-      path.join(CONTRACT_FOLDER, `sip-010-v0a.clar`),
+      path.join(CONTRACT_FOLDER, `${sipContractName}.clar`),
       { encoding: "utf8" }
     );
 
@@ -27,7 +32,7 @@ describe("token contract", () => {
 
     // deploy the dependency contract first
     await chain.deployContract(
-      "sip-010-v0a",
+      sipContractName,
       sipContractCode,
       deployer.secretKey
     );
@@ -42,8 +47,8 @@ describe("token contract", () => {
   });
 
   it("Ensures the token uri facilities work as expected", async () => {
-    const deployer = accounts.get("deployer")!;
-    const wallet1 = accounts.get("wallet_1")!;
+    const deployer = chain.accounts.get("deployer")!;
+    const wallet1 = chain.accounts.get("wallet_1")!;
 
     // read the value
     const readResult = await chain.callReadOnlyFn(
@@ -95,7 +100,7 @@ describe("token contract", () => {
 
     expect(wrongUpdateResult).to.be.ok;
     expect(wrongUpdateResult.success).to.be.false;
-    expect(wrongUpdateResult.value.value).to.be.eq("104");
+    expect(wrongUpdateResult.value.value).to.be.eq("110");
 
     // double check that value wasn't changed
     const doubleCheckResult = await chain.callReadOnlyFn(
@@ -112,7 +117,7 @@ describe("token contract", () => {
   });
 
   it("Ensure the constant read only functions are returning as expected", async () => {
-    const deployer = accounts.get("deployer")!;
+    const deployer = chain.accounts.get("deployer")!;
 
     const decimals = await chain.callReadOnlyFn(
       contractAddress,
@@ -124,7 +129,7 @@ describe("token contract", () => {
 
     expect(decimals).to.be.ok;
     expect(decimals.success).to.be.true;
-    expect(decimals.value.value).to.be.eq("2");
+    expect(decimals.value.value).to.be.eq("6");
 
     const symbol = await chain.callReadOnlyFn(
       contractAddress,
@@ -152,8 +157,8 @@ describe("token contract", () => {
   });
 
   it("Ensure mint and burn functions work as expected", async () => {
-    const deployer = accounts.get("deployer")!;
-    const wallet1 = accounts.get("wallet_1")!;
+    const deployer = chain.accounts.get("deployer")!;
+    const wallet1 = chain.accounts.get("wallet_1")!;
 
     // load initial data
     const initialSupply = await chain.callReadOnlyFn(
@@ -170,7 +175,7 @@ describe("token contract", () => {
     const initialDeployerBalance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "get-balance-of",
+      "get-balance",
       [principalCV(deployer.address)],
       deployer.address
     );
@@ -181,7 +186,7 @@ describe("token contract", () => {
     const initialWallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "get-balance-of",
+      "get-balance",
       [principalCV(wallet1.address)],
       wallet1.address
     );
@@ -238,7 +243,7 @@ describe("token contract", () => {
     const deployerBalance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "get-balance-of",
+      "get-balance",
       [principalCV(deployer.address)],
       deployer.address
     );
@@ -252,7 +257,7 @@ describe("token contract", () => {
     const wallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "get-balance-of",
+      "get-balance",
       [principalCV(wallet1.address)],
       wallet1.address
     );
@@ -293,7 +298,7 @@ describe("token contract", () => {
     const updatedDeployerBalance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "get-balance-of",
+      "get-balance",
       [principalCV(deployer.address)],
       deployer.address
     );
@@ -307,7 +312,7 @@ describe("token contract", () => {
     const updatedWallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "get-balance-of",
+      "get-balance",
       [principalCV(wallet1.address)],
       wallet1.address
     );

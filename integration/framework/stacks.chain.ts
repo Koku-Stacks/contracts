@@ -5,25 +5,65 @@ import {
   callReadOnlyFunction,
   ClarityType,
   cvToJSON,
+  getAddressFromPrivateKey,
   hexToCV,
   makeContractCall,
   makeContractDeploy,
   makeSTXTokenTransfer,
   PostConditionMode,
+  TransactionVersion,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
 
-export class StacksChain {
-  private network: StacksTestnet;
-  private options: { defaultFee: number };
+interface Options {
+  defaultFee?: number;
+  logLevel: LogLevel;
+  isMainnet: boolean;
+}
 
-  constructor(private url: string, options?: { defaultFee?: number }) {
+export enum LogLevel {
+  NONE = 0,
+  INFO = 1,
+  DEBUG = 2,
+}
+
+export class StacksChain {
+  accounts: Map<string, Account> = new Map();
+
+  private network: StacksTestnet;
+  private options: Options;
+
+  constructor(private url: string, options?: Partial<Options>) {
     this.network = new StacksTestnet({ url });
 
     this.options = {
-      defaultFee: options?.defaultFee ?? 500,
+      defaultFee: options?.defaultFee,
+      logLevel: options?.logLevel ?? LogLevel.INFO,
+      isMainnet: options?.isMainnet ?? false,
     };
+  }
+
+  async loadAccounts() {
+    const items: RemoteAccount[] = await fetch(
+      this.url.replace(":3999", ":5000") + "/accounts"
+    ).then((x) => x.json());
+
+    this.accounts.clear();
+    items.reduce(
+      (r, x) =>
+        r.set(x.name, {
+          secretKey: x.secretKey,
+          address: getAddressFromPrivateKey(
+            x.secretKey,
+            this.options.isMainnet
+              ? TransactionVersion.Mainnet
+              : TransactionVersion.Testnet
+          ),
+          btcAddress: x.btcAddress ?? "",
+        }),
+      this.accounts
+    );
   }
 
   async transferSTX(
@@ -47,6 +87,14 @@ export class StacksChain {
       anchorMode: AnchorMode.Any,
     });
 
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: transferSTX",
+        `recipient: ${recipient}`,
+        `amount: ${amount}`
+      );
+    }
+
     return transaction;
   }
 
@@ -68,6 +116,15 @@ export class StacksChain {
 
     if (readResult.type !== ClarityType.ResponseOk) {
       throw new Error(ClarityType[readResult.type]);
+    }
+
+    if (this.options.logLevel >= LogLevel.DEBUG) {
+      console.log(
+        "Stacks: transferSTX",
+        `${contractAddress}.${contractName}.${method}`,
+        `senderAddress: ${senderAddress}`,
+        cvToJSON(readResult)
+      );
     }
 
     return cvToJSON(readResult);
@@ -105,6 +162,22 @@ export class StacksChain {
       throw new Error(broadcast_response.reason);
     }
 
+    if (this.options.logLevel >= LogLevel.INFO) {
+      const senderAddress = getAddressFromPrivateKey(
+        senderSecretKey,
+        this.options.isMainnet
+          ? TransactionVersion.Mainnet
+          : TransactionVersion.Testnet
+      );
+
+      console.log(
+        "Stacks: callContract",
+        `senderAddress: ${senderAddress}`,
+        `${contractAddress}.${contractName}.${method}`,
+        `txId: ${broadcast_response.txid}`
+      );
+    }
+
     const transactionInfo = await this.waitTransaction(broadcast_response.txid);
 
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
@@ -118,27 +191,76 @@ export class StacksChain {
       fee?: number;
     }
   ): Promise<string> {
-    const transaction = await makeContractDeploy({
-      network: this.network,
-      contractName,
-      codeBody: code,
-      senderKey: senderSecretKey,
-      anchorMode: AnchorMode.Any,
-      fee: options?.fee ?? this.options.defaultFee,
-    });
+    try {
+      const transaction = await makeContractDeploy({
+        network: this.network,
+        contractName,
+        codeBody: code,
+        senderKey: senderSecretKey,
+        anchorMode: AnchorMode.Any,
+        fee: options?.fee ?? this.options.defaultFee,
+      });
 
-    const broadcast_response = await broadcastTransaction(
-      transaction,
-      this.network
-    );
+      const broadcast_response = await broadcastTransaction(
+        transaction,
+        this.network
+      );
 
-    if (broadcast_response.error) {
-      throw new Error(broadcast_response.reason);
+      if (broadcast_response.error) {
+        throw new Error(broadcast_response.reason);
+      }
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        const senderAddress = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+
+        console.log(
+          "Stacks: deployContract",
+          `senderAddress: ${senderAddress}`,
+          `${contractName}`,
+          `txId: ${broadcast_response.txid}`
+        );
+      }
+
+      const transactionInfo = await this.waitTransaction(
+        broadcast_response.txid
+      );
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log(
+          "Stacks: deployContract completed",
+          `contractId: ${transactionInfo?.smart_contract?.contract_id}`
+        );
+      }
+
+      return transactionInfo?.smart_contract?.contract_id;
+    } catch (err) {
+      if (err instanceof Error && err.message === "ContractAlreadyExists") {
+        const address = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+
+        const contractId = `${address}.${contractName}`;
+
+        if (this.options.logLevel >= LogLevel.INFO) {
+          console.log(
+            "Stacks: Skipped Deployment, Contract Already Exists",
+            `contractId: ${contractId}`
+          );
+        }
+
+        return contractId;
+      }
+
+      throw err;
     }
-
-    const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-
-    return transactionInfo?.smart_contract?.contract_id;
   }
 
   private async waitTransaction(txId: string) {
@@ -150,8 +272,34 @@ export class StacksChain {
       transactionInfo = await fetch(`${this.url}/extended/v1/tx/${txId}`).then(
         (x) => x.json()
       );
+
+      if (this.options.logLevel >= LogLevel.DEBUG) {
+        console.log("Stacks: check transaction", transactionInfo);
+      }
     } while (transactionInfo.tx_status === "pending");
+
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: transaction mined",
+        `tx_status: ${transactionInfo.tx_status}`,
+        `txId: ${txId}`
+      );
+    }
 
     return transactionInfo;
   }
+}
+
+export interface Account {
+  address: string;
+  btcAddress: string;
+  secretKey: string;
+}
+
+interface RemoteAccount {
+  name: string;
+  initialBalance: number;
+  mnemonic: string;
+  secretKey: string;
+  btcAddress?: string;
 }
