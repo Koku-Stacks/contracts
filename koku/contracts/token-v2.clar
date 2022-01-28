@@ -13,6 +13,7 @@
 (define-constant no-ownership-transfer-to-cancel u110)
 (define-constant no-ownership-transfer-to-confirm u111)
 (define-constant ownership-transfer-not-confirmed-by-new-owner u112)
+(define-constant only-owner-can-set-uri u113)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -72,7 +73,7 @@
 
 (define-public (set-token-uri (new-token-uri (string-utf8 256)))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) (err only-authorized-contracts-can-set-uri))
+    (asserts! (is-eq (get-owner) tx-sender) (err only-owner-can-set-uri))
     (var-set token-uri new-token-uri)
     (ok true)))
 
