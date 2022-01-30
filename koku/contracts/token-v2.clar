@@ -104,8 +104,7 @@
 
 (define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
   (begin
-    (asserts! (or (is-eq tx-sender from)
-                  (is-authorized tx-sender)) (err unauthorized-transfer))
+    (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
     (match (ft-transfer? token amount from to)
       ok-transfer
       (begin
