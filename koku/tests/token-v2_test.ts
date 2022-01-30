@@ -14,6 +14,7 @@ const ownershipTransferNotCancelledByOwner = 109;
 const noOwnershipTransferToCancel = 110;
 const noOwnershipTransferToConfirm = 111;
 const ownershipTransferNotConfirmedByNewOwner = 112;
+const onlyOwnerCanSetUri = 113;
 
 Clarinet.test({
     name: "Ensure the ownership facilities work as expected",
@@ -166,7 +167,7 @@ Clarinet.test({
         ]);
 
         const [badSetUriCall] = block2.receipts;
-        badSetUriCall.result.expectErr().expectUint(onlyAuthorizedContractsCanSetUri);
+        badSetUriCall.result.expectErr().expectUint(onlyOwnerCanSetUri);
 
         uriQuery = chain.callReadOnlyFn('token-v2', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
@@ -395,7 +396,7 @@ Clarinet.test({
         badMintCall2.result.expectErr().expectUint(unauthorizedMinter);
         mintCallToOtherWallet.result.expectOk().expectBool(true);
 
-        const supply = chain.callReadOnlyFn('token-v2', 'get-total-supply', [], deployer.address);
+        let supply = chain.callReadOnlyFn('token-v2', 'get-total-supply', [], deployer.address);
         supply.result.expectOk().expectUint(150);
 
         let deployerBalance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(deployer.address)], deployer.address);
@@ -419,6 +420,9 @@ Clarinet.test({
 
         wallet1Balance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(50);
+
+        supply = chain.callReadOnlyFn('token-v2', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(140);
     }
 });
 
