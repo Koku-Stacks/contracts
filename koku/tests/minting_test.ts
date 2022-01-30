@@ -227,14 +227,20 @@ Clarinet.test({
         let remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(maxTokensToMint);
 
+        let toMintMoreThanHalf = Math.floor((Math.random() + 0.5) * maxTokensToMint);
+        toMintMoreThanHalf = Math.min(toMintMoreThanHalf + 1, maxTokensToMint - 1);
+
         let block1 = chain.mineBlock([
-            Tx.contractCall('minting', 'mint', [types.uint(maxTokensToMint - 1), types.principal(wallet1.address)], deployer.address),
-            Tx.contractCall('minting', 'mint', [types.uint(maxTokensToMint - 1), types.principal(wallet2.address)], deployer.address)
+            Tx.contractCall('minting', 'mint', [types.uint(toMintMoreThanHalf), types.principal(wallet1.address)], deployer.address),
+            Tx.contractCall('minting', 'mint', [types.uint(toMintMoreThanHalf), types.principal(wallet2.address)], deployer.address)
         ]);
 
         const [goodMintCall, badMintCall] = block1.receipts;
 
         goodMintCall.result.expectOk().expectBool(true);
         badMintCall.result.expectErr().expectUint(insufficientTokensToMint);
+
+        remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(maxTokensToMint - toMintMoreThanHalf);
     }
 });
