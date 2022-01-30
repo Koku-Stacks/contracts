@@ -86,9 +86,6 @@
 (define-read-only (get-remaining-tokens-to-mint)
   (var-get remaining-tokens-to-mint))
 
-(define-private (decrease-remaining-tokens-to-mint (amount uint))
-  (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount)))
-
 (define-public (mint (amount uint) (to principal))
   (begin
     (asserts! (is-authorized tx-sender) (err only-authorized-contracts-can-mint-token))
@@ -96,7 +93,7 @@
     (match (ft-mint? token amount to)
       ok-mint
       (begin
-        (decrease-remaining-tokens-to-mint amount)
+        (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount))
         (ok true))
       err-mint
       (err err-mint))))
