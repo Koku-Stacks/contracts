@@ -1,5 +1,4 @@
 (define-constant unauthorized-minter u100)
-(define-constant insuficcient-tokens-to-mint u101)
 (define-constant minter-transfer-not-submitted-by-minter u107)
 (define-constant another-minter-transfer-is-submitted u108)
 (define-constant minter-transfer-not-cancelled-by-minter u109)
@@ -41,22 +40,14 @@
       (ok true))
     (err no-minter-transfer-to-confirm)))
 
-(define-data-var remaining-tokens-to-mint uint u21000000000000)
-
 (define-read-only (get-remaining-tokens-to-mint)
-  (var-get remaining-tokens-to-mint))
-
-(define-private (decrease-remaining-tokens-to-mint (amount uint))
-  (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount)))
+  (contract-call? .token-v2 get-remaining-tokens-to-mint))
 
 (define-public (mint (amount uint) (to principal))
   (begin
     (asserts! (is-eq tx-sender (get-minter)) (err unauthorized-minter))
-    (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
     (match (as-contract (contract-call? .token-v2 mint amount to))
       ok-mint
-      (begin
-        (decrease-remaining-tokens-to-mint amount)
-        (ok true))
+      (ok true)
       err-mint
       (err err-mint))))
