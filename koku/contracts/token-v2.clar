@@ -15,6 +15,7 @@
 (define-constant ownership-transfer-not-confirmed-by-new-owner u112)
 (define-constant only-owner-can-set-uri u113)
 (define-constant insuficcient-tokens-to-mint u114)
+(define-constant unreachable u115)
 
 
 (define-constant this-contract (as-contract tx-sender))
@@ -40,14 +41,12 @@
     (ok true)))
 
 (define-public (confirm-ownership-transfer)
-  (match (var-get submitted-new-owner)
-    new-owner
-    (begin
-      (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) (err ownership-transfer-not-confirmed-by-new-owner))
-      (var-set submitted-new-owner none)
-      (var-set owner new-owner)
-      (ok true))
-    (err no-ownership-transfer-to-confirm)))
+  (begin
+    (asserts! (is-some (var-get submitted-new-owner)) (err no-ownership-transfer-to-confirm))
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) (err ownership-transfer-not-confirmed-by-new-owner))
+    (var-set owner (unwrap! (var-get submitted-new-owner) (err unreachable)))
+    (var-set submitted-new-owner none)
+    (ok true)))
 
 (define-map authorized-contracts {authorized: principal} bool)
 
@@ -90,13 +89,9 @@
   (begin
     (asserts! (is-authorized tx-sender) (err only-authorized-contracts-can-mint-token))
     (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
-    (match (ft-mint? token amount to)
-      ok-mint
-      (begin
-        (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount))
-        (ok true))
-      err-mint
-      (err err-mint))))
+    (try! (ft-mint? token amount to))
+    (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount))
+    (ok true)))
 
 (define-public (burn (amount uint))
   (begin
@@ -105,13 +100,9 @@
 (define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
-    (match (ft-transfer? token amount from to)
-      ok-transfer
-      (begin
-        (match memo some-memo (print some-memo) 0x)
-        (ok true))
-      err-transfer
-      (err err-transfer))))
+    (try! (ft-transfer? token amount from to))
+    (match memo some-memo (print some-memo) 0x)
+    (ok true)))
 
 (define-read-only (get-name)
   (ok "token"))
