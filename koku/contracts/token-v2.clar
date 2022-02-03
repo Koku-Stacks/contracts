@@ -1,21 +1,21 @@
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
-(define-constant only-owner-can-add-authorized-contracts u100)
-(define-constant only-owner-can-revoke-authorized-contracts u101)
-(define-constant contract-already-authorized u102)
-(define-constant contract-is-not-authorized u103)
-(define-constant only-authorized-contracts-can-set-uri u104)
-(define-constant only-authorized-contracts-can-mint-token u105)
-(define-constant unauthorized-transfer u106)
-(define-constant ownership-transfer-not-submitted-by-owner u107)
-(define-constant another-ownership-transfer-is-submitted u108)
-(define-constant ownership-transfer-not-cancelled-by-owner u109)
-(define-constant no-ownership-transfer-to-cancel u110)
-(define-constant no-ownership-transfer-to-confirm u111)
-(define-constant ownership-transfer-not-confirmed-by-new-owner u112)
-(define-constant only-owner-can-set-uri u113)
-(define-constant insuficcient-tokens-to-mint u114)
-(define-constant unreachable u115)
+(define-constant ERR_ONLY_OWNER_CAN_ADD_AUTHORIZED_CONTRACTS (err u100))
+(define-constant ERR_ONLY_OWNER_CAN_REVOKE_AUTHORIZED_CONTRACTS (err u101))
+(define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u102))
+(define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u103))
+(define-constant ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_SET_URI (err u104))
+(define-constant ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_MINT_TOKEN (err u105))
+(define-constant ERR_UNAUTHORIZED_TRANSFER (err u106))
+(define-constant ERR_OWNERSHIP_TRANSFER_NOT_SUBMITTED_BY_OWNER (err u107))
+(define-constant ERR_ANOTHER_OWNERSHIP_TRANSFER_IS_SUBMITTED (err u108))
+(define-constant ERR_OWNERSHIP_TRANSFER_NOT_CANCELLED_BY_OWNER (err u109))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u110))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u111))
+(define-constant ERR_OWNERSHIP_TRANSFER_NOT_CONFIRMED_BY_NEW_OWNER (err u112))
+(define-constant ERR_ONLY_OWNER_CAN_SET_URI (err u113))
+(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u114))
+(define-constant ERR_UNREACHABLE (err u115))
 
 
 (define-constant this-contract (as-contract tx-sender))
@@ -28,23 +28,23 @@
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) (err ownership-transfer-not-submitted-by-owner))
-    (asserts! (is-none (var-get submitted-new-owner)) (err another-ownership-transfer-is-submitted))
+    (asserts! (is-eq (get-owner) tx-sender) ERR_OWNERSHIP_TRANSFER_NOT_SUBMITTED_BY_OWNER)
+    (asserts! (is-none (var-get submitted-new-owner)) ERR_ANOTHER_OWNERSHIP_TRANSFER_IS_SUBMITTED)
     (var-set submitted-new-owner (some new-owner))
     (ok true)))
 
 (define-public (cancel-ownership-transfer)
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) (err ownership-transfer-not-cancelled-by-owner))
-    (asserts! (is-some (var-get submitted-new-owner)) (err no-ownership-transfer-to-cancel))
+    (asserts! (is-eq (get-owner) tx-sender) ERR_OWNERSHIP_TRANSFER_NOT_CANCELLED_BY_OWNER)
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL)
     (var-set submitted-new-owner none)
     (ok true)))
 
 (define-public (confirm-ownership-transfer)
   (begin
-    (asserts! (is-some (var-get submitted-new-owner)) (err no-ownership-transfer-to-confirm))
-    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) (err ownership-transfer-not-confirmed-by-new-owner))
-    (var-set owner (unwrap! (var-get submitted-new-owner) (err unreachable)))
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM)
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_OWNERSHIP_TRANSFER_NOT_CONFIRMED_BY_NEW_OWNER)
+    (var-set owner (unwrap! (var-get submitted-new-owner) ERR_UNREACHABLE))
     (var-set submitted-new-owner none)
     (ok true)))
 
@@ -55,15 +55,15 @@
 
 (define-public (add-authorized-contract (new-contract principal))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) (err only-owner-can-add-authorized-contracts))
-    (asserts! (is-none (map-get? authorized-contracts {authorized: new-contract})) (err contract-already-authorized))
+    (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_ADD_AUTHORIZED_CONTRACTS)
+    (asserts! (is-none (map-get? authorized-contracts {authorized: new-contract})) ERR_CONTRACT_ALREADY_AUTHORIZED)
     (map-insert authorized-contracts {authorized: new-contract} true)
     (ok true)))
 
 (define-public (revoke-authorized-contract (contract principal))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) (err only-owner-can-revoke-authorized-contracts))
-    (asserts! (is-some (map-get? authorized-contracts {authorized: contract})) (err contract-is-not-authorized))
+    (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_REVOKE_AUTHORIZED_CONTRACTS)
+    (asserts! (is-some (map-get? authorized-contracts {authorized: contract})) ERR_CONTRACT_IS_NOT_AUTHORIZED)
     (map-delete authorized-contracts {authorized: contract})
     (ok true)))
 
@@ -74,7 +74,7 @@
 
 (define-public (set-token-uri (new-token-uri (string-utf8 256)))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) (err only-owner-can-set-uri))
+    (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_SET_URI)
     (var-set token-uri new-token-uri)
     (ok true)))
 
@@ -87,8 +87,8 @@
 
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-authorized tx-sender) (err only-authorized-contracts-can-mint-token))
-    (asserts! (<= amount (get-remaining-tokens-to-mint)) (err insuficcient-tokens-to-mint))
+    (asserts! (is-authorized tx-sender) ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_MINT_TOKEN)
+    (asserts! (<= amount (get-remaining-tokens-to-mint)) ERR_INSUFFICIENT_TOKENS_TO_MINT)
     (try! (ft-mint? token amount to))
     (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount))
     (ok true)))
@@ -99,7 +99,7 @@
 
 (define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
   (begin
-    (asserts! (is-eq tx-sender from) (err unauthorized-transfer))
+    (asserts! (is-eq tx-sender from) ERR_UNAUTHORIZED_TRANSFER)
     (try! (ft-transfer? token amount from to))
     (match memo some-memo (print some-memo) 0x)
     (ok true)))
