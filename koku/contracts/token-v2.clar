@@ -97,10 +97,10 @@
   (begin
     (ft-burn? token amount tx-sender)))
 
-(define-public (transfer (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
+(define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
-    (asserts! (is-eq tx-sender from) ERR_UNAUTHORIZED_TRANSFER)
-    (try! (ft-transfer? token amount from to))
+    (asserts! (is-eq tx-sender sender) ERR_UNAUTHORIZED_TRANSFER)
+    (try! (ft-transfer? token amount sender recipient))
     (match memo some-memo (print some-memo) 0x)
     (ok true)))
 
