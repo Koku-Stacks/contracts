@@ -2,7 +2,7 @@
 
 (define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u102))
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u103))
-(define-constant ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_MINT_TOKEN (err u105))
+(define-constant ERR_NOT_AUTHORIZED (err u105))
 (define-constant ERR_UNAUTHORIZED_TRANSFER (err u106))
 (define-constant ERR_CONTRACT_OWNER_ONLY (err u107))
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u108))
@@ -80,7 +80,7 @@
 
 (define-public (mint (amount uint) (to principal))
   (begin
-    (asserts! (is-authorized tx-sender) ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_MINT_TOKEN)
+    (asserts! (is-authorized tx-sender) ERR_NOT_AUTHORIZED)
     (asserts! (<= amount (get-remaining-tokens-to-mint)) ERR_INSUFFICIENT_TOKENS_TO_MINT)
     (try! (ft-mint? token amount to))
     (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount))
