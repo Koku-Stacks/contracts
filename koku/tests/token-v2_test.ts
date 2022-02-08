@@ -1,20 +1,17 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 import { assertEquals } from "https://deno.land/std@0.120.0/testing/asserts.ts";
 
-const onlyOwnerCanAddAuthorizedContracts = 100;
-const onlyOwnerCanRevokeAuthorizedContracts = 101;
-const contractAlreadyAuthorized = 102;
-const contractIsNotAuthorized = 103;
-const onlyAuthorizedContractsCanSetUri = 104;
-const onlyAuthorizedContractsCanMintToken = 105;
-const unauthorizedTransfer = 106;
-const contractOwnerOnly = 107;
-const anotherOwnershipTransferIsSubmitted = 108;
-const ownershipTransferNotCancelledByOwner = 109;
-const noOwnershipTransferToCancel = 110;
-const noOwnershipTransferToConfirm = 111;
-const ownershipTransferNotConfirmedByNewOwner = 112;
-const onlyOwnerCanSetUri = 113;
+const contractAlreadyAuthorized = 100
+const contractIsNotAuthorized = 101
+const notAuthorized = 102
+const tokenOwnerOnly = 103
+const contractOwnerOnly = 104
+const ownershipTransferAlreadySubmitted = 105
+const noOwnershipTransferToCancel = 106
+const noOwnershipTransferToConfirm = 107
+const notNewOwner = 108
+const onlyOwnerCanSetUri = 109
+const insuficcientTokensToMint = 110
 
 Clarinet.test({
     name: "Ensure the ownership facilities work as expected",
@@ -57,7 +54,7 @@ Clarinet.test({
 
         const [badSubmitOwnershipTransferCall3] = block3.receipts;
 
-        badSubmitOwnershipTransferCall3.result.expectErr().expectUint(anotherOwnershipTransferIsSubmitted);
+        badSubmitOwnershipTransferCall3.result.expectErr().expectUint(ownershipTransferAlreadySubmitted);
 
         const block4 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -123,7 +120,7 @@ Clarinet.test({
 
         const [badConfirmOwnershipTransferCall2] = block9.receipts;
 
-        badConfirmOwnershipTransferCall2.result.expectErr().expectUint(ownershipTransferNotConfirmedByNewOwner);
+        badConfirmOwnershipTransferCall2.result.expectErr().expectUint(notNewOwner);
 
         const block10 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -355,7 +352,7 @@ Clarinet.test({
         goodTransferCall2.result.expectOk().expectBool(true);
         assertEquals(goodTransferCall2.events.length, 1)
 
-        badTransferCall1.result.expectErr().expectUint(unauthorizedTransfer);
+        badTransferCall1.result.expectErr().expectUint(tokenOwnerOnly);
 
         wallet1Balance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(90);
@@ -382,7 +379,7 @@ Clarinet.test({
 
         const [badMintCall1] = block1.receipts;
 
-        badMintCall1.result.expectErr().expectUint(onlyAuthorizedContractsCanMintToken);
+        badMintCall1.result.expectErr().expectUint(notAuthorized);
 
         const block2 = chain.mineBlock([
             Tx.contractCall('minting', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address),
@@ -429,8 +426,6 @@ Clarinet.test({
 Clarinet.test({
     name: "Direct mint call",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const unauthorizedMinter = 105;
-
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
 
@@ -440,8 +435,7 @@ Clarinet.test({
 
         const [badMintCall1] = block1.receipts;
 
-        badMintCall1.result.expectErr().expectUint(onlyAuthorizedContractsCanMintToken);
-
+        badMintCall1.result.expectErr().expectUint(notAuthorized);
 
         const block2 = chain.mineBlock([
             Tx.contractCall('token-v2', 'add-authorized-contract', [types.principal(`${deployer.address}`)], deployer.address)
@@ -460,7 +454,7 @@ Clarinet.test({
         const [goodMintCall, badMintCall2, mintCallToOtherWallet] = block3.receipts;
 
         goodMintCall.result.expectOk().expectBool(true);
-        badMintCall2.result.expectErr().expectUint(unauthorizedMinter);
+        badMintCall2.result.expectErr().expectUint(notAuthorized);
         mintCallToOtherWallet.result.expectOk().expectBool(true);
 
         const deployerBalance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(deployer.address)], deployer.address);
