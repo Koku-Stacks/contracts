@@ -8,7 +8,7 @@ const contractIsNotAuthorized = 103;
 const onlyAuthorizedContractsCanSetUri = 104;
 const onlyAuthorizedContractsCanMintToken = 105;
 const unauthorizedTransfer = 106;
-const ownershipTransferNotSubmittedByOwner = 107;
+const contractOwnerOnly = 107;
 const anotherOwnershipTransferIsSubmitted = 108;
 const ownershipTransferNotCancelledByOwner = 109;
 const noOwnershipTransferToCancel = 110;
@@ -35,7 +35,7 @@ Clarinet.test({
 
         const [badSubmitOwnershipTransferCall1] = block1.receipts;
 
-        badSubmitOwnershipTransferCall1.result.expectErr().expectUint(ownershipTransferNotSubmittedByOwner);
+        badSubmitOwnershipTransferCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         const block2 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -68,7 +68,7 @@ Clarinet.test({
 
         const [badCancelOwnershipTransferCall1] = block4.receipts;
 
-        badCancelOwnershipTransferCall1.result.expectErr().expectUint(ownershipTransferNotCancelledByOwner);
+        badCancelOwnershipTransferCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         const block5 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -189,7 +189,7 @@ Clarinet.test({
 
         const [badRevokeCall1] = block1.receipts;
 
-        badRevokeCall1.result.expectErr().expectUint(onlyOwnerCanRevokeAuthorizedContracts);
+        badRevokeCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         mintingAuthorization = chain.callReadOnlyFn('token-v2', 'is-authorized', [types.principal(`${deployer.address}.minting`)], deployer.address);
         mintingAuthorization.result.expectBool(true);
@@ -222,7 +222,7 @@ Clarinet.test({
 
         const [badAddCall1] = block4.receipts;
 
-        badAddCall1.result.expectErr().expectUint(onlyOwnerCanAddAuthorizedContracts);
+        badAddCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         mintingAuthorization = chain.callReadOnlyFn('token-v2', 'is-authorized', [types.principal(`${deployer.address}.minting`)], deployer.address);
         mintingAuthorization.result.expectBool(false);
