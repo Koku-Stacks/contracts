@@ -6,7 +6,7 @@
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u103))
 (define-constant ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_MINT_TOKEN (err u105))
 (define-constant ERR_UNAUTHORIZED_TRANSFER (err u106))
-(define-constant ERR_OWNERSHIP_TRANSFER_NOT_SUBMITTED_BY_OWNER (err u107))
+(define-constant ERR_CONTRACT_OWNER_ONLY (err u107))
 (define-constant ERR_ANOTHER_OWNERSHIP_TRANSFER_IS_SUBMITTED (err u108))
 (define-constant ERR_OWNERSHIP_TRANSFER_NOT_CANCELLED_BY_OWNER (err u109))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u110))
@@ -25,7 +25,7 @@
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) ERR_OWNERSHIP_TRANSFER_NOT_SUBMITTED_BY_OWNER)
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
     (asserts! (is-none (var-get submitted-new-owner)) ERR_ANOTHER_OWNERSHIP_TRANSFER_IS_SUBMITTED)
     (var-set submitted-new-owner (some new-owner))
     (ok true)))
