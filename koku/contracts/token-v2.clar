@@ -1,6 +1,5 @@
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
-(define-constant ERR_ONLY_OWNER_CAN_REVOKE_AUTHORIZED_CONTRACTS (err u101))
 (define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u102))
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u103))
 (define-constant ERR_ONLY_AUTHORIZED_CONTRACTS_CAN_MINT_TOKEN (err u105))
@@ -56,7 +55,7 @@
 
 (define-public (revoke-authorized-contract (contract principal))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_REVOKE_AUTHORIZED_CONTRACTS)
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
     (asserts! (is-some (map-get? authorized-contracts {authorized: contract})) ERR_CONTRACT_IS_NOT_AUTHORIZED)
     (map-delete authorized-contracts {authorized: contract})
     (ok true)))
