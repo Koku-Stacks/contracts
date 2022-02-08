@@ -10,7 +10,7 @@
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u108))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u110))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u111))
-(define-constant ERR_OWNERSHIP_TRANSFER_NOT_CONFIRMED_BY_NEW_OWNER (err u112))
+(define-constant ERR_NOT_NEW_OWNER (err u112))
 (define-constant ERR_ONLY_OWNER_CAN_SET_URI (err u113))
 (define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u114))
 (define-constant ERR_UNREACHABLE (err u115))
@@ -39,7 +39,7 @@
 (define-public (confirm-ownership-transfer)
   (begin
     (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM)
-    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_OWNERSHIP_TRANSFER_NOT_CONFIRMED_BY_NEW_OWNER)
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_NOT_NEW_OWNER)
     (var-set owner (unwrap! (var-get submitted-new-owner) ERR_UNREACHABLE))
     (var-set submitted-new-owner none)
     (ok true)))
