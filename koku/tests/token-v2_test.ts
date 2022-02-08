@@ -427,6 +427,54 @@ Clarinet.test({
 });
 
 Clarinet.test({
+    name: "Direct mint call",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const unauthorizedMinter = 105;
+
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token-v2', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [badMintCall1] = block1.receipts;
+
+        badMintCall1.result.expectErr().expectUint(onlyAuthorizedContractsCanMintToken);
+
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token-v2', 'add-authorized-contract', [types.principal(`${deployer.address}`)], deployer.address)
+        ]);
+
+        const [goodAddCall1] = block2.receipts;
+
+        goodAddCall1.result.expectOk().expectBool(true);
+
+        const block3 = chain.mineBlock([
+            Tx.contractCall('token-v2', 'mint', [types.uint(20), types.principal(deployer.address)], deployer.address),
+            Tx.contractCall('token-v2', 'mint', [types.uint(100), types.principal(wallet1.address)], wallet1.address),
+            Tx.contractCall('token-v2', 'mint', [types.uint(30), types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [goodMintCall, badMintCall2, mintCallToOtherWallet] = block3.receipts;
+
+        goodMintCall.result.expectOk().expectBool(true);
+        badMintCall2.result.expectErr().expectUint(unauthorizedMinter);
+        mintCallToOtherWallet.result.expectOk().expectBool(true);
+
+        const deployerBalance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(deployer.address)], deployer.address);
+        deployerBalance.result.expectOk().expectUint(20);
+
+        const wallet1Balance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(30);
+
+        const supply = chain.callReadOnlyFn('token-v2', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(50);
+    }
+});
+
+Clarinet.test({
     name: "Ensure the constant read only functions are returning as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
