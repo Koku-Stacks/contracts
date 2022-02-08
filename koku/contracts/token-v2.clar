@@ -78,11 +78,11 @@
 (define-read-only (get-remaining-tokens-to-mint)
   (var-get remaining-tokens-to-mint))
 
-(define-public (mint (amount uint) (to principal))
+(define-public (mint (amount uint) (recipient principal))
   (begin
     (asserts! (is-authorized tx-sender) ERR_NOT_AUTHORIZED)
     (asserts! (<= amount (get-remaining-tokens-to-mint)) ERR_INSUFFICIENT_TOKENS_TO_MINT)
-    (try! (ft-mint? token amount to))
+    (try! (ft-mint? token amount recipient))
     (var-set remaining-tokens-to-mint (- (get-remaining-tokens-to-mint) amount))
     (ok true)))
 
