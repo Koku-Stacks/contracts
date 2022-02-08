@@ -1,6 +1,5 @@
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 
-(define-constant ERR_ONLY_OWNER_CAN_ADD_AUTHORIZED_CONTRACTS (err u100))
 (define-constant ERR_ONLY_OWNER_CAN_REVOKE_AUTHORIZED_CONTRACTS (err u101))
 (define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u102))
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u103))
@@ -50,7 +49,7 @@
 
 (define-public (add-authorized-contract (new-contract principal))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_ADD_AUTHORIZED_CONTRACTS)
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
     (asserts! (is-none (map-get? authorized-contracts {authorized: new-contract})) ERR_CONTRACT_ALREADY_AUTHORIZED)
     (map-insert authorized-contracts {authorized: new-contract} true)
     (ok true)))
