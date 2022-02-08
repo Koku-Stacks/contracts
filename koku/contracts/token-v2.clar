@@ -18,8 +18,6 @@
 (define-constant ERR_UNREACHABLE (err u115))
 
 
-(define-constant this-contract (as-contract tx-sender))
-
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
