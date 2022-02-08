@@ -87,8 +87,7 @@
     (ok true)))
 
 (define-public (burn (amount uint))
-  (begin
-    (ft-burn? token amount tx-sender)))
+  (ft-burn? token amount tx-sender))
 
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
