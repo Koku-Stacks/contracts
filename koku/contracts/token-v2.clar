@@ -3,7 +3,7 @@
 (define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u102))
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u103))
 (define-constant ERR_NOT_AUTHORIZED (err u105))
-(define-constant ERR_UNAUTHORIZED_TRANSFER (err u106))
+(define-constant ERR_TOKEN_OWNER_ONLY (err u106))
 (define-constant ERR_CONTRACT_OWNER_ONLY (err u107))
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u108))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u110))
@@ -91,7 +91,7 @@
 
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
-    (asserts! (is-eq tx-sender sender) ERR_UNAUTHORIZED_TRANSFER)
+    (asserts! (is-eq tx-sender sender) ERR_TOKEN_OWNER_ONLY)
     (try! (ft-transfer? token amount sender recipient))
     (match memo some-memo (print some-memo) 0x)
     (ok true)))
