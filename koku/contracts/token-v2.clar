@@ -12,12 +12,42 @@
 (define-constant ERR_ONLY_OWNER_CAN_SET_URI (err u109))
 (define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u110))
 
+;; this considers a max supply of 21_000_000 tokens with six decimal places
+(define-fungible-token token u21000000000000)
 
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
+(define-data-var token-uri (string-utf8 256) u"www.token.com")
+(define-data-var remaining-tokens-to-mint uint u21000000000000)
+
+(define-map authorized-contracts {authorized: principal} bool)
 
 (define-read-only (get-owner)
   (var-get owner))
+
+(define-read-only (is-authorized (contract principal))
+  (is-some (map-get? authorized-contracts {authorized: contract})))
+
+(define-read-only (get-token-uri)
+  (ok (some (var-get token-uri))))
+
+(define-read-only (get-remaining-tokens-to-mint)
+  (var-get remaining-tokens-to-mint))
+
+(define-read-only (get-name)
+  (ok "token"))
+
+(define-read-only (get-symbol)
+  (ok "TKN"))
+
+(define-read-only (get-decimals)
+  (ok u6))
+
+(define-read-only (get-balance (account principal))
+  (ok (ft-get-balance token account)))
+
+(define-read-only (get-total-supply)
+  (ok (ft-get-supply token)))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -41,11 +71,6 @@
     (var-set submitted-new-owner none)
     (ok true)))
 
-(define-map authorized-contracts {authorized: principal} bool)
-
-(define-read-only (is-authorized (contract principal))
-  (is-some (map-get? authorized-contracts {authorized: contract})))
-
 (define-public (add-authorized-contract (new-contract principal))
   (begin
     (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
@@ -60,23 +85,11 @@
     (map-delete authorized-contracts {authorized: contract})
     (ok true)))
 
-(define-data-var token-uri (string-utf8 256) u"www.token.com")
-
-(define-read-only (get-token-uri)
-  (ok (some (var-get token-uri))))
-
 (define-public (set-token-uri (new-token-uri (string-utf8 256)))
   (begin
     (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_SET_URI)
     (var-set token-uri new-token-uri)
     (ok true)))
-
-;; this considers a max supply of 21_000_000 tokens with six decimal places
-(define-fungible-token token u21000000000000)
-(define-data-var remaining-tokens-to-mint uint u21000000000000)
-
-(define-read-only (get-remaining-tokens-to-mint)
-  (var-get remaining-tokens-to-mint))
 
 (define-public (mint (amount uint) (recipient principal))
   (begin
@@ -95,18 +108,3 @@
     (try! (ft-transfer? token amount sender recipient))
     (match memo some-memo (print some-memo) 0x)
     (ok true)))
-
-(define-read-only (get-name)
-  (ok "token"))
-
-(define-read-only (get-symbol)
-  (ok "TKN"))
-
-(define-read-only (get-decimals)
-  (ok u6))
-
-(define-read-only (get-balance (account principal))
-  (ok (ft-get-balance token account)))
-
-(define-read-only (get-total-supply)
-  (ok (ft-get-supply token)))
