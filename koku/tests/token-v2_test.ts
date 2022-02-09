@@ -435,9 +435,9 @@ Clarinet.test({
         decimals.result.expectOk().expectUint(6);
 
         const symbol = chain.callReadOnlyFn('token-v2', 'get-symbol', [], deployer.address);
-        symbol.result.expectOk().expectAscii('TKN');
+        symbol.result.expectOk().expectAscii('DYV');
 
         const name = chain.callReadOnlyFn('token-v2', 'get-name', [], deployer.address);
-        name.result.expectOk().expectAscii('token');
+        name.result.expectOk().expectAscii('dYrivaNative');
     }
 });

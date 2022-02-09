@@ -114,10 +114,10 @@
       (err err-transfer))))
 
 (define-read-only (get-name)
-  (ok "token"))
+  (ok "dYrivaNative"))
 
 (define-read-only (get-symbol)
-  (ok "TKN"))
+  (ok "DYV"))
 
 (define-read-only (get-decimals)
   (ok u6))
