@@ -10,8 +10,6 @@ const ownershipTransferAlreadySubmitted = 105
 const noOwnershipTransferToCancel = 106
 const noOwnershipTransferToConfirm = 107
 const notNewOwner = 108
-const onlyOwnerCanSetUri = 109
-const insuficcientTokensToMint = 110
 
 Clarinet.test({
     name: "Ensure the ownership facilities work as expected",
@@ -164,7 +162,7 @@ Clarinet.test({
         ]);
 
         const [badSetUriCall] = block2.receipts;
-        badSetUriCall.result.expectErr().expectUint(onlyOwnerCanSetUri);
+        badSetUriCall.result.expectErr().expectUint(contractOwnerOnly);
 
         uriQuery = chain.callReadOnlyFn('token-v2', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);

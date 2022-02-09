@@ -9,8 +9,7 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u106))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u107))
 (define-constant ERR_NOT_NEW_OWNER (err u108))
-(define-constant ERR_ONLY_OWNER_CAN_SET_URI (err u109))
-(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u110))
+(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u109))
 
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)
@@ -87,7 +86,7 @@
 
 (define-public (set-token-uri (new-token-uri (string-utf8 256)))
   (begin
-    (asserts! (is-eq (get-owner) tx-sender) ERR_ONLY_OWNER_CAN_SET_URI)
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
     (var-set token-uri new-token-uri)
     (ok true)))
 

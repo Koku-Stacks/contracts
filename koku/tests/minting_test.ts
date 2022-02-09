@@ -1,6 +1,6 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
-const insufficientTokensToMint = 110;
+const insufficientTokensToMint = 109;
 const minterTransferNotSubmittedByMinter = 107;
 const anotherMinterTransferIsSubmitted = 108;
 const minterTransferNotCancelledByMinter = 109;
