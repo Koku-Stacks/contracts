@@ -8,8 +8,6 @@
 
 (define-constant this-contract (as-contract tx-sender))
 
-(contract-call? .token-v2 add-authorized-contract this-contract)
-
 (define-data-var minter principal tx-sender)
 (define-data-var submitted-new-minter (optional principal) none)
 
