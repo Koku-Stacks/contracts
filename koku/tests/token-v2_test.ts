@@ -273,6 +273,13 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
 
+        const authorizationBlock = chain.mineBlock([
+            Tx.contractCall('token-v2',
+                            'add-authorized-contract',
+                            [types.principal(`${deployer.address}.minting`)],
+                            deployer.address)
+        ]);
+
         let mintingAuthorization = chain.callReadOnlyFn('token-v2', 'is-authorized', [types.principal(`${deployer.address}.minting`)], deployer.address);
         mintingAuthorization.result.expectBool(true);
 
@@ -350,6 +357,13 @@ Clarinet.test({
         const wallet1 = accounts.get('wallet_1')!;
         const wallet2 = accounts.get('wallet_2')!;
 
+        const authorizationBlock = chain.mineBlock([
+            Tx.contractCall('token-v2',
+                            'add-authorized-contract',
+                            [types.principal(`${deployer.address}.minting`)],
+                            deployer.address)
+        ]);
+
         const block1 = chain.mineBlock([
             Tx.contractCall('minting', 'mint', [types.uint(50), types.principal(wallet1.address)], deployer.address)
         ]);
@@ -390,6 +404,13 @@ Clarinet.test({
         const wallet1 = accounts.get('wallet_1')!;
         const wallet2 = accounts.get('wallet_2')!;
         const wallet3 = accounts.get('wallet_3')!;
+
+        const authorizationBlock = chain.mineBlock([
+            Tx.contractCall('token-v2',
+                            'add-authorized-contract',
+                            [types.principal(`${deployer.address}.minting`)],
+                            deployer.address)
+        ]);
 
         const block1 = chain.mineBlock([
             Tx.contractCall('minting', 'mint', [types.uint(100), types.principal(wallet1.address)], deployer.address),
@@ -468,6 +489,13 @@ Clarinet.test({
 
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
+
+        const authorizationBlock = chain.mineBlock([
+            Tx.contractCall('token-v2',
+                            'add-authorized-contract',
+                            [types.principal(`${deployer.address}.minting`)],
+                            deployer.address)
+        ]);
 
         const block1 = chain.mineBlock([
             Tx.contractCall('token-v2', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address)
@@ -573,9 +601,9 @@ Clarinet.test({
         decimals.result.expectOk().expectUint(6);
 
         const symbol = chain.callReadOnlyFn('token-v2', 'get-symbol', [], deployer.address);
-        symbol.result.expectOk().expectAscii('TKN');
+        symbol.result.expectOk().expectAscii('DYV');
 
         const name = chain.callReadOnlyFn('token-v2', 'get-name', [], deployer.address);
-        name.result.expectOk().expectAscii('token');
+        name.result.expectOk().expectAscii('dYrivaNative');
     }
 });
