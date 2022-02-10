@@ -1,20 +1,15 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 import { assertEquals } from "https://deno.land/std@0.120.0/testing/asserts.ts";
 
-const onlyOwnerCanAddAuthorizedContracts = 100;
-const onlyOwnerCanRevokeAuthorizedContracts = 101;
-const contractAlreadyAuthorized = 102;
-const contractIsNotAuthorized = 103;
-const onlyAuthorizedContractsCanSetUri = 104;
-const onlyAuthorizedContractsCanMintToken = 105;
-const unauthorizedTransfer = 106;
-const ownershipTransferNotSubmittedByOwner = 107;
-const anotherOwnershipTransferIsSubmitted = 108;
-const ownershipTransferNotCancelledByOwner = 109;
-const noOwnershipTransferToCancel = 110;
-const noOwnershipTransferToConfirm = 111;
-const ownershipTransferNotConfirmedByNewOwner = 112;
-const onlyOwnerCanSetUri = 113;
+const contractAlreadyAuthorized = 100
+const contractIsNotAuthorized = 101
+const notAuthorized = 102
+const tokenOwnerOnly = 103
+const contractOwnerOnly = 104
+const ownershipTransferAlreadySubmitted = 105
+const noOwnershipTransferToCancel = 106
+const noOwnershipTransferToConfirm = 107
+const notNewOwner = 108
 
 Clarinet.test({
     name: "Ensure the ownership facilities work as expected",
@@ -35,7 +30,7 @@ Clarinet.test({
 
         const [badSubmitOwnershipTransferCall1] = block1.receipts;
 
-        badSubmitOwnershipTransferCall1.result.expectErr().expectUint(ownershipTransferNotSubmittedByOwner);
+        badSubmitOwnershipTransferCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         const block2 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -57,7 +52,7 @@ Clarinet.test({
 
         const [badSubmitOwnershipTransferCall3] = block3.receipts;
 
-        badSubmitOwnershipTransferCall3.result.expectErr().expectUint(anotherOwnershipTransferIsSubmitted);
+        badSubmitOwnershipTransferCall3.result.expectErr().expectUint(ownershipTransferAlreadySubmitted);
 
         const block4 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -68,7 +63,7 @@ Clarinet.test({
 
         const [badCancelOwnershipTransferCall1] = block4.receipts;
 
-        badCancelOwnershipTransferCall1.result.expectErr().expectUint(ownershipTransferNotCancelledByOwner);
+        badCancelOwnershipTransferCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         const block5 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -123,7 +118,7 @@ Clarinet.test({
 
         const [badConfirmOwnershipTransferCall2] = block9.receipts;
 
-        badConfirmOwnershipTransferCall2.result.expectErr().expectUint(ownershipTransferNotConfirmedByNewOwner);
+        badConfirmOwnershipTransferCall2.result.expectErr().expectUint(notNewOwner);
 
         const block10 = chain.mineBlock([
             Tx.contractCall('token-v2',
@@ -167,7 +162,7 @@ Clarinet.test({
         ]);
 
         const [badSetUriCall] = block2.receipts;
-        badSetUriCall.result.expectErr().expectUint(onlyOwnerCanSetUri);
+        badSetUriCall.result.expectErr().expectUint(contractOwnerOnly);
 
         uriQuery = chain.callReadOnlyFn('token-v2', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
@@ -189,7 +184,7 @@ Clarinet.test({
 
         const [badRevokeCall1] = block1.receipts;
 
-        badRevokeCall1.result.expectErr().expectUint(onlyOwnerCanRevokeAuthorizedContracts);
+        badRevokeCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         mintingAuthorization = chain.callReadOnlyFn('token-v2', 'is-authorized', [types.principal(`${deployer.address}.minting`)], deployer.address);
         mintingAuthorization.result.expectBool(true);
@@ -222,7 +217,7 @@ Clarinet.test({
 
         const [badAddCall1] = block4.receipts;
 
-        badAddCall1.result.expectErr().expectUint(onlyOwnerCanAddAuthorizedContracts);
+        badAddCall1.result.expectErr().expectUint(contractOwnerOnly);
 
         mintingAuthorization = chain.callReadOnlyFn('token-v2', 'is-authorized', [types.principal(`${deployer.address}.minting`)], deployer.address);
         mintingAuthorization.result.expectBool(false);
@@ -355,7 +350,7 @@ Clarinet.test({
         goodTransferCall2.result.expectOk().expectBool(true);
         assertEquals(goodTransferCall2.events.length, 1)
 
-        badTransferCall1.result.expectErr().expectUint(unauthorizedTransfer);
+        badTransferCall1.result.expectErr().expectUint(tokenOwnerOnly);
 
         wallet1Balance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(90);
@@ -382,7 +377,7 @@ Clarinet.test({
 
         const [badMintCall1] = block1.receipts;
 
-        badMintCall1.result.expectErr().expectUint(onlyAuthorizedContractsCanMintToken);
+        badMintCall1.result.expectErr().expectUint(notAuthorized);
 
         const block2 = chain.mineBlock([
             Tx.contractCall('minting', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address),
@@ -423,6 +418,51 @@ Clarinet.test({
 
         supply = chain.callReadOnlyFn('token-v2', 'get-total-supply', [], deployer.address);
         supply.result.expectOk().expectUint(140);
+    }
+});
+
+Clarinet.test({
+    name: "Direct mint call",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('token-v2', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address)
+        ]);
+
+        const [badMintCall1] = block1.receipts;
+
+        badMintCall1.result.expectErr().expectUint(notAuthorized);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('token-v2', 'add-authorized-contract', [types.principal(`${deployer.address}`)], deployer.address)
+        ]);
+
+        const [goodAddCall1] = block2.receipts;
+
+        goodAddCall1.result.expectOk().expectBool(true);
+
+        const block3 = chain.mineBlock([
+            Tx.contractCall('token-v2', 'mint', [types.uint(20), types.principal(deployer.address)], deployer.address),
+            Tx.contractCall('token-v2', 'mint', [types.uint(100), types.principal(wallet1.address)], wallet1.address),
+            Tx.contractCall('token-v2', 'mint', [types.uint(30), types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [goodMintCall, badMintCall2, mintCallToOtherWallet] = block3.receipts;
+
+        goodMintCall.result.expectOk().expectBool(true);
+        badMintCall2.result.expectErr().expectUint(notAuthorized);
+        mintCallToOtherWallet.result.expectOk().expectBool(true);
+
+        const deployerBalance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(deployer.address)], deployer.address);
+        deployerBalance.result.expectOk().expectUint(20);
+
+        const wallet1Balance = chain.callReadOnlyFn('token-v2', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(30);
+
+        const supply = chain.callReadOnlyFn('token-v2', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(50);
     }
 });
 
