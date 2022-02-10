@@ -138,6 +138,13 @@ Clarinet.test({
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
 
+        const authorizationBlock = chain.mineBlock([
+            Tx.contractCall('token-v2',
+                            'add-authorized-contract',
+                            [types.principal(`${deployer.address}.minting`)],
+                            deployer.address)
+        ]);
+
         const maxTokensToMint = 21_000_000_000_000;
 
         let remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
@@ -221,6 +228,13 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
         const wallet2 = accounts.get('wallet_2')!;
+
+        const authorizationBlock = chain.mineBlock([
+            Tx.contractCall('token-v2',
+                            'add-authorized-contract',
+                            [types.principal(`${deployer.address}.minting`)],
+                            deployer.address)
+        ]);
 
         const maxTokensToMint = 21_000_000_000_000;
 
