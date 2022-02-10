@@ -12,6 +12,104 @@ const noOwnershipTransferToConfirm = 107
 const notNewOwner = 108
 
 Clarinet.test({
+    name: "Ensure that set-contract-lock can only be called by owner",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'token-v2',
+                'set-contract-lock',
+                [ types.bool(true)],
+                userA.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(104)
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that mint can only be called if contract is unlocked",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'token-v2',
+                'set-contract-lock',
+                [ types.bool(true)],
+                deployer.address),
+            Tx.contractCall(
+                'token-v2',
+                'mint',
+                [
+                    types.uint(1000),
+                    types.principal(userA.address)
+                ],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true)
+        call.receipts[1].result.expectErr().expectUint(109)
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that burn can only be called if contract is unlocked",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'token-v2',
+                'set-contract-lock',
+                [types.bool(true)],
+                deployer.address),
+            Tx.contractCall(
+                'token-v2',
+                'burn',
+                [types.uint(1000),],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true)
+        call.receipts[1].result.expectErr().expectUint(109)
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that transfer can only be called if contract is unlocked",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'token-v2',
+                'set-contract-lock',
+                [types.bool(true)],
+                deployer.address),
+            Tx.contractCall(
+                'token-v2',
+                'transfer',
+                [
+                    types.uint(1000),
+                    types.principal(userA.address),
+                    types.principal(deployer.address),
+                    types.none()
+                ],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true)
+        call.receipts[1].result.expectErr().expectUint(109)
+    }
+})
+
+Clarinet.test({
     name: "Ensure the ownership facilities work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
