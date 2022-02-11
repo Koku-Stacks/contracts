@@ -139,7 +139,7 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
 
         const authorizationBlock = chain.mineBlock([
-            Tx.contractCall('token-v2',
+            Tx.contractCall('dyv-token',
                             'add-authorized-contract',
                             [types.principal(`${deployer.address}.minting`)],
                             deployer.address)
@@ -177,7 +177,7 @@ Clarinet.test({
         remainingTokensToMint.result.expectUint(maxTokensToMint - 2 * amountToMint);
 
         let block3 = chain.mineBlock([
-            Tx.contractCall('token-v2', 'burn', [types.uint(2 * amountToMint)], deployer.address)
+            Tx.contractCall('dyv-token', 'burn', [types.uint(2 * amountToMint)], deployer.address)
         ])
 
         const [goodBurnCall] = block3.receipts;
@@ -230,7 +230,7 @@ Clarinet.test({
         const wallet2 = accounts.get('wallet_2')!;
 
         const authorizationBlock = chain.mineBlock([
-            Tx.contractCall('token-v2',
+            Tx.contractCall('dyv-token',
                             'add-authorized-contract',
                             [types.principal(`${deployer.address}.minting`)],
                             deployer.address)

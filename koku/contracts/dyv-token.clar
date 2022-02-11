@@ -10,6 +10,7 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u107))
 (define-constant ERR_NOT_NEW_OWNER (err u108))
 (define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u109))
+(define-constant ERR_CONTRACT_LOCKED (err u109))
 
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)
@@ -18,6 +19,7 @@
 (define-data-var submitted-new-owner (optional principal) none)
 (define-data-var token-uri (string-utf8 256) u"www.token.com")
 (define-data-var remaining-tokens-to-mint uint u21000000000000)
+(define-data-var contract-lock bool false)
 
 (define-map authorized-contracts {authorized: principal} bool)
 
@@ -26,6 +28,10 @@
 
 (define-read-only (is-authorized (contract principal))
   (is-some (map-get? authorized-contracts {authorized: contract})))
+
+(define-read-only (get-contract-lock)
+  (var-get contract-lock)
+)
 
 (define-read-only (get-token-uri)
   (ok (some (var-get token-uri))))
@@ -47,6 +53,14 @@
 
 (define-read-only (get-total-supply)
   (ok (ft-get-supply token)))
+
+;; public functions
+(define-public (set-contract-lock (lock bool))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (ok (var-set contract-lock lock))
+  )
+)
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -92,6 +106,7 @@
 
 (define-public (mint (amount uint) (recipient principal))
   (begin
+    (asserts! (is-eq (get-contract-lock) false) ERR_CONTRACT_LOCKED)
     (asserts! (is-authorized tx-sender) ERR_NOT_AUTHORIZED)
     (asserts! (<= amount (get-remaining-tokens-to-mint)) ERR_INSUFFICIENT_TOKENS_TO_MINT)
     (try! (ft-mint? token amount recipient))
@@ -99,10 +114,14 @@
     (ok true)))
 
 (define-public (burn (amount uint))
-  (ft-burn? token amount tx-sender))
+  (begin
+    (asserts! (is-eq (get-contract-lock) false) ERR_CONTRACT_LOCKED)
+    (ft-burn? token amount tx-sender))
+  )
 
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
+    (asserts! (is-eq (get-contract-lock) false) ERR_CONTRACT_LOCKED)
     (asserts! (is-eq tx-sender sender) ERR_TOKEN_OWNER_ONLY)
     (try! (ft-transfer? token amount sender recipient))
     (match memo some-memo (print some-memo) 0x)
