@@ -12,6 +12,7 @@ const ERR_NOT_NEW_OWNER = 107;
 const ERR_INSUFFICIENT_TOKENS_TO_MINT = 108;
 const ERR_CONTRACT_LOCKED = 109;
 const ERR_SENDER_NOT_ENOUGH_BALANCE = 1;
+const ERR_ZERO_CALL = 1;
 const ERR_SENDER_RECIPIENT_SAME = 2;
 const ERR_AMOUNT_NOT_POSITIVE = 3;
 const ERR_SENDER_IS_NOT_HOLDER = 4;
@@ -368,7 +369,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[0].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
+        call.receipts[0].result.expectErr().expectUint(ERR_ZERO_CALL);
     }
 })
 
@@ -400,7 +401,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[0].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
+        call.receipts[0].result.expectErr().expectUint(ERR_ZERO_CALL);
     }
 })
 
@@ -701,5 +702,61 @@ Clarinet.test({
 
         wallet3Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(320);
+    }
+})
+
+Clarinet.test({
+    name: "Ensure mint and burn functions work as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('dyv-token',
+                'add-authorized-contract',
+                [types.principal(deployer.address)],
+                deployer.address),
+            ]);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address),
+            Tx.contractCall('dyv-token', 'mint', [types.uint(50), types.principal(wallet1.address)], deployer.address)
+        ]);
+
+        const [goodMintCall, mintCallToOtherWallet] = block2.receipts;
+
+        goodMintCall.result.expectOk().expectBool(true);
+        mintCallToOtherWallet.result.expectOk().expectBool(true);
+
+        let remainingTokensToMint = chain.callReadOnlyFn('dyv-token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(20999999999850);
+
+        let supply = chain.callReadOnlyFn('dyv-token', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(150);
+
+        let deployerBalance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(deployer.address)], deployer.address);
+        deployerBalance.result.expectOk().expectUint(100);
+
+        let wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(50);
+
+        const block3 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'burn', [types.uint(10)], deployer.address)
+        ]);
+
+        block3.receipts[0].result.expectOk().expectBool(true);
+
+        deployerBalance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(deployer.address)], deployer.address);
+        deployerBalance.result.expectOk().expectUint(90);
+
+        wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(50);
+
+        supply = chain.callReadOnlyFn('dyv-token', 'get-total-supply', [], deployer.address);
+        supply.result.expectOk().expectUint(140);
+
+        remainingTokensToMint = chain.callReadOnlyFn('dyv-token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint.result.expectUint(20999999999850);
     }
 })
