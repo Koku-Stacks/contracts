@@ -328,13 +328,38 @@ Clarinet.test({
                 Tx.contractCall('dyv-token',
                 'mint',
                 [
-                    types.uint(21000000000001),
+                    types.uint(10500000000000),
                     types.principal(userA.address)
                 ],
                 deployer.address),
+
+                Tx.contractCall('dyv-token',
+                'mint',
+                [
+                    types.uint(10500000000000),
+                    types.principal(userB.address)
+                ],
+                deployer.address),
+
+                Tx.contractCall(
+                    'dyv-token',
+                    'burn',
+                    [types.uint(1000),],
+                    userA.address),
+
+                Tx.contractCall('dyv-token',
+                    'mint',
+                    [
+                        types.uint(1),
+                        types.principal(userB.address)
+                    ],
+                    deployer.address),
             ]);
-        
-        call.receipts[0].result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
+
+        call.receipts[0].result.expectOk();
+        call.receipts[1].result.expectOk();
+        call.receipts[2].result.expectOk();
+        call.receipts[3].result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
     }
 })
 
