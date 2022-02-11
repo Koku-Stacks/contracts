@@ -890,3 +890,73 @@ Clarinet.test({
         tokenOwner.result.expectPrincipal(wallet2.address);
     }
 })
+
+Clarinet.test({
+    name: "Ensure authorization mechanism works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let block0 = chain.mineBlock(
+            [
+                Tx.contractCall('dyv-token',
+                'add-authorized-contract',
+                [types.principal(deployer.address)],
+                deployer.address),
+            ]);
+
+        let mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization.result.expectBool(true);
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'revoke-authorized-contract', [types.principal(deployer.address)], wallet1.address)
+        ]);
+
+        block1.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization.result.expectBool(true);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'revoke-authorized-contract', [types.principal(deployer.address)], deployer.address)
+        ]);
+
+        block2.receipts[0].result.expectOk().expectBool(true);
+
+        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization.result.expectBool(false);
+
+        const block3 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'revoke-authorized-contract', [types.principal(deployer.address)], deployer.address)
+        ]);
+
+        block3.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_IS_NOT_AUTHORIZED);
+
+        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization.result.expectBool(false);
+
+        const block4 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'add-authorized-contract', [types.principal(deployer.address)], wallet1.address)
+        ]);
+
+        block4.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization.result.expectBool(false);
+
+        const block5 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'add-authorized-contract', [types.principal(deployer.address)], deployer.address)
+        ]);
+
+        block5.receipts[0].result.expectOk().expectBool(true);
+
+        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization.result.expectBool(true);
+
+        const block6 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'add-authorized-contract', [types.principal(deployer.address)], deployer.address)
+        ]);
+
+        block6.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_ALREADY_AUTHORIZED);
+    }
+})
