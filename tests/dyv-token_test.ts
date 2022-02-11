@@ -785,3 +785,108 @@ Clarinet.test({
         remainingTokensToMint.result.expectUint(20999999999850);
     }
 })
+
+Clarinet.test({
+    name: "Full flow of ownership transfer",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+        const wallet2 = accounts.get('wallet_2')!;
+
+        let tokenOwner = chain.callReadOnlyFn('dyv-token', 'get-owner', [], wallet2.address);
+        tokenOwner.result.expectPrincipal(deployer.address);
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'submit-ownership-transfer',
+                            [types.principal(wallet1.address)],
+                            wallet1.address)
+        ]);
+
+        block1.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'submit-ownership-transfer',
+                            [types.principal(wallet1.address)],
+                            deployer.address)
+        ]);
+
+        block2.receipts[0].result.expectOk().expectBool(true);
+
+        const block3 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'submit-ownership-transfer',
+                            [types.principal(wallet2.address)],
+                            deployer.address)
+        ]);
+
+        block3.receipts[0].result.expectErr().expectUint(ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED);
+
+        const block4 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'cancel-ownership-transfer',
+                            [],
+                            wallet2.address)
+        ]);
+
+        block4.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        const block5 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'cancel-ownership-transfer',
+                            [],
+                            deployer.address)
+        ]);
+
+        block5.receipts[0].result.expectOk().expectBool(true);
+
+        const block6 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'confirm-ownership-transfer',
+                            [],
+                            wallet1.address)
+        ]);
+
+        block6.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM);
+
+        const block7 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'cancel-ownership-transfer',
+                            [],
+                            deployer.address)
+        ]);
+
+        block7.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL);
+
+        const block8 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'submit-ownership-transfer',
+                            [types.principal(wallet2.address)],
+                            deployer.address)
+        ]);
+
+        block8.receipts[0].result.expectOk().expectBool(true);
+
+        const block9 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'confirm-ownership-transfer',
+                            [],
+                            deployer.address)
+        ]);
+
+        block9.receipts[0].result.expectErr().expectUint(ERR_NOT_NEW_OWNER);
+
+        const block10 = chain.mineBlock([
+            Tx.contractCall('dyv-token',
+                            'confirm-ownership-transfer',
+                            [],
+                            wallet2.address)
+        ]);
+
+        block10.receipts[0].result.expectOk().expectBool(true);
+
+        tokenOwner = chain.callReadOnlyFn('dyv-token', 'get-owner', [], wallet2.address);
+        tokenOwner.result.expectPrincipal(wallet2.address);
+    }
+})
