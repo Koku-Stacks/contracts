@@ -1,5 +1,5 @@
 ## dYrivaNative Network
-[![codecov](https://codecov.io/gh/Koku-Stacks/testnet/branch/master/graph/badge.svg?token=ZMM3WF30BS)](https://codecov.io/gh/Koku-Stacks/testnet)
+[![codecov](https://codecov.io/gh/Koku-Stacks/contracts/branch/master/graph/badge.svg?token=HATLM28JPR)](https://codecov.io/gh/Koku-Stacks/contracts)
 
 # dYrivaNative
 
