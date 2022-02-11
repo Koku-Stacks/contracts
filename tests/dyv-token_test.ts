@@ -2,7 +2,6 @@ import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarine
 const ERR_CONTRACT_ALREADY_AUTHORIZED = 100;
 const ERR_CONTRACT_IS_NOT_AUTHORIZED = 101;
 const ERR_NOT_AUTHORIZED = 102;
-const ERR_TOKEN_OWNER_ONLY = 103;
 const ERR_CONTRACT_OWNER_ONLY = 104;
 const ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED = 105;
 const ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL = 106;
@@ -496,7 +495,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[1].result.expectErr().expectUint(ERR_TOKEN_OWNER_ONLY);
+        call.receipts[1].result.expectErr().expectUint(ERR_SENDER_IS_NOT_HOLDER);
     }
 })
 
@@ -529,6 +528,14 @@ Clarinet.test({
                 deployer.address),
 
                 Tx.contractCall('dyv-token',
+                'mint',
+                [
+                    types.uint(1000),
+                    types.principal(userB.address)
+                ],
+                deployer.address),
+
+                Tx.contractCall('dyv-token',
                 'transfer',
                 [
                     types.uint(10000),
@@ -557,12 +564,24 @@ Clarinet.test({
                     types.none(),
                 ],
                 userA.address),
+
+                Tx.contractCall('dyv-token',
+                'transfer',
+                [
+                    types.uint(0),
+                    types.principal(userB.address),
+                    types.principal(userA.address),
+                    types.none(),
+                ],
+                deployer.address),
             ]);
         
         call.receipts[0].result.expectOk().expectBool(true);
-        call.receipts[1].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
-        call.receipts[2].result.expectErr().expectUint(ERR_SENDER_RECIPIENT_SAME);
-        call.receipts[3].result.expectErr().expectUint(ERR_AMOUNT_NOT_POSITIVE);
+        call.receipts[1].result.expectOk().expectBool(true);
+        call.receipts[2].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
+        call.receipts[3].result.expectErr().expectUint(ERR_SENDER_RECIPIENT_SAME);
+        call.receipts[4].result.expectErr().expectUint(ERR_AMOUNT_NOT_POSITIVE);
+        call.receipts[5].result.expectErr().expectUint(ERR_SENDER_IS_NOT_HOLDER);
     }
 })
 

@@ -3,7 +3,7 @@
 (define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u100))
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u101))
 (define-constant ERR_NOT_AUTHORIZED (err u102))
-(define-constant ERR_TOKEN_OWNER_ONLY (err u103))
+(define-constant ERR_TOKEN_HOLDER_ONLY (err u4))
 (define-constant ERR_CONTRACT_OWNER_ONLY (err u104))
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u105))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u106))
@@ -122,7 +122,7 @@
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
   (begin
     (asserts! (is-eq (get-contract-lock) false) ERR_CONTRACT_LOCKED)
-    (asserts! (is-eq tx-sender sender) ERR_TOKEN_OWNER_ONLY)
+    (asserts! (is-eq tx-sender sender) ERR_TOKEN_HOLDER_ONLY)
     (try! (ft-transfer? token amount sender recipient))
     (match memo some-memo (print some-memo) 0x)
     (ok true)))
