@@ -10,7 +10,7 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u107))
 (define-constant ERR_NOT_NEW_OWNER (err u108))
 (define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u109))
-(define-constant ERR_CONTRACT_LOCKED (err u109))
+(define-constant ERR_CONTRACT_LOCKED (err u110))
 
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)
