@@ -617,3 +617,18 @@ Clarinet.test({
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
     }
 })
+
+Clarinet.test({
+    name: "Ensure the constant read only functions are returning as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const decimals = chain.callReadOnlyFn('dyv-token', 'get-decimals', [], deployer.address);
+         decimals.result.expectOk().expectUint(6);
+
+         const symbol = chain.callReadOnlyFn('dyv-token', 'get-symbol', [], deployer.address);
+         symbol.result.expectOk().expectAscii('DYV');
+
+         const name = chain.callReadOnlyFn('dyv-token', 'get-name', [], deployer.address);
+         name.result.expectOk().expectAscii('dYrivaNative');
+     }
+ })
