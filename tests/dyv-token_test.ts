@@ -566,3 +566,35 @@ Clarinet.test({
     }
 })
 
+Clarinet.test({
+    name: "Ensure the uri registry works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let uri = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uri.result.expectOk().expectSome().expectUtf8('www.token.com');
+
+        const newUri = 'www.token.org';
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
+        ]);
+
+        const [goodSetUriCall] = block1.receipts;
+        goodSetUriCall.result.expectOk().expectBool(true);
+
+        let uriQuery = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'set-token-uri', [ types.utf8('www.bad.com')], wallet1.address)
+        ]);
+
+        const [badSetUriCall] = block2.receipts;
+        badSetUriCall.result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        uriQuery = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+    }
+})
