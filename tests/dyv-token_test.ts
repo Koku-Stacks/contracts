@@ -1,4 +1,6 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
+import { assertEquals } from "https://deno.land/std@0.120.0/testing/asserts.ts";
+
 const ERR_CONTRACT_ALREADY_AUTHORIZED = 100;
 const ERR_CONTRACT_IS_NOT_AUTHORIZED = 101;
 const ERR_NOT_AUTHORIZED = 102;
@@ -632,3 +634,72 @@ Clarinet.test({
          name.result.expectOk().expectAscii('dYrivaNative');
      }
  })
+
+ Clarinet.test({
+    name: "Ensure transfer memo parameter works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        const wallet1 = accounts.get('wallet_1')!;
+        const wallet2 = accounts.get('wallet_2')!;
+        const wallet3 = accounts.get('wallet_3')!;
+
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('dyv-token',
+                'add-authorized-contract',
+                [types.principal(deployer.address)],
+                deployer.address),
+            ]);
+
+        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        readOnlyCall.result.expectBool(true);
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'mint', [types.uint(100), types.principal(wallet1.address)], deployer.address),
+            Tx.contractCall('dyv-token', 'mint', [types.uint(200), types.principal(wallet2.address)], deployer.address),
+            Tx.contractCall('dyv-token', 'mint', [types.uint(300), types.principal(wallet3.address)], deployer.address)
+        ]);
+
+        const [mintCall1, mintCall2, mintCall3] = block1.receipts;
+
+        mintCall1.result.expectOk().expectBool(true);
+        mintCall2.result.expectOk().expectBool(true);
+        mintCall3.result.expectOk().expectBool(true);
+
+        let wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(100);
+
+        let wallet2Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
+        wallet2Balance.result.expectOk().expectUint(200);
+
+        let wallet3Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
+        wallet3Balance.result.expectOk().expectUint(300);
+
+        const buffer = new ArrayBuffer(8);
+        const view = new Int8Array(buffer);
+        view[0] = 12;
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.some(types.buff(buffer))], wallet1.address),
+            Tx.contractCall('dyv-token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address), types.none()], wallet2.address),
+        ]);
+
+        const [goodTransferCall1, goodTransferCall2] = block2.receipts;
+
+        goodTransferCall1.result.expectOk().expectBool(true);
+        assertEquals(goodTransferCall1.events[1].contract_event.value,'0x0c00000000000000');
+
+        goodTransferCall2.result.expectOk().expectBool(true);
+        assertEquals(goodTransferCall2.events.length, 1)
+
+        wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance.result.expectOk().expectUint(90);
+
+        wallet2Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
+        wallet2Balance.result.expectOk().expectUint(190);
+
+        wallet3Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
+        wallet3Balance.result.expectOk().expectUint(320);
+    }
+})
