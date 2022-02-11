@@ -1,5 +1,18 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
-import { assertEquals } from "https://deno.land/std@0.120.0/testing/asserts.ts";
+const ERR_CONTRACT_ALREADY_AUTHORIZED = 100;
+const ERR_CONTRACT_IS_NOT_AUTHORIZED = 101;
+const ERR_NOT_AUTHORIZED = 102;
+const ERR_CONTRACT_OWNER_ONLY = 103;
+const ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED = 104;
+const ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL = 105;
+const ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM = 106;
+const ERR_NOT_NEW_OWNER = 107;
+const ERR_INSUFFICIENT_TOKENS_TO_MINT = 108;
+const ERR_CONTRACT_LOCKED = 109;
+const ERR_SENDER_NOT_ENOUGH_BALANCE = 1;
+const ERR_SENDER_RECIPIENT_SAME = 2;
+const ERR_AMOUNT_NOT_POSITIVE = 3;
+const ERR_SENDER_IS_NOT_HOLDER = 4;
 
 Clarinet.test({
     name: "Ensure that set-contract-lock can only be called by owner",
@@ -15,7 +28,7 @@ Clarinet.test({
                 userA.address)
         ]);
 
-        call.receipts[0].result.expectErr().expectUint(104)
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY)
     }
 })
 
@@ -33,7 +46,7 @@ Clarinet.test({
                 [types.principal(userB.address)],
                 userB.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(104);
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
     }
 })
 
@@ -55,7 +68,7 @@ Clarinet.test({
                 [types.principal(userB.address)],
                 deployer.address)
             ]);
-        call.receipts[1].result.expectErr().expectUint(105);
+        call.receipts[1].result.expectErr().expectUint(ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED);
     }
 })
 
@@ -73,7 +86,7 @@ Clarinet.test({
                 [],
                 userB.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(104);
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
     }
 })
 
@@ -91,7 +104,7 @@ Clarinet.test({
                 [],
                 deployer.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(106);
+        call.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL);
     }
 })
 
@@ -109,7 +122,7 @@ Clarinet.test({
                 [],
                 userA.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(107);
+        call.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM);
     }
 })
 
@@ -131,7 +144,7 @@ Clarinet.test({
                 [],
                 userA.address)
             ]);
-        call.receipts[1].result.expectErr().expectUint(108);
+        call.receipts[1].result.expectErr().expectUint(ERR_NOT_NEW_OWNER);
     }
 })
 
@@ -149,7 +162,7 @@ Clarinet.test({
                 [types.principal(deployer.address)],
                 userA.address),
             ]);
-        call.receipts[0].result.expectErr().expectUint(104);
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
     }
 })
 
@@ -171,7 +184,7 @@ Clarinet.test({
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
-        call.receipts[1].result.expectErr().expectUint(100);
+        call.receipts[1].result.expectErr().expectUint(ERR_CONTRACT_ALREADY_AUTHORIZED);
     }
 })
 
@@ -189,7 +202,7 @@ Clarinet.test({
                 [types.principal(deployer.address)],
                 userA.address),
             ]);
-        call.receipts[0].result.expectErr().expectUint(104);
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
     }
 })
 
@@ -207,7 +220,7 @@ Clarinet.test({
                 [types.principal(deployer.address)],
                 deployer.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(101);
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_IS_NOT_AUTHORIZED);
     }
 })
 
@@ -225,7 +238,7 @@ Clarinet.test({
                 [types.utf8("www.new-token.com")],
                 userA.address),
             ]);
-        call.receipts[0].result.expectErr().expectUint(104);
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
     }
 })
 
@@ -252,7 +265,7 @@ Clarinet.test({
         ]);
 
         call.receipts[0].result.expectOk().expectBool(true)
-        call.receipts[1].result.expectErr().expectUint(109)
+        call.receipts[1].result.expectErr().expectUint(ERR_CONTRACT_LOCKED)
     }
 })
 
@@ -285,7 +298,7 @@ Clarinet.test({
                 userB.address),
             ]);
         
-        call.receipts[0].result.expectErr().expectUint(102);
+        call.receipts[0].result.expectErr().expectUint(ERR_NOT_AUTHORIZED);
     }
 })
 
@@ -318,7 +331,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[0].result.expectErr().expectUint(109);
+        call.receipts[0].result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
     }
 })
 
@@ -337,6 +350,8 @@ Clarinet.test({
                 deployer.address),
             ]);
         
+        call.receipts[0].result.expectOk();
+
         let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
@@ -351,7 +366,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[0].result.expectErr().expectUint(1);
+        call.receipts[0].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
     }
 })
 
@@ -383,7 +398,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[0].result.expectErr().expectUint(1);
+        call.receipts[0].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
     }
 })
 
@@ -408,7 +423,7 @@ Clarinet.test({
         ]);
 
         call.receipts[0].result.expectOk().expectBool(true)
-        call.receipts[1].result.expectErr().expectUint(109)
+        call.receipts[1].result.expectErr().expectUint(ERR_CONTRACT_LOCKED)
     }
 })
 
@@ -437,7 +452,7 @@ Clarinet.test({
         ]);
 
         call.receipts[0].result.expectOk().expectBool(true)
-        call.receipts[1].result.expectErr().expectUint(109)
+        call.receipts[1].result.expectErr().expectUint(ERR_CONTRACT_LOCKED)
     }
 })
 
@@ -480,7 +495,7 @@ Clarinet.test({
                 deployer.address),
             ]);
         
-        call.receipts[1].result.expectErr().expectUint(103);
+        call.receipts[1].result.expectErr().expectUint(ERR_SENDER_IS_NOT_HOLDER);
     }
 })
 
@@ -513,6 +528,14 @@ Clarinet.test({
                 deployer.address),
 
                 Tx.contractCall('dyv-token',
+                'mint',
+                [
+                    types.uint(1000),
+                    types.principal(userB.address)
+                ],
+                deployer.address),
+
+                Tx.contractCall('dyv-token',
                 'transfer',
                 [
                     types.uint(10000),
@@ -541,12 +564,71 @@ Clarinet.test({
                     types.none(),
                 ],
                 userA.address),
+
+                Tx.contractCall('dyv-token',
+                'transfer',
+                [
+                    types.uint(0),
+                    types.principal(userB.address),
+                    types.principal(userA.address),
+                    types.none(),
+                ],
+                deployer.address),
             ]);
         
         call.receipts[0].result.expectOk().expectBool(true);
-        call.receipts[1].result.expectErr().expectUint(1);
-        call.receipts[2].result.expectErr().expectUint(2);
-        call.receipts[3].result.expectErr().expectUint(3);
+        call.receipts[1].result.expectOk().expectBool(true);
+        call.receipts[2].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
+        call.receipts[3].result.expectErr().expectUint(ERR_SENDER_RECIPIENT_SAME);
+        call.receipts[4].result.expectErr().expectUint(ERR_AMOUNT_NOT_POSITIVE);
+        call.receipts[5].result.expectErr().expectUint(ERR_SENDER_IS_NOT_HOLDER);
     }
 })
 
+Clarinet.test({
+    name: "Ensure the uri registry works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
+
+        let uri = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uri.result.expectOk().expectSome().expectUtf8('www.token.com');
+
+        const newUri = 'www.token.org';
+
+        const block1 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
+        ]);
+
+        const [goodSetUriCall] = block1.receipts;
+        goodSetUriCall.result.expectOk().expectBool(true);
+
+        let uriQuery = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+
+        const block2 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'set-token-uri', [ types.utf8('www.bad.com')], wallet1.address)
+        ]);
+
+        const [badSetUriCall] = block2.receipts;
+        badSetUriCall.result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        uriQuery = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
+    }
+})
+
+Clarinet.test({
+    name: "Ensure the constant read only functions are returning as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const decimals = chain.callReadOnlyFn('dyv-token', 'get-decimals', [], deployer.address);
+         decimals.result.expectOk().expectUint(6);
+
+         const symbol = chain.callReadOnlyFn('dyv-token', 'get-symbol', [], deployer.address);
+         symbol.result.expectOk().expectAscii('DYV');
+
+         const name = chain.callReadOnlyFn('dyv-token', 'get-name', [], deployer.address);
+         name.result.expectOk().expectAscii('dYrivaNative');
+     }
+ })
