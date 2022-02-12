@@ -1,5 +1,7 @@
 Business Source License 1.1
 
+Copyright (c) 2022 Koku
+
 License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
 "Business Source License" is a trademark of MariaDB Corporation Ab.
 
