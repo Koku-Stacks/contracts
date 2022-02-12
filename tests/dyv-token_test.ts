@@ -596,12 +596,12 @@ Clarinet.test({
                 Tx.contractCall('dyv-token',
                 'transfer',
                 [
-                    types.uint(0),
+                    types.uint(100),
                     types.principal(userB.address),
                     types.principal(userA.address),
                     types.none(),
                 ],
-                deployer.address),
+                userA.address),
             ]);
         
         call.receipts[0].result.expectOk().expectBool(true);
@@ -610,6 +610,12 @@ Clarinet.test({
         call.receipts[3].result.expectErr().expectUint(ERR_SENDER_RECIPIENT_SAME);
         call.receipts[4].result.expectErr().expectUint(ERR_AMOUNT_NOT_POSITIVE);
         call.receipts[5].result.expectErr().expectUint(ERR_SENDER_IS_NOT_HOLDER);
+
+        let balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(userB.address)], userB.address);
+        balance.result.expectOk().expectUint(1000);
+
+        balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(userB.address)], userB.address);
+        balance.result.expectOk().expectUint(1000);
     }
 })
 
@@ -740,16 +746,16 @@ Clarinet.test({
             [
                 Tx.contractCall('dyv-token',
                 'add-authorized-contract',
-                [types.principal(deployer.address)],
+                [types.principal(wallet1.address)],
                 deployer.address),
             ]);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'mint', [types.uint(100), types.principal(deployer.address)], deployer.address),
-            Tx.contractCall('dyv-token', 'mint', [types.uint(50), types.principal(wallet1.address)], deployer.address)
+            Tx.contractCall('dyv-token', 'mint', [types.uint(100), types.principal(deployer.address)], wallet1.address),
+            Tx.contractCall('dyv-token', 'mint', [types.uint(50), types.principal(wallet1.address)], wallet1.address)
         ]);
 
-        const [goodMintCall, mintCallToOtherWallet] = block2.receipts;
+        const [mintCallToOtherWallet, goodMintCall] = block2.receipts;
 
         goodMintCall.result.expectOk().expectBool(true);
         mintCallToOtherWallet.result.expectOk().expectBool(true);
@@ -783,6 +789,12 @@ Clarinet.test({
 
         remainingTokensToMint = chain.callReadOnlyFn('dyv-token', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(20999999999850);
+
+        const block4 = chain.mineBlock([
+            Tx.contractCall('dyv-token', 'burn', [types.uint(91)], deployer.address)
+        ]);
+
+        block4.receipts[0].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
     }
 })
 
