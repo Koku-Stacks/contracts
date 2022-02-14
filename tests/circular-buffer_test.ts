@@ -53,13 +53,38 @@ Clarinet.test({
     }
 });
 
+Clarinet.test({
+    name: "Ensure the same meaningful item can be retrieved twice in a row if no other insertions are made",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'circular-buffer',
+                'initialize-or-reset',
+                [],
+                deployer.address)
+        ]);
+
+        for (let element = 1; element <= 10; element++) {
+            call = chain.mineBlock([
+                Tx.contractCall(
+                    'circular-buffer',
+                    'put-item',
+                    [types.uint(element)],
+                    deployer.address)
+            ]);
+        }
+
         call = chain.mineBlock([
             Tx.contractCall(
                 'circular-buffer',
-                'put-item',
-                [types.uint(1)],
+                'get-item',
+                [],
                 deployer.address)
         ]);
+
+        call.receipts[0].result.expectUint(1);
 
         call = chain.mineBlock([
             Tx.contractCall(
