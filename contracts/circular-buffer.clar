@@ -8,7 +8,6 @@
 
 (define-map buffer {index: uint} {content: uint})
 
-(define-data-var start uint u0)
 (define-data-var end uint u0)
 
 (define-public (initialize-or-reset)
@@ -16,15 +15,13 @@
     (map set-at INDEXES INITIAL_CONTENT)
     (ok true)))
 
-(define-public (get-item)
-  (let ((item (get-at (var-get start))))
-    (var-set start (mod (+ (var-get start) u1) SIZE))
-    (ok item)))
+(define-read-only (get-item)
+  (get-at (mod (+ (var-get end) u1) SIZE)))
 
 (define-public (put-item (item uint))
   (begin
-    (set-at (var-get end) item)
     (var-set end (mod (+ (var-get end) u1) SIZE))
+    (set-at (var-get end) item)
     (ok true)))
 
 (define-private (get-at (idx uint))
