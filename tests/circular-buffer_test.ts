@@ -19,7 +19,7 @@ Clarinet.test({
 });
 
 Clarinet.test({
-    name: "Ensure an meaningful item can be retrieved just after SIZE items have been inserted in buffer",
+    name: "Ensure a meaningful item can be retrieved just after SIZE items have been inserted in buffer",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
 
