@@ -94,7 +94,7 @@ Clarinet.test({
                 deployer.address)
         ]);
 
-        call.receipts[0].result.expectOk().expectUint(1);
+        call.receipts[0].result.expectUint(1);
     }
 });
 
@@ -131,6 +131,6 @@ Clarinet.test({
                 deployer.address)
         ]);
 
-        call.receipts[0].result.expectOk().expectUint(11);
+        call.receipts[0].result.expectUint(2);
     },
 });
