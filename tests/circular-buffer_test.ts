@@ -19,6 +19,40 @@ Clarinet.test({
 });
 
 Clarinet.test({
+    name: "Ensure get-item fails when called before the circular buffer is initialized",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'circular-buffer',
+                'get-item',
+                [],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(100);
+    },
+});
+
+Clarinet.test({
+    name: "Ensure put-item fails when called before the circular buffer is initialized",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'circular-buffer',
+                'put-item',
+                [types.uint(1)],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(100);
+    },
+});
+
+Clarinet.test({
     name: "Ensure a meaningful item can be retrieved just after SIZE items have been inserted in buffer",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
