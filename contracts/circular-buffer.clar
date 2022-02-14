@@ -1,8 +1,8 @@
 ;; this contract contains a circular buffer implementation
 
-(define-constant SIZE u10)
+(define-constant size u10)
 
-;; these constants should be in accordance with SIZE
+;; these constants should be in accordance with size
 (define-constant indexes         (list u0 u1 u2 u3 u4 u5 u6 u7 u8 u9))
 (define-constant initial_content (list u0 u0 u0 u0 u0 u0 u0 u0 u0 u0))
 
@@ -11,7 +11,7 @@
 (define-data-var end uint u0)
 
 (define-read-only (get-item)
-  (get-at (mod (+ (var-get end) u1) SIZE)))
+  (get-at (mod (+ (var-get end) u1) size)))
 
 (define-public (initialize-or-reset)
   (begin
@@ -20,7 +20,7 @@
 
 (define-public (put-item (item uint))
   (begin
-    (var-set end (mod (+ (var-get end) u1) SIZE))
+    (var-set end (mod (+ (var-get end) u1) size))
     (set-at (var-get end) item)
     (ok true)))
 
