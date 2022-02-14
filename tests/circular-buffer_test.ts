@@ -19,7 +19,7 @@ Clarinet.test({
 });
 
 Clarinet.test({
-    name: "Ensure an item can be retrieved just after being inserted in buffer",
+    name: "Ensure an meaningful item can be retrieved just after SIZE items have been inserted in buffer",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
 
@@ -30,6 +30,28 @@ Clarinet.test({
                 [],
                 deployer.address)
         ]);
+
+        for (let element = 1; element <= 10; element++) {
+            call = chain.mineBlock([
+                Tx.contractCall(
+                    'circular-buffer',
+                    'put-item',
+                    [types.uint(element)],
+                    deployer.address)
+            ]);
+        }
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'circular-buffer',
+                'get-item',
+                [],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectUint(1);
+    }
+});
 
         call = chain.mineBlock([
             Tx.contractCall(
