@@ -10,13 +10,13 @@
 
 (define-data-var end uint u0)
 
+(define-read-only (get-item)
+  (get-at (mod (+ (var-get end) u1) SIZE)))
+
 (define-public (initialize-or-reset)
   (begin
     (map set-at indexes initial_content)
     (ok true)))
-
-(define-read-only (get-item)
-  (get-at (mod (+ (var-get end) u1) SIZE)))
 
 (define-public (put-item (item uint))
   (begin
