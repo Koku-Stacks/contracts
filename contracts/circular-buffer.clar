@@ -3,8 +3,8 @@
 (define-constant SIZE u10)
 
 ;; these constants should be in accordance with SIZE
-(define-constant INDEXES         (list u0 u1 u2 u3 u4 u5 u6 u7 u8 u9))
-(define-constant INITIAL_CONTENT (list u0 u0 u0 u0 u0 u0 u0 u0 u0 u0))
+(define-constant indexes         (list u0 u1 u2 u3 u4 u5 u6 u7 u8 u9))
+(define-constant initial_content (list u0 u0 u0 u0 u0 u0 u0 u0 u0 u0))
 
 (define-map buffer {index: uint} {content: uint})
 
@@ -12,7 +12,7 @@
 
 (define-public (initialize-or-reset)
   (begin
-    (map set-at INDEXES INITIAL_CONTENT)
+    (map set-at indexes initial_content)
     (ok true)))
 
 (define-read-only (get-item)
