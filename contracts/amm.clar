@@ -14,10 +14,13 @@
 
 (define-data-var initialized bool false)
 
+(define-read-only (is-empty)
+  (var-get empty))
+
 (define-read-only (get-item)
   (begin
     (asserts! (var-get initialized) ERR_NOT_INITIALIZED)
-    (asserts! (not (var-get empty)) ERR_EMPTY)
+    (asserts! (not (is-empty)) ERR_EMPTY)
     (ok (get-at (mod (+ (var-get end) u1) buffer-max-limit)))))
 
 (define-public (initialize-or-reset)
