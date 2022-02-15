@@ -3,8 +3,8 @@ name = "koku"
 requirements = []
 costs_version = 1
 
-[contracts.circular-buffer]
-path = "contracts/circular-buffer.clar"
+[contracts.amm]
+path = "contracts/amm.clar"
 depends_on = []
 
 [contracts.dyv-token]

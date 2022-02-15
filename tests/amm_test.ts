@@ -1,4 +1,3 @@
-
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
 Clarinet.test({
@@ -8,7 +7,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'initialize-or-reset',
                 [],
                 deployer.address)
@@ -25,7 +24,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'get-item',
                 [],
                 deployer.address)
@@ -42,7 +41,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'put-item',
                 [types.uint(1)],
                 deployer.address)
@@ -59,7 +58,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'initialize-or-reset',
                 [],
                 deployer.address)
@@ -68,7 +67,7 @@ Clarinet.test({
         for (let element = 1; element <= 10; element++) {
             call = chain.mineBlock([
                 Tx.contractCall(
-                    'circular-buffer',
+                    'amm',
                     'put-item',
                     [types.uint(element)],
                     deployer.address)
@@ -77,7 +76,7 @@ Clarinet.test({
 
         call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'get-item',
                 [],
                 deployer.address)
@@ -94,7 +93,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'initialize-or-reset',
                 [],
                 deployer.address)
@@ -103,7 +102,7 @@ Clarinet.test({
         for (let element = 1; element <= 10; element++) {
             call = chain.mineBlock([
                 Tx.contractCall(
-                    'circular-buffer',
+                    'amm',
                     'put-item',
                     [types.uint(element)],
                     deployer.address)
@@ -112,7 +111,7 @@ Clarinet.test({
 
         call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'get-item',
                 [],
                 deployer.address)
@@ -122,7 +121,7 @@ Clarinet.test({
 
         call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'get-item',
                 [],
                 deployer.address)
@@ -139,7 +138,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'initialize-or-reset',
                 [],
                 deployer.address)
@@ -150,7 +149,7 @@ Clarinet.test({
         for (let element = 1; element <= 11; element++) {
             call = chain.mineBlock([
                 Tx.contractCall(
-                    'circular-buffer',
+                    'amm',
                     'put-item',
                     [types.uint(element)],
                     deployer.address)
@@ -159,7 +158,7 @@ Clarinet.test({
 
         call = chain.mineBlock([
             Tx.contractCall(
-                'circular-buffer',
+                'amm',
                 'get-item',
                 [],
                 deployer.address)
