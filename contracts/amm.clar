@@ -5,10 +5,6 @@
 
 (define-constant buffer-max-limit u10)
 
-;; these constants should be in accordance with buffer-max-limit
-(define-constant indexes         (list u0 u1 u2 u3 u4 u5 u6 u7 u8 u9))
-(define-constant initial_content (list u0 u0 u0 u0 u0 u0 u0 u0 u0 u0))
-
 (define-map circular-buffer {index: uint} {content: uint})
 
 (define-data-var end uint u0)
@@ -25,8 +21,9 @@
     (ok (get-at (mod (+ (var-get end) u1) buffer-max-limit)))))
 
 (define-public (initialize-or-reset)
-  (begin
-    (map set-at indexes initial_content)
+  (let ((indexes         (list u0 u1 u2 u3 u4 u5 u6 u7 u8 u9))
+        (initial-content (list u0 u0 u0 u0 u0 u0 u0 u0 u0 u0)))
+    (map set-at indexes initial-content)
     (var-set initialized true)
     (var-set empty true)
     (var-set number-inserted-items u0)
