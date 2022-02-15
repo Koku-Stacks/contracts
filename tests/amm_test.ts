@@ -52,6 +52,49 @@ Clarinet.test({
 });
 
 Clarinet.test({
+    name: "Ensure get-item fails when called with an empty buffer",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'initialize-or-reset',
+                [],
+                deployer.address)
+        ]);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'get-item',
+                [],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(101);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'put-item',
+                [types.uint(1)],
+                deployer.address)
+        ]);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'get-item',
+                [],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(101);
+    },
+});
+
+Clarinet.test({
     name: "Ensure a meaningful item can be retrieved just after SIZE items have been inserted in buffer",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
