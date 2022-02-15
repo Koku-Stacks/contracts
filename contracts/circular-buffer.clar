@@ -1,6 +1,7 @@
 ;; this contract contains a circular buffer implementation
 
 (define-constant ERR_NOT_INITIALIZED (err u100))
+(define-constant ERR_EMPTY (err u101))
 
 (define-constant size u10)
 
@@ -12,17 +13,23 @@
 
 (define-data-var end uint u0)
 
+(define-data-var empty bool true)
+(define-data-var number-inserted-items uint u0)
+
 (define-data-var initialized bool false)
 
 (define-read-only (get-item)
   (begin
     (asserts! (var-get initialized) ERR_NOT_INITIALIZED)
+    (asserts! (not (var-get empty)) ERR_EMPTY)
     (ok (get-at (mod (+ (var-get end) u1) size)))))
 
 (define-public (initialize-or-reset)
   (begin
     (map set-at indexes initial_content)
     (var-set initialized true)
+    (var-set empty true)
+    (var-set number-inserted-items u0)
     (ok true)))
 
 (define-public (put-item (item uint))
@@ -30,6 +37,12 @@
     (asserts! (var-get initialized) ERR_NOT_INITIALIZED)
     (var-set end (mod (+ (var-get end) u1) size))
     (set-at (var-get end) item)
+    (var-set number-inserted-items (+ (var-get number-inserted-items) u1))
+    (if (is-eq size (var-get number-inserted-items))
+      (begin
+        (var-set number-inserted-items u0)
+        (var-set empty false))
+      true)
     (ok true)))
 
 (define-private (get-at (idx uint))
