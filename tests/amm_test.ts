@@ -22,15 +22,14 @@ Clarinet.test({
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
 
-        let call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        let call = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectErr().expectUint(100);
+        call.result.expectErr().expectUint(100);
     },
 });
 
@@ -64,15 +63,14 @@ Clarinet.test({
                 deployer.address)
         ]);
 
-        call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        let getItemCall = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectErr().expectUint(101);
+        getItemCall.result.expectErr().expectUint(101);
 
         call = chain.mineBlock([
             Tx.contractCall(
@@ -82,15 +80,14 @@ Clarinet.test({
                 deployer.address)
         ]);
 
-        call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        getItemCall = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectErr().expectUint(101);
+        getItemCall.result.expectErr().expectUint(101);
     },
 });
 
@@ -117,15 +114,14 @@ Clarinet.test({
             ]);
         }
 
-        call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        let getItemCall = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectOk().expectUint(1);
+        getItemCall.result.expectOk().expectUint(1);
     }
 });
 
@@ -152,25 +148,23 @@ Clarinet.test({
             ]);
         }
 
-        call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        let getItemCall = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectOk().expectUint(1);
+        getItemCall.result.expectOk().expectUint(1);
 
-        call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        getItemCall = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectOk().expectUint(1);
+        getItemCall.result.expectOk().expectUint(1);
     }
 });
 
@@ -199,14 +193,13 @@ Clarinet.test({
             ]);
         }
 
-        call = chain.mineBlock([
-            Tx.contractCall(
-                'amm',
-                'get-item',
-                [],
-                deployer.address)
-        ]);
+        let getItemCall = chain.callReadOnlyFn(
+            'amm',
+            'get-item',
+            [],
+            deployer.address
+        );
 
-        call.receipts[0].result.expectOk().expectUint(2);
+        getItemCall.result.expectOk().expectUint(2);
     },
 });
