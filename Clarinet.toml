@@ -14,3 +14,11 @@ depends_on = ["sip-010-trait-ft-standard"]
 [contracts.sip-010-trait-ft-standard]
 path = "contracts/sip-010-trait-ft-standard.clar"
 depends_on = []
+
+[contracts.dyv-vault]
+path = "contracts/dyv-vault.clar"
+depends_on = ["owner-trait"]
+
+[contracts.owner-trait]
+path = "contracts/owner-trait.clar"
+depends_on = []
