@@ -3,8 +3,8 @@ name = "koku"
 requirements = []
 costs_version = 1
 
-[contracts.sip-010-trait-ft-standard]
-path = "contracts/sip-010-trait-ft-standard.clar"
+[contracts.amm]
+path = "contracts/amm.clar"
 depends_on = []
 
 [contracts.dyv-token]
@@ -14,3 +14,7 @@ depends_on = ["sip-010-trait-ft-standard"]
 [contracts.minting]
 path = "contracts/minting.clar"
 depends_on = ["dyv-token"]
+
+[contracts.sip-010-trait-ft-standard]
+path = "contracts/sip-010-trait-ft-standard.clar"
+depends_on = []
