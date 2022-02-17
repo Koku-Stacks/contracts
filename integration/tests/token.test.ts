@@ -11,7 +11,7 @@ const chain = new StacksChain(STACKS_API_URL, {
 });
 
 let contractAddress: string;
-const contractName = "dyv-token";
+const contractName = "token";
 const sipContractName = "sip-010-trait-ft-standard";
 
 describe("token contract", () => {
