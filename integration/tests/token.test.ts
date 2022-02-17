@@ -100,7 +100,7 @@ describe("token contract", () => {
 
     expect(wrongUpdateResult).to.be.ok;
     expect(wrongUpdateResult.success).to.be.false;
-    expect(wrongUpdateResult.value.value).to.be.eq("113");
+    expect(wrongUpdateResult.value.value).to.be.eq("103");
 
     // double check that value wasn't changed
     const doubleCheckResult = await chain.callReadOnlyFn(
@@ -141,7 +141,7 @@ describe("token contract", () => {
 
     expect(symbol).to.be.ok;
     expect(symbol.success).to.be.true;
-    expect(symbol.value.value).to.be.eq("TKN");
+    expect(symbol.value.value).to.be.eq("DYV");
 
     const name = await chain.callReadOnlyFn(
       contractAddress,
