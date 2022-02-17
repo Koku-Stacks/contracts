@@ -6,7 +6,7 @@ import { StacksChain } from "../integration/framework/stacks.chain";
 // input parameters:
 const networkEndPoint = "https://stacks-node-api.testnet.stacks.co";
 const secretKey = "twice kind fence tip hidden tilt action fragile skin nothing glory cousin green tomorrow spring wrist shed math olympic multiply hip blue scout claw";
-const contract_name = "dyv-token";
+const contract_name = "token";
 /////////////////////////////
 
 const chain = new StacksChain(networkEndPoint, {
