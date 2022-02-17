@@ -7,13 +7,9 @@ costs_version = 1
 path = "contracts/amm.clar"
 depends_on = []
 
-[contracts.dyv-token]
-path = "contracts/dyv-token.clar"
+[contracts.token]
+path = "contracts/token.clar"
 depends_on = ["sip-010-trait-ft-standard"]
-
-[contracts.minting]
-path = "contracts/minting.clar"
-depends_on = ["dyv-token"]
 
 [contracts.sip-010-trait-ft-standard]
 path = "contracts/sip-010-trait-ft-standard.clar"
