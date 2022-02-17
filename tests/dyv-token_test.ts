@@ -25,7 +25,7 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'set-contract-lock',
                 [ types.bool(true)],
                 userA.address)
@@ -44,7 +44,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'submit-ownership-transfer',
                 [types.principal(userB.address)],
                 userB.address)
@@ -62,11 +62,11 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'submit-ownership-transfer',
                 [types.principal(userB.address)],
                 deployer.address),
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'submit-ownership-transfer',
                 [types.principal(userB.address)],
                 deployer.address)
@@ -84,7 +84,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'cancel-ownership-transfer',
                 [],
                 userB.address)
@@ -102,7 +102,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'cancel-ownership-transfer',
                 [],
                 deployer.address)
@@ -120,7 +120,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'confirm-ownership-transfer',
                 [],
                 userA.address)
@@ -138,11 +138,11 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'submit-ownership-transfer',
                 [types.principal(userB.address)],
                 deployer.address),
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'confirm-ownership-transfer',
                 [],
                 userA.address)
@@ -160,7 +160,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 userA.address),
@@ -178,11 +178,11 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
@@ -200,7 +200,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'revoke-authorized-contract',
                 [types.principal(deployer.address)],
                 userA.address),
@@ -218,7 +218,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'revoke-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address)
@@ -236,7 +236,7 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'set-token-uri',
                 [types.utf8("www.new-token.com")],
                 userA.address),
@@ -253,12 +253,12 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'set-contract-lock',
                 [ types.bool(true)],
                 deployer.address),
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'mint',
                 [
                     types.uint(1000),
@@ -281,18 +281,18 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
         
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(1000),
@@ -314,18 +314,18 @@ Clarinet.test({
         
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
         
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(10500000000000),
@@ -333,7 +333,7 @@ Clarinet.test({
                 ],
                 deployer.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(10500000000000),
@@ -342,12 +342,12 @@ Clarinet.test({
                 deployer.address),
 
                 Tx.contractCall(
-                    'dyv-token',
+                    'token',
                     'burn',
                     [types.uint(1000),],
                     userA.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                     'mint',
                     [
                         types.uint(1),
@@ -372,7 +372,7 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
@@ -380,12 +380,12 @@ Clarinet.test({
         
         call.receipts[0].result.expectOk();
 
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(0),
@@ -407,18 +407,18 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
         
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'burn',
                 [
                     types.uint(0),
@@ -439,12 +439,12 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'set-contract-lock',
                 [types.bool(true)],
                 deployer.address),
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'burn',
                 [types.uint(1000),],
                 deployer.address)
@@ -463,12 +463,12 @@ Clarinet.test({
 
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'set-contract-lock',
                 [types.bool(true)],
                 deployer.address),
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'transfer',
                 [
                     types.uint(1000),
@@ -493,18 +493,18 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
         
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(1000),
@@ -512,7 +512,7 @@ Clarinet.test({
                 ],
                 deployer.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'transfer',
                 [
                     types.uint(100),
@@ -536,18 +536,18 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
         
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(1000),
@@ -555,7 +555,7 @@ Clarinet.test({
                 ],
                 deployer.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'mint',
                 [
                     types.uint(1000),
@@ -563,7 +563,7 @@ Clarinet.test({
                 ],
                 deployer.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'transfer',
                 [
                     types.uint(10000),
@@ -573,7 +573,7 @@ Clarinet.test({
                 ],
                 userA.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'transfer',
                 [
                     types.uint(1000),
@@ -583,7 +583,7 @@ Clarinet.test({
                 ],
                 userA.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'transfer',
                 [
                     types.uint(0),
@@ -593,7 +593,7 @@ Clarinet.test({
                 ],
                 userA.address),
 
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'transfer',
                 [
                     types.uint(100),
@@ -611,10 +611,10 @@ Clarinet.test({
         call.receipts[4].result.expectErr().expectUint(ERR_AMOUNT_NOT_POSITIVE);
         call.receipts[5].result.expectErr().expectUint(ERR_SENDER_IS_NOT_HOLDER);
 
-        let balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(userB.address)], userB.address);
+        let balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userB.address)], userB.address);
         balance.result.expectOk().expectUint(1000);
 
-        balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(userB.address)], userB.address);
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userB.address)], userB.address);
         balance.result.expectOk().expectUint(1000);
     }
 })
@@ -625,29 +625,29 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
 
-        let uri = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        let uri = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
         uri.result.expectOk().expectSome().expectUtf8('www.token.com');
 
         const newUri = 'www.token.org';
 
         const block1 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
+            Tx.contractCall('token', 'set-token-uri', [types.utf8(newUri)], deployer.address)
         ]);
 
         const [goodSetUriCall] = block1.receipts;
         goodSetUriCall.result.expectOk().expectBool(true);
 
-        let uriQuery = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        let uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'set-token-uri', [ types.utf8('www.bad.com')], wallet1.address)
+            Tx.contractCall('token', 'set-token-uri', [ types.utf8('www.bad.com')], wallet1.address)
         ]);
 
         const [badSetUriCall] = block2.receipts;
         badSetUriCall.result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
 
-        uriQuery = chain.callReadOnlyFn('dyv-token', 'get-token-uri', [], wallet1.address);
+        uriQuery = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
         uriQuery.result.expectOk().expectSome().expectUtf8(newUri);
     }
 })
@@ -656,13 +656,13 @@ Clarinet.test({
     name: "Ensure the constant read only functions are returning as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
-        const decimals = chain.callReadOnlyFn('dyv-token', 'get-decimals', [], deployer.address);
+        const decimals = chain.callReadOnlyFn('token', 'get-decimals', [], deployer.address);
          decimals.result.expectOk().expectUint(6);
 
-         const symbol = chain.callReadOnlyFn('dyv-token', 'get-symbol', [], deployer.address);
+         const symbol = chain.callReadOnlyFn('token', 'get-symbol', [], deployer.address);
          symbol.result.expectOk().expectAscii('DYV');
 
-         const name = chain.callReadOnlyFn('dyv-token', 'get-name', [], deployer.address);
+         const name = chain.callReadOnlyFn('token', 'get-name', [], deployer.address);
          name.result.expectOk().expectAscii('dYrivaNative');
      }
  })
@@ -678,19 +678,19 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
 
-        let readOnlyCall = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let readOnlyCall = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         readOnlyCall.result.expectBool(true);
 
         const block1 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'mint', [types.uint(100), types.principal(wallet1.address)], deployer.address),
-            Tx.contractCall('dyv-token', 'mint', [types.uint(200), types.principal(wallet2.address)], deployer.address),
-            Tx.contractCall('dyv-token', 'mint', [types.uint(300), types.principal(wallet3.address)], deployer.address)
+            Tx.contractCall('token', 'mint', [types.uint(100), types.principal(wallet1.address)], deployer.address),
+            Tx.contractCall('token', 'mint', [types.uint(200), types.principal(wallet2.address)], deployer.address),
+            Tx.contractCall('token', 'mint', [types.uint(300), types.principal(wallet3.address)], deployer.address)
         ]);
 
         const [mintCall1, mintCall2, mintCall3] = block1.receipts;
@@ -699,13 +699,13 @@ Clarinet.test({
         mintCall2.result.expectOk().expectBool(true);
         mintCall3.result.expectOk().expectBool(true);
 
-        let wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(100);
 
-        let wallet2Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
+        let wallet2Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
         wallet2Balance.result.expectOk().expectUint(200);
 
-        let wallet3Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
+        let wallet3Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(300);
 
         const buffer = new ArrayBuffer(8);
@@ -713,8 +713,8 @@ Clarinet.test({
         view[0] = 12;
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.some(types.buff(buffer))], wallet1.address),
-            Tx.contractCall('dyv-token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address), types.none()], wallet2.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet1.address), types.principal(wallet3.address), types.some(types.buff(buffer))], wallet1.address),
+            Tx.contractCall('token', 'transfer', [types.uint(10), types.principal(wallet2.address), types.principal(wallet3.address), types.none()], wallet2.address),
         ]);
 
         const [goodTransferCall1, goodTransferCall2] = block2.receipts;
@@ -725,13 +725,13 @@ Clarinet.test({
         goodTransferCall2.result.expectOk().expectBool(true);
         assertEquals(goodTransferCall2.events.length, 1)
 
-        wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(90);
 
-        wallet2Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
+        wallet2Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet2.address)], wallet2.address);
         wallet2Balance.result.expectOk().expectUint(190);
 
-        wallet3Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
+        wallet3Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet3.address)], wallet3.address);
         wallet3Balance.result.expectOk().expectUint(320);
     }
 })
@@ -744,15 +744,15 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(wallet1.address)],
                 deployer.address),
             ]);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'mint', [types.uint(100), types.principal(deployer.address)], wallet1.address),
-            Tx.contractCall('dyv-token', 'mint', [types.uint(50), types.principal(wallet1.address)], wallet1.address)
+            Tx.contractCall('token', 'mint', [types.uint(100), types.principal(deployer.address)], wallet1.address),
+            Tx.contractCall('token', 'mint', [types.uint(50), types.principal(wallet1.address)], wallet1.address)
         ]);
 
         const [mintCallToOtherWallet, goodMintCall] = block2.receipts;
@@ -760,38 +760,38 @@ Clarinet.test({
         goodMintCall.result.expectOk().expectBool(true);
         mintCallToOtherWallet.result.expectOk().expectBool(true);
 
-        let remainingTokensToMint = chain.callReadOnlyFn('dyv-token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        let remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(20999999999850);
 
-        let supply = chain.callReadOnlyFn('dyv-token', 'get-total-supply', [], deployer.address);
+        let supply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
         supply.result.expectOk().expectUint(150);
 
-        let deployerBalance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(deployer.address)], deployer.address);
+        let deployerBalance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(deployer.address)], deployer.address);
         deployerBalance.result.expectOk().expectUint(100);
 
-        let wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        let wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(50);
 
         const block3 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'burn', [types.uint(10)], deployer.address)
+            Tx.contractCall('token', 'burn', [types.uint(10)], deployer.address)
         ]);
 
         block3.receipts[0].result.expectOk().expectBool(true);
 
-        deployerBalance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(deployer.address)], deployer.address);
+        deployerBalance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(deployer.address)], deployer.address);
         deployerBalance.result.expectOk().expectUint(90);
 
-        wallet1Balance = chain.callReadOnlyFn('dyv-token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
+        wallet1Balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(wallet1.address)], wallet1.address);
         wallet1Balance.result.expectOk().expectUint(50);
 
-        supply = chain.callReadOnlyFn('dyv-token', 'get-total-supply', [], deployer.address);
+        supply = chain.callReadOnlyFn('token', 'get-total-supply', [], deployer.address);
         supply.result.expectOk().expectUint(140);
 
-        remainingTokensToMint = chain.callReadOnlyFn('dyv-token', 'get-remaining-tokens-to-mint', [], deployer.address);
+        remainingTokensToMint = chain.callReadOnlyFn('token', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(20999999999850);
 
         const block4 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'burn', [types.uint(91)], deployer.address)
+            Tx.contractCall('token', 'burn', [types.uint(91)], deployer.address)
         ]);
 
         block4.receipts[0].result.expectErr().expectUint(ERR_SENDER_NOT_ENOUGH_BALANCE);
@@ -805,11 +805,11 @@ Clarinet.test({
         const wallet1 = accounts.get('wallet_1')!;
         const wallet2 = accounts.get('wallet_2')!;
 
-        let tokenOwner = chain.callReadOnlyFn('dyv-token', 'get-owner', [], wallet2.address);
+        let tokenOwner = chain.callReadOnlyFn('token', 'get-owner', [], wallet2.address);
         tokenOwner.result.expectPrincipal(deployer.address);
 
         const block1 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'submit-ownership-transfer',
                             [types.principal(wallet1.address)],
                             wallet1.address)
@@ -818,7 +818,7 @@ Clarinet.test({
         block1.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'submit-ownership-transfer',
                             [types.principal(wallet1.address)],
                             deployer.address)
@@ -827,7 +827,7 @@ Clarinet.test({
         block2.receipts[0].result.expectOk().expectBool(true);
 
         const block3 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'submit-ownership-transfer',
                             [types.principal(wallet2.address)],
                             deployer.address)
@@ -836,7 +836,7 @@ Clarinet.test({
         block3.receipts[0].result.expectErr().expectUint(ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED);
 
         const block4 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'cancel-ownership-transfer',
                             [],
                             wallet2.address)
@@ -845,7 +845,7 @@ Clarinet.test({
         block4.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
 
         const block5 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'cancel-ownership-transfer',
                             [],
                             deployer.address)
@@ -854,7 +854,7 @@ Clarinet.test({
         block5.receipts[0].result.expectOk().expectBool(true);
 
         const block6 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'confirm-ownership-transfer',
                             [],
                             wallet1.address)
@@ -863,7 +863,7 @@ Clarinet.test({
         block6.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM);
 
         const block7 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'cancel-ownership-transfer',
                             [],
                             deployer.address)
@@ -872,7 +872,7 @@ Clarinet.test({
         block7.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL);
 
         const block8 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'submit-ownership-transfer',
                             [types.principal(wallet2.address)],
                             deployer.address)
@@ -881,7 +881,7 @@ Clarinet.test({
         block8.receipts[0].result.expectOk().expectBool(true);
 
         const block9 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'confirm-ownership-transfer',
                             [],
                             deployer.address)
@@ -890,7 +890,7 @@ Clarinet.test({
         block9.receipts[0].result.expectErr().expectUint(ERR_NOT_NEW_OWNER);
 
         const block10 = chain.mineBlock([
-            Tx.contractCall('dyv-token',
+            Tx.contractCall('token',
                             'confirm-ownership-transfer',
                             [],
                             wallet2.address)
@@ -898,7 +898,7 @@ Clarinet.test({
 
         block10.receipts[0].result.expectOk().expectBool(true);
 
-        tokenOwner = chain.callReadOnlyFn('dyv-token', 'get-owner', [], wallet2.address);
+        tokenOwner = chain.callReadOnlyFn('token', 'get-owner', [], wallet2.address);
         tokenOwner.result.expectPrincipal(wallet2.address);
     }
 })
@@ -911,62 +911,62 @@ Clarinet.test({
 
         let block0 = chain.mineBlock(
             [
-                Tx.contractCall('dyv-token',
+                Tx.contractCall('token',
                 'add-authorized-contract',
                 [types.principal(deployer.address)],
                 deployer.address),
             ]);
 
-        let mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        let mintingAuthorization = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         mintingAuthorization.result.expectBool(true);
 
         const block1 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'revoke-authorized-contract', [types.principal(deployer.address)], wallet1.address)
+            Tx.contractCall('token', 'revoke-authorized-contract', [types.principal(deployer.address)], wallet1.address)
         ]);
 
         block1.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
 
-        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         mintingAuthorization.result.expectBool(true);
 
         const block2 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'revoke-authorized-contract', [types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'revoke-authorized-contract', [types.principal(deployer.address)], deployer.address)
         ]);
 
         block2.receipts[0].result.expectOk().expectBool(true);
 
-        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         mintingAuthorization.result.expectBool(false);
 
         const block3 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'revoke-authorized-contract', [types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'revoke-authorized-contract', [types.principal(deployer.address)], deployer.address)
         ]);
 
         block3.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_IS_NOT_AUTHORIZED);
 
-        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         mintingAuthorization.result.expectBool(false);
 
         const block4 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'add-authorized-contract', [types.principal(deployer.address)], wallet1.address)
+            Tx.contractCall('token', 'add-authorized-contract', [types.principal(deployer.address)], wallet1.address)
         ]);
 
         block4.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
 
-        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         mintingAuthorization.result.expectBool(false);
 
         const block5 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'add-authorized-contract', [types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'add-authorized-contract', [types.principal(deployer.address)], deployer.address)
         ]);
 
         block5.receipts[0].result.expectOk().expectBool(true);
 
-        mintingAuthorization = chain.callReadOnlyFn('dyv-token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
+        mintingAuthorization = chain.callReadOnlyFn('token', 'is-authorized', [types.principal(deployer.address)], deployer.address);
         mintingAuthorization.result.expectBool(true);
 
         const block6 = chain.mineBlock([
-            Tx.contractCall('dyv-token', 'add-authorized-contract', [types.principal(deployer.address)], deployer.address)
+            Tx.contractCall('token', 'add-authorized-contract', [types.principal(deployer.address)], deployer.address)
         ]);
 
         block6.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_ALREADY_AUTHORIZED);
