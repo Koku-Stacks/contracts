@@ -5,7 +5,8 @@
 
 (define-constant buffer-max-limit u10)
 
-(define-map circular-buffer {index: uint} {btc-price: uint, block-height: uint})
+(define-map circular-buffer {index: uint} {btc-price: uint})
+
 
 (define-data-var end uint u0)
 
@@ -32,7 +33,7 @@
     (var-set number-inserted-items u0)
     (ok true)))
 
-(define-public (put-item (btc-price uint))
+(define-public (add-btc-price (btc-price uint))
   (begin
     (asserts! (var-get initialized) ERR_NOT_INITIALIZED)
     (var-set end (mod (+ (var-get end) u1) buffer-max-limit))
@@ -49,4 +50,4 @@
   (unwrap-panic (map-get? circular-buffer {index: idx})))
 
 (define-private (set-at (idx uint) (btc-price uint))
-  (map-set circular-buffer {index: idx} {btc-price: btc-price, block-height: block-height}))
+  (map-set circular-buffer {index: idx} {btc-price: btc-price}))
