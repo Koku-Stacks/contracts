@@ -51,14 +51,14 @@ Clarinet.test({
 });
 
 Clarinet.test({
-    name: "Ensure put-item fails when called before the circular buffer is initialized",
+    name: "Ensure add-btc-price fails when called before the circular buffer is initialized",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
 
         let call = chain.mineBlock([
             Tx.contractCall(
                 'amm',
-                'put-item',
+                'add-btc-price',
                 [types.uint(1)],
                 deployer.address)
         ]);
@@ -115,7 +115,7 @@ Clarinet.test({
         call = chain.mineBlock([
             Tx.contractCall(
                 'amm',
-                'put-item',
+                'add-btc-price',
                 [types.uint(1)],
                 deployer.address)
         ]);
@@ -148,7 +148,7 @@ Clarinet.test({
             call = chain.mineBlock([
                 Tx.contractCall(
                     'amm',
-                    'put-item',
+                    'add-btc-price',
                     [types.uint(element)],
                     deployer.address)
             ]);
@@ -182,7 +182,7 @@ Clarinet.test({
             call = chain.mineBlock([
                 Tx.contractCall(
                     'amm',
-                    'put-item',
+                    'add-btc-price',
                     [types.uint(element)],
                     deployer.address)
             ]);
@@ -227,7 +227,7 @@ Clarinet.test({
             call = chain.mineBlock([
                 Tx.contractCall(
                     'amm',
-                    'put-item',
+                    'add-btc-price',
                     [types.uint(element)],
                     deployer.address)
             ]);
