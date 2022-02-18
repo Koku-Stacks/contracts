@@ -18,6 +18,23 @@ Clarinet.test({
 });
 
 Clarinet.test({
+    name: "Ensure amm can only be initialized by owner",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'initialize-or-reset',
+                [],
+                userA.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+    },
+});
+
+Clarinet.test({
     name: "Ensure get-item fails when called before the circular buffer is initialized",
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
@@ -47,6 +64,29 @@ Clarinet.test({
         ]);
 
         call.receipts[0].result.expectErr().expectUint(100);
+Clarinet.test({
+    name: "Ensure add-btc-price fails when called by a non-owner principal",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'initialize-or-reset',
+                [],
+                deployer.address)
+        ]);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'add-btc-price',
+                [types.uint(1)],
+                userA.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
     },
 });
 
