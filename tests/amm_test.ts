@@ -1,5 +1,9 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
+const ERR_NOT_INITIALIZED = 100;
+const ERR_EMPTY = 101;
+const ERR_CONTRACT_OWNER_ONLY = 103;
+
 Clarinet.test({
     name: "Ensure amm can be initialized",
     async fn(chain: Chain, accounts: Map<string, Account>) {
@@ -46,7 +50,7 @@ Clarinet.test({
             deployer.address
         );
 
-        call.result.expectErr().expectUint(100);
+        call.result.expectErr().expectUint(ERR_NOT_INITIALIZED);
     },
 });
 
@@ -63,7 +67,10 @@ Clarinet.test({
                 deployer.address)
         ]);
 
-        call.receipts[0].result.expectErr().expectUint(100);
+        call.receipts[0].result.expectErr().expectUint(ERR_NOT_INITIALIZED);
+    },
+});
+
 Clarinet.test({
     name: "Ensure add-btc-price fails when called by a non-owner principal",
     async fn(chain: Chain, accounts: Map<string, Account>) {
@@ -110,7 +117,7 @@ Clarinet.test({
             deployer.address
         );
 
-        getItemCall.result.expectErr().expectUint(101);
+        getItemCall.result.expectErr().expectUint(ERR_EMPTY);
 
         call = chain.mineBlock([
             Tx.contractCall(
@@ -127,7 +134,7 @@ Clarinet.test({
             deployer.address
         );
 
-        getItemCall.result.expectErr().expectUint(101);
+        getItemCall.result.expectErr().expectUint(ERR_EMPTY);
     },
 });
 
