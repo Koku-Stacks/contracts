@@ -168,7 +168,8 @@ Clarinet.test({
             deployer.address
         );
 
-        getItemCall.result.expectOk().expectUint(1);
+        const getItemReturn = getItemCall.result.expectOk().expectTuple() as any;
+        getItemReturn['btc-price'].expectUint(1);
     }
 });
 
@@ -202,7 +203,8 @@ Clarinet.test({
             deployer.address
         );
 
-        getItemCall.result.expectOk().expectUint(1);
+        let getItemReturn = getItemCall.result.expectOk().expectTuple() as any;
+        getItemReturn['btc-price'].expectUint(1);
 
         getItemCall = chain.callReadOnlyFn(
             'amm',
@@ -211,7 +213,8 @@ Clarinet.test({
             deployer.address
         );
 
-        getItemCall.result.expectOk().expectUint(1);
+        getItemReturn = getItemCall.result.expectOk().expectTuple() as any;
+        getItemReturn['btc-price'].expectUint(1);
     }
 });
 
@@ -247,6 +250,7 @@ Clarinet.test({
             deployer.address
         );
 
-        getItemCall.result.expectOk().expectUint(2);
+        const getItemReturn = getItemCall.result.expectOk().expectTuple() as any;
+        getItemReturn['btc-price'].expectUint(2);
     },
 });
