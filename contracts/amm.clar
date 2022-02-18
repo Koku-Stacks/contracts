@@ -2,10 +2,18 @@
 
 (define-constant ERR_NOT_INITIALIZED (err u100))
 (define-constant ERR_EMPTY (err u101))
+(define-constant ERR_CONTRACT_OWNER_ONLY (err u103))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u104))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
+(define-constant ERR_NOT_NEW_OWNER (err u107))
 
 (define-constant buffer-max-limit u10)
 
-(define-map circular-buffer {index: uint} {content: uint})
+(define-map circular-buffer {index: uint} {btc-price: uint})
+
+(define-data-var owner principal tx-sender)
+(define-data-var submitted-new-owner (optional principal) none)
 
 (define-data-var end uint u0)
 
@@ -13,6 +21,9 @@
 (define-data-var number-inserted-items uint u0)
 
 (define-data-var initialized bool false)
+
+(define-read-only (get-owner)
+  (var-get owner))
 
 (define-read-only (is-empty)
   (var-get empty))
@@ -23,20 +34,44 @@
     (asserts! (not (is-empty)) ERR_EMPTY)
     (ok (get-at (mod (+ (var-get end) u1) buffer-max-limit)))))
 
+(define-public (submit-ownership-transfer (new-owner principal))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (asserts! (is-none (var-get submitted-new-owner)) ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED)
+    (var-set submitted-new-owner (some new-owner))
+    (ok true)))
+
+(define-public (cancel-ownership-transfer)
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL)
+    (var-set submitted-new-owner none)
+    (ok true)))
+
+(define-public (confirm-ownership-transfer)
+  (begin
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM)
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_NOT_NEW_OWNER)
+    (var-set owner (unwrap-panic (var-get submitted-new-owner)))
+    (var-set submitted-new-owner none)
+    (ok true)))
+
 (define-public (initialize-or-reset)
   (let ((indexes         (list u0 u1 u2 u3 u4 u5 u6 u7 u8 u9))
         (initial-content (list u0 u0 u0 u0 u0 u0 u0 u0 u0 u0)))
+    (asserts! (is-eq tx-sender (get-owner)) ERR_CONTRACT_OWNER_ONLY)
     (map set-at indexes initial-content)
     (var-set initialized true)
     (var-set empty true)
     (var-set number-inserted-items u0)
     (ok true)))
 
-(define-public (put-item (item uint))
+(define-public (add-btc-price (btc-price uint))
   (begin
     (asserts! (var-get initialized) ERR_NOT_INITIALIZED)
+    (asserts! (is-eq tx-sender (get-owner)) ERR_CONTRACT_OWNER_ONLY)
     (var-set end (mod (+ (var-get end) u1) buffer-max-limit))
-    (set-at (var-get end) item)
+    (set-at (var-get end) btc-price)
     (var-set number-inserted-items (+ (var-get number-inserted-items) u1))
     (if (is-eq buffer-max-limit (var-get number-inserted-items))
       (begin
@@ -46,7 +81,7 @@
     (ok true)))
 
 (define-private (get-at (idx uint))
-  (get content (unwrap-panic (map-get? circular-buffer {index: idx}))))
+  (unwrap-panic (map-get? circular-buffer {index: idx})))
 
-(define-private (set-at (idx uint) (elem uint))
-  (map-set circular-buffer {index: idx} {content: elem}))
+(define-private (set-at (idx uint) (btc-price uint))
+  (map-set circular-buffer {index: idx} {btc-price: btc-price}))
