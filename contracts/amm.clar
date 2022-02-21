@@ -1,4 +1,4 @@
-;; this contract contains a circular buffer implementation
+;; this contract contains an automatic market maker implementation
 
 (define-constant ERR_NOT_INITIALIZED (err u100))
 (define-constant ERR_EMPTY (err u101))
