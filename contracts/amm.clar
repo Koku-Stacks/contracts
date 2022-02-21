@@ -10,6 +10,10 @@
 
 (define-constant buffer-max-limit u10)
 
+(define-constant option-types (list "call" "put"))
+
+(define-constant option-durations (list u1 u3 u7 u15 u30))
+
 (define-map circular-buffer {index: uint} {btc-price: uint})
 
 (define-data-var owner principal tx-sender)
@@ -21,6 +25,12 @@
 (define-data-var number-inserted-items uint u0)
 
 (define-data-var initialized bool false)
+
+(define-read-only (valid-option-duration (duration uint))
+  (is-some (index-of option-durations duration)))
+
+(define-read-only (valid-option-type (type (string-ascii 4)))
+  (is-some (index-of option-types type)))
 
 (define-read-only (get-owner)
   (var-get owner))
