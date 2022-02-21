@@ -2,7 +2,6 @@
 name = "koku"
 requirements = []
 costs_version = 1
-
 [contracts.amm]
 path = "contracts/amm.clar"
 depends_on = []
@@ -17,7 +16,11 @@ depends_on = []
 
 [contracts.dyv-vault]
 path = "contracts/dyv-vault.clar"
-depends_on = ["owner-trait"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "dyv-vault-token"]
+
+[contracts.dyv-vault-token]
+path = "contracts/dyv-vault-token.clar"
+depends_on = ["owner-trait", "sip-010-trait-ft-standard"]
 
 [contracts.owner-trait]
 path = "contracts/owner-trait.clar"
