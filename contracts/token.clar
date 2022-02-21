@@ -184,9 +184,3 @@
     (try! (ft-transfer? token amount sender recipient))
     (match memo some-memo (print some-memo) 0x)
     (ok true)))
-
-(begin
-  (try! (add-authorized-contract 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM))
-  (try! (mint u1000 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM))
-  (try! (mint u1000 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5))
-  (try! (mint u1000 'ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG)))
