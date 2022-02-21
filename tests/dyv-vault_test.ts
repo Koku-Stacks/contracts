@@ -3,24 +3,19 @@ import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarine
 import { assertEquals } from 'https://deno.land/std@0.90.0/testing/asserts.ts';
 
 Clarinet.test({
-    name: "Ensure that <...>",
+    name: "Ensure that set-owner can only be called by contract owner",
     async fn(chain: Chain, accounts: Map<string, Account>) {
-        let block = chain.mineBlock([
-            /* 
-             * Add transactions with: 
-             * Tx.contractCall(...)
-            */
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'dyv-vault',
+                'set-owner',
+                [ types.principal(userA.address)],
+                userA.address)
         ]);
-        assertEquals(block.receipts.length, 0);
-        assertEquals(block.height, 2);
 
-        block = chain.mineBlock([
-            /* 
-             * Add transactions with: 
-             * Tx.contractCall(...)
-            */
-        ]);
-        assertEquals(block.receipts.length, 0);
-        assertEquals(block.height, 3);
+        call.receipts[0].result.expectErr().expectUint(1000)
     },
 });
