@@ -26,6 +26,48 @@
 
 (define-data-var initialized bool false)
 
+;; ##############################################
+;; integer fixed-point arithmetic with six decimal places
+
+(define-constant ONE_6 u1000000)
+(define-constant SIX_6 u6000000)
+(define-constant EIGHT_6 u8000000)
+
+(define-constant R_SHIFTING_SQRT_CONSTANT u1000)
+
+(define-read-only (fp-add (x uint) (y uint))
+  (+ x y))
+
+(define-read-only (fp-subtract (x uint) (y uint))
+  (- x y))
+
+(define-read-only (fp-multiply (x uint) (y uint))
+  (/ (* x y) ONE_6))
+
+(define-read-only (fp-divide (x uint) (y uint))
+  (if (is-eq x u0)
+    u0
+    (/ (* x ONE_6) y)))
+
+(define-read-only (fp-square-of (x uint))
+  (fp-multiply x x))
+
+(define-read-only (fp-sqrt (x uint))
+  (* (sqrti x) R_SHIFTING_SQRT_CONSTANT))
+
+(define-read-only (fp-inverse (x uint))
+  (fp-divide ONE_6 x))
+
+(define-read-only (fp-simpson-ln (b uint))
+  (fp-multiply (fp-divide (fp-subtract b ONE_6)
+                          SIX_6)
+               (fp-add ONE_6
+                       (fp-add (fp-multiply EIGHT_6
+                                            (fp-inverse (fp-add ONE_6 b)))
+                               (fp-inverse b)))))
+
+;; ##############################################
+
 (define-read-only (valid-option-duration (duration uint))
   (is-some (index-of option-durations duration)))
 
