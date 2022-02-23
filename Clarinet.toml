@@ -17,7 +17,7 @@ depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token"]
 
 [contracts.lp-token]
 path = "contracts/lp-token.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "ft-mint-burn-trait"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "custom-sip-010-trait"]
 
 [contracts.owner-trait]
 path = "contracts/traits/owner-trait.clar"
@@ -27,6 +27,6 @@ depends_on = []
 path = "contracts/traits/sip-010-trait-ft-standard.clar"
 depends_on = []
 
-[contracts.ft-mint-burn-trait]
-path = "contracts/traits/ft-mint-burn-trait.clar"
+[contracts.custom-sip-010-trait]
+path = "contracts/traits/custom-sip-010-trait.clar"
 depends_on = []
