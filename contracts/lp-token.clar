@@ -4,10 +4,15 @@
 
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
+(define-constant ERR_NOT_NEW_OWNER (err u2000))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
 
 (define-fungible-token lp-token)
 
 (define-data-var contract-owner principal tx-sender)
+(define-data-var submitted-new-owner (optional principal) none)
 (define-data-var token-uri (string-utf8 256) u"https://dy.finance/")
 
 (define-map approved-contracts principal bool)
@@ -45,6 +50,28 @@
   (begin
     (asserts! (is-eq (var-get contract-owner) contract-caller) ERR_NOT_AUTHORIZED)
     (ok (var-set token-uri new-token-uri))))
+
+(define-public (submit-ownership-transfer (new-owner principal))
+  (begin
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-none (var-get submitted-new-owner)) ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED)
+    (var-set submitted-new-owner (some new-owner))
+    (ok true)))
+
+(define-public (cancel-ownership-transfer)
+  (begin
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL)
+    (var-set submitted-new-owner none)
+    (ok true)))
+
+(define-public (confirm-ownership-transfer)
+  (begin
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM)
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_NOT_NEW_OWNER)
+    (var-set contract-owner (unwrap-panic (var-get submitted-new-owner)))
+    (var-set submitted-new-owner none)
+    (ok true)))
 
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
     (begin
