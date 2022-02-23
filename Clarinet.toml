@@ -10,12 +10,12 @@ depends_on = []
 path = "contracts/token.clar"
 depends_on = ["sip-010-trait-ft-standard"]
 
-[contracts.dyv-vault]
-path = "contracts/dyv-vault.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "dyv-vault-token"]
+[contracts.vault]
+path = "contracts/vault.clar"
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token"]
 
-[contracts.dyv-vault-token]
-path = "contracts/dyv-vault-token.clar"
+[contracts.lp-token]
+path = "contracts/lp-token.clar"
 depends_on = ["owner-trait", "sip-010-trait-ft-standard", "ft-mint-burn-trait"]
 
 [contracts.owner-trait]

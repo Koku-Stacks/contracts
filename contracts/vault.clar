@@ -13,15 +13,18 @@
         (asserts! (is-eq (var-get contract-owner) contract-caller) ERR_NOT_AUTHORIZED)
         (ok (var-set contract-owner new-owner))))
 
-(define-public (deposit (token <ft-trait>) (amount uint))
-    (begin
-        (try! (contract-call? token transfer amount tx-sender (as-contract tx-sender) none))
-        (try! (contract-call? .dyv-vault-token mint amount tx-sender))
+(define-public (deposit (token <ft-trait>) (amount uint) (memo (optional (buff 34))))
+    (let
+        ((sender tx-sender))
+        ;; Only valid tokens can be deposited
+        (try! (contract-call? token transfer amount sender (as-contract tx-sender) memo))
+        (try! (contract-call? .lp-token mint amount sender))
         (ok true)))
 
-(define-public (withdraw (token <ft-trait>) (amount uint))
+(define-public (withdraw (token <ft-trait>) (amount uint) (memo (optional (buff 34))))
     (let
         ((recipient tx-sender))
+        ;; Only valid tokens can be withdrawn
         (try! (as-contract (contract-call? token transfer amount tx-sender recipient none)))
-        (try! (contract-call? .dyv-vault-token burn amount))
+        (try! (contract-call? .lp-token burn amount))
         (ok true)))

@@ -2,7 +2,7 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 import { assertEquals } from 'https://deno.land/std@0.90.0/testing/asserts.ts';
 
-const dyvToken = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.dyv-token"
+const token = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token"
 
 Clarinet.test({
     name: "Ensure that set-owner can only be called by contract owner",
@@ -12,7 +12,7 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-vault',
+                'vault',
                 'set-owner',
                 [ types.principal(userA.address)],
                 userA.address)
@@ -30,14 +30,14 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'add-authorized-contract',
                 [ 
                     types.principal(deployer.address),
                 ],
                 deployer.address),
             Tx.contractCall(
-                'dyv-token',
+                'token',
                 'mint',
                 [ 
                     types.uint(1000),
@@ -45,19 +45,21 @@ Clarinet.test({
                 ],
                 deployer.address),
             Tx.contractCall(
-                'dyv-vault',
+                'vault',
                 'deposit',
                 [ 
-                    types.principal(dyvToken),
-                    types.uint(100)
+                    types.principal(token),
+                    types.uint(100),
+                    types.none()
                 ],
                 userA.address),
             Tx.contractCall(
-                'dyv-vault',
+                'vault',
                 'withdraw',
                 [ 
-                    types.principal(dyvToken),
-                    types.uint(100)
+                    types.principal(token),
+                    types.uint(100),
+                    types.none()
                 ],
                 userA.address)
         ]);

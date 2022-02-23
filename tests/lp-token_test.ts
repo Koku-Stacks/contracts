@@ -10,7 +10,7 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-vault-token',
+                'lp-token',
                 'set-owner',
                 [ types.principal(userA.address)],
                 userA.address)
@@ -28,7 +28,7 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-vault-token',
+                'lp-token',
                 'set-token-uri',
                 [ types.utf8("www.dyv.com")],
                 userA.address)
@@ -46,7 +46,7 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-vault-token',
+                'lp-token',
                 'transfer',
                 [ 
                     types.uint(100),
@@ -69,7 +69,7 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-vault-token',
+                'lp-token',
                 'mint',
                 [ 
                     types.uint(100),
@@ -90,7 +90,7 @@ Clarinet.test({
         
         let call = chain.mineBlock([
             Tx.contractCall(
-                'dyv-vault-token',
+                'lp-token',
                 'burn',
                 [ 
                     types.uint(100),
