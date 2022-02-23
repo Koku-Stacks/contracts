@@ -78,6 +78,38 @@
 (define-read-only (fp-cdf (x int))
   x)
 
+(define-read-only (calculate-d1 (s uint) (k uint) (t uint) (r uint) (v uint))
+  (fp-divide (fp-add (fp-simpson-ln (fp-divide s k))
+                     (fp-multiply t
+                                  (fp-add r
+                                          (fp-divide (fp-square-of v)
+                                                     TWO_6))))
+             (fp-multiply v
+                          (fp-sqrt t))))
+
+(define-read-only (calculate-d2 (s uint) (k uint) (t uint) (r uint) (v uint))
+  (fp-subtract (calculate-d1 s k t r v)
+               (fp-multiply v
+                            (fp-sqrt t))))
+
+(define-read-only (calculate-european-call (s uint) (k uint) (t uint) (r uint) (v uint))
+  (let ((d1 (calculate-d1 s k t r v))
+        (d2 (calculate-d2 s k t r v)))
+    (fp-subtract (fp-multiply s
+                              (to-uint (fp-cdf (to-int d1))))
+                 (fp-multiply k
+                              (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
+                                           (to-uint (fp-cdf (to-int d2))))))))
+
+(define-read-only (calculate-european-put (s uint) (k uint) (t uint) (r uint) (v uint))
+  (let ((d1 (calculate-d1 s k t r v))
+        (d2 (calculate-d2 s k t r v)))
+    (fp-subtract (fp-multiply k
+                              (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
+                                           (to-uint (fp-cdf (fp-neg d2)))))
+                 (fp-multiply s
+                              (to-uint (fp-cdf (fp-neg d1)))))))
+
 ;; ##############################################
 
 (define-read-only (valid-option-duration (duration uint))
