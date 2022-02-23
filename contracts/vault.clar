@@ -25,6 +25,6 @@
     (let
         ((recipient tx-sender))
         ;; Only valid tokens can be withdrawn
-        (try! (as-contract (contract-call? token transfer amount tx-sender recipient none)))
+        (try! (as-contract (contract-call? token transfer amount tx-sender recipient memo)))
         (try! (contract-call? .lp-token burn amount))
         (ok true)))
