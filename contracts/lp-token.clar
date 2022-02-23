@@ -50,6 +50,7 @@
     (begin
         (asserts! (is-eq tx-sender sender) ERR_TOKEN_HOLDER_ONLY)
         (try! (ft-transfer? lp-token amount sender recipient))
+        (match memo some-memo (print some-memo) 0x)
         (ok true)))
 
 (define-public (mint (amount uint) (recipient principal))
