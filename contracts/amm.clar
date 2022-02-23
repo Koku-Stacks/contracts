@@ -42,6 +42,9 @@
 (define-read-only (fp-subtract (x uint) (y uint))
   (- x y))
 
+(define-read-only (fp-neg (x uint))
+  (* -1 (to-int x)))
+
 (define-read-only (fp-multiply (x uint) (y uint))
   (/ (* x y) ONE_6))
 
