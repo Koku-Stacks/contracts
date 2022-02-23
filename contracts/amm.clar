@@ -70,6 +70,14 @@
                                             (fp-inverse (fp-add ONE_6 b)))
                                (fp-inverse b)))))
 
+;; FIXME just stub for now
+(define-read-only (fp-exp (x uint))
+  (fp-add ONE_6 x))
+
+;; FIXME just stub for now
+(define-read-only (fp-cdf (x int))
+  x)
+
 ;; ##############################################
 
 (define-read-only (valid-option-duration (duration uint))
