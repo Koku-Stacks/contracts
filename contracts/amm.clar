@@ -30,6 +30,7 @@
 ;; integer fixed-point arithmetic with six decimal places
 
 (define-constant ONE_6 u1000000)
+(define-constant TWO_6 u2000000)
 (define-constant SIX_6 u6000000)
 (define-constant EIGHT_6 u8000000)
 
