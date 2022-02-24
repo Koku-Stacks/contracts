@@ -1,17 +1,25 @@
 (impl-trait .owner-trait.owner-trait)
-(use-trait ft-trait .sip-010-trait-ft-standard.sip-010-trait)
 
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_NOT_NEW_OWNER (err u2000))
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
+(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
+(define-data-var approved-token principal 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token)
+(define-map ledger principal uint)
 
 (define-read-only (get-owner)
     (ok (var-get contract-owner)))
+
+(define-read-only (get-approved-token)
+    (ok (var-get approved-token)))
+
+(define-read-only (get-balance (person principal))
+    (default-to u0 (map-get? ledger person)))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -35,18 +43,28 @@
     (var-set submitted-new-owner none)
     (ok true)))
 
-(define-public (deposit (token <ft-trait>) (amount uint) (memo (optional (buff 34))))
+;; user should be able to deposit/withdraw his own tokens
+(define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
     (let
         ((sender tx-sender))
-        ;; Only valid tokens can be deposited
-        (try! (contract-call? token transfer amount sender (as-contract tx-sender) memo))
+        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
+        (try! (contract-call? .token transfer amount sender (as-contract tx-sender) memo))
         (try! (contract-call? .lp-token mint amount sender))
+        (increment-amount sender amount)
         (ok true)))
 
-(define-public (withdraw (token <ft-trait>) (amount uint) (memo (optional (buff 34))))
+(define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
     (let
         ((recipient tx-sender))
-        ;; Only valid tokens can be withdrawn
-        (try! (as-contract (contract-call? token transfer amount tx-sender recipient memo)))
+        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
+        (try! (as-contract (contract-call? .token transfer amount tx-sender recipient memo)))
         (try! (contract-call? .lp-token burn amount))
+        (decrement-amount recipient amount)
         (ok true)))
+
+(define-private (increment-amount (person principal) (amount uint))
+    (map-set ledger person (+ (get-balance person) amount)))
+        
+
+(define-private (decrement-amount (person principal) (amount uint))
+    (map-set ledger person (- (get-balance person) amount)))

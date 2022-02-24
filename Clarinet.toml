@@ -13,7 +13,7 @@ depends_on = ["sip-010-trait-ft-standard"]
 
 [contracts.vault]
 path = "contracts/vault.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token", "token"]
 
 [contracts.lp-token]
 path = "contracts/lp-token.clar"
