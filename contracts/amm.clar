@@ -8,7 +8,7 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
 (define-constant ERR_NOT_NEW_OWNER (err u107))
 (define-constant ERR_INVALID_OPTION_TYPE (err u108))
-(define-constant ERR_INVALID_OPTION_DURATION (err 109))
+(define-constant ERR_INVALID_OPTION_DURATION (err u109))
 
 (define-constant buffer-max-limit u10)
 
