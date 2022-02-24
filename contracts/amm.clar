@@ -29,40 +29,51 @@
 ;; ##############################################
 ;; integer fixed-point arithmetic with six decimal places
 
-(define-constant ONE_6 u1000000)
-(define-constant TWO_6 u2000000)
-(define-constant SIX_6 u6000000)
-(define-constant EIGHT_6 u8000000)
+(define-constant HALF_6 500000)
 
-(define-constant R_SHIFTING_SQRT_CONSTANT u1000)
+(define-constant ONE_6 1000000)
+(define-constant TWO_6 2000000)
+(define-constant SIX_6 6000000)
+(define-constant EIGHT_6 8000000)
 
-(define-read-only (fp-add (x uint) (y uint))
+(define-constant LN_2_6 693147)
+(define-constant INV_LN_2_6 1442695)
+
+(define-constant R_SHIFTING_SQRT_CONSTANT 1000)
+
+(define-read-only (fp-add (x int) (y int))
   (+ x y))
 
-(define-read-only (fp-subtract (x uint) (y uint))
+(define-read-only (fp-subtract (x int) (y int))
   (- x y))
 
-(define-read-only (fp-neg (x uint))
-  (* -1 (to-int x)))
+(define-read-only (fp-neg (x int))
+  (* -1 x))
 
-(define-read-only (fp-multiply (x uint) (y uint))
+(define-read-only (fp-multiply (x int) (y int))
   (/ (* x y) ONE_6))
 
-(define-read-only (fp-divide (x uint) (y uint))
-  (if (is-eq x u0)
-    u0
+(define-read-only (fp-divide (x int) (y int))
+  (if (is-eq x 0)
+    0
     (/ (* x ONE_6) y)))
 
-(define-read-only (fp-square-of (x uint))
+(define-read-only (fp-floor (x int))
+  (* (/ x ONE_6) ONE_6))
+
+(define-read-only (fp-square-of (x int))
   (fp-multiply x x))
 
-(define-read-only (fp-sqrt (x uint))
+(define-read-only (fp-cube-of (x int))
+  (fp-multiply x (fp-multiply x x)))
+
+(define-read-only (fp-sqrt (x int))
   (* (sqrti x) R_SHIFTING_SQRT_CONSTANT))
 
-(define-read-only (fp-inverse (x uint))
+(define-read-only (fp-inverse (x int))
   (fp-divide ONE_6 x))
 
-(define-read-only (fp-simpson-ln (b uint))
+(define-read-only (fp-simpson-ln (b int))
   (fp-multiply (fp-divide (fp-subtract b ONE_6)
                           SIX_6)
                (fp-add ONE_6
@@ -78,7 +89,7 @@
 (define-read-only (fp-cdf (x int))
   x)
 
-(define-read-only (calculate-d1 (s uint) (k uint) (t uint) (r uint) (v uint))
+(define-read-only (calculate-d1 (s int) (k int) (t int) (r int) (v int))
   (fp-divide (fp-add (fp-simpson-ln (fp-divide s k))
                      (fp-multiply t
                                   (fp-add r
@@ -87,28 +98,28 @@
              (fp-multiply v
                           (fp-sqrt t))))
 
-(define-read-only (calculate-d2 (s uint) (k uint) (t uint) (r uint) (v uint))
+(define-read-only (calculate-d2 (s int) (k int) (t int) (r int) (v int))
   (fp-subtract (calculate-d1 s k t r v)
                (fp-multiply v
                             (fp-sqrt t))))
 
-(define-read-only (calculate-european-call (s uint) (k uint) (t uint) (r uint) (v uint))
+(define-read-only (calculate-european-call (s int) (k int) (t int) (r int) (v int))
   (let ((d1 (calculate-d1 s k t r v))
         (d2 (calculate-d2 s k t r v)))
     (fp-subtract (fp-multiply s
-                              (to-uint (fp-cdf (to-int d1))))
+                              (fp-cdf d1))
                  (fp-multiply k
                               (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
-                                           (to-uint (fp-cdf (to-int d2))))))))
+                                           (fp-cdf d2))))))
 
-(define-read-only (calculate-european-put (s uint) (k uint) (t uint) (r uint) (v uint))
+(define-read-only (calculate-european-put (s int) (k int) (t int) (r int) (v int))
   (let ((d1 (calculate-d1 s k t r v))
         (d2 (calculate-d2 s k t r v)))
     (fp-subtract (fp-multiply k
                               (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
-                                           (to-uint (fp-cdf (fp-neg d2)))))
+                                           (fp-cdf (fp-neg d2))))
                  (fp-multiply s
-                              (to-uint (fp-cdf (fp-neg d1)))))))
+                              (fp-cdf (fp-neg d1))))))
 
 ;; ##############################################
 
