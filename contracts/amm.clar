@@ -85,9 +85,31 @@
                                             (fp-inverse (fp-add ONE_6 b)))
                                (fp-inverse b)))))
 
-;; FIXME just stub for now
-(define-read-only (fp-exp (x uint))
-  (fp-add ONE_6 x))
+(define-read-only (fp-ln (x int))
+  (fp-simpson-ln x))
+
+(define-read-only (fp-reduce-exp (exponent int))
+  (let ((k (fp-floor (fp-add (fp-multiply exponent INV_LN_2_6)
+                             HALF_6)))
+        (r (fp-subtract exponent
+                        (fp-multiply k LN_2_6))))
+    {k: k, r: r}))
+
+(define-read-only (fp-simple-taylor-4-exp (x int))
+  (+ ONE_6
+     x
+     (fp-divide (fp-square-of x) TWO_6)
+     (fp-divide (fp-cube-of x) SIX_6)))
+
+(define-read-only (fp-range-reduced-taylor-4-exp (x int))
+  (let ((range-reduction (fp-reduce-exp x))
+        (k (get k range-reduction))
+        (r (get r range-reduction)))
+    (fp-multiply (fp-exp2 k)
+                 (fp-simple-taylor-4-exp r))))
+
+(define-read-only (fp-exp (x int))
+  (fp-range-reduced-taylor-4-exp x))
 
 ;; FIXME just stub for now
 (define-read-only (fp-cdf (x int))
