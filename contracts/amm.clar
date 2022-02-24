@@ -7,6 +7,8 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
 (define-constant ERR_NOT_NEW_OWNER (err u107))
+(define-constant ERR_INVALID_OPTION_TYPE (err u108))
+(define-constant ERR_INVALID_OPTION_DURATION (err 109))
 
 (define-constant buffer-max-limit u10)
 
@@ -25,6 +27,22 @@
 (define-data-var number-inserted-items uint u0)
 
 (define-data-var initialized bool false)
+
+;; ##############################################
+;; buy/sell option interface
+
+;; FIXME this is totally mocked up right now
+(define-public (buy-option (price uint)
+                           (amount uint)
+                           (option-type (string-ascii 4))
+                           (option-duration uint)
+                           (slipage uint))
+  (begin
+    (asserts! (valid-option-type option-type) ERR_INVALID_OPTION_TYPE)
+    (asserts! (valid-option-duration option-duration) ERR_INVALID_OPTION_DURATION)
+    (ok true)))
+
+;; ##############################################
 
 ;; ##############################################
 ;; integer fixed-point arithmetic with six decimal places
