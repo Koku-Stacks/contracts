@@ -67,6 +67,10 @@
 (define-read-only (fp-cube-of (x int))
   (fp-multiply x (fp-multiply x x)))
 
+;; this only works for values like 1000000, 2000000, etc
+(define-read-only (fp-exp2 (integer-x int))
+  (* (pow 2 (/ integer-x ONE_6)) ONE_6))
+
 (define-read-only (fp-sqrt (x int))
   (* (sqrti x) R_SHIFTING_SQRT_CONSTANT))
 
