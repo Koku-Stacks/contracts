@@ -6,6 +6,7 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
 (define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
+(define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
@@ -50,7 +51,7 @@
         (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (contract-call? .token transfer amount sender (as-contract tx-sender) memo))
         (try! (contract-call? .lp-token mint amount sender))
-        (increment-amount sender amount)
+        (map-set ledger sender (+ (get-balance sender) amount))
         (ok true)))
 
 (define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
@@ -59,12 +60,6 @@
         (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (as-contract (contract-call? .token transfer amount tx-sender recipient memo)))
         (try! (contract-call? .lp-token burn amount))
-        (decrement-amount recipient amount)
+        (asserts! (>= (get-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
+        (map-set ledger recipient (- (get-balance recipient) amount))
         (ok true)))
-
-(define-private (increment-amount (person principal) (amount uint))
-    (map-set ledger person (+ (get-balance person) amount)))
-        
-
-(define-private (decrement-amount (person principal) (amount uint))
-    (map-set ledger person (- (get-balance person) amount)))
