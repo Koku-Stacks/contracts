@@ -18,7 +18,7 @@
 (define-map approved-contracts principal bool)
 
 (define-read-only (get-name)
-    (ok "dYrivaNative-vault-toke"))
+    (ok "dYrivaNative-vault-token"))
 
 (define-read-only (get-symbol)
     (ok "lp-token"))
