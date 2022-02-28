@@ -174,8 +174,9 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
         const token = `${deployer.address}.token`;
-        
-        let call = chain.mineBlock([
+        const vault = `${deployer.address}.vault`;
+
+        let call1 = chain.mineBlock([
             Tx.contractCall(
                 'token',
                 'add-authorized-contract',
@@ -199,7 +200,20 @@ Clarinet.test({
                     types.uint(100),
                     types.none()
                 ],
-                userA.address),
+                userA.address)
+        ]);
+
+        call1.receipts[0].result.expectOk().expectBool(true)
+        call1.receipts[1].result.expectOk().expectBool(true)
+        call1.receipts[2].result.expectOk().expectBool(true)
+
+        let balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
+        balance.result.expectOk().expectUint(900);
+
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(vault)], userA.address);
+        balance.result.expectOk().expectUint(100);
+
+        let call2 = chain.mineBlock([
             Tx.contractCall(
                 'vault',
                 'withdraw',
@@ -211,9 +225,12 @@ Clarinet.test({
                 userA.address)
         ]);
 
-        call.receipts[0].result.expectOk().expectBool(true)
-        call.receipts[1].result.expectOk().expectBool(true)
-        call.receipts[2].result.expectOk().expectBool(true)
-        call.receipts[3].result.expectOk().expectBool(true)
+        call2.receipts[0].result.expectOk().expectBool(true)
+
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
+        balance.result.expectOk().expectUint(1000);
+
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(vault)], userA.address);
+        balance.result.expectOk().expectUint(0);
     },
 });
