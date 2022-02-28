@@ -1,6 +1,7 @@
 ;; this contract contains a circular buffer implementation
 (impl-trait .owner-trait.owner-trait)
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
+(use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
 
 (define-constant ERR_NOT_INITIALIZED (err u100))
 (define-constant ERR_EMPTY (err u101))
@@ -15,6 +16,7 @@
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
 (define-constant buffer-max-limit u10)
+(define-constant this-contract (as-contract tx-sender))
 
 (define-fungible-token lp-token)
 
@@ -121,7 +123,7 @@
     (let
         ((sender tx-sender))
         (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
-        (try! (contract-call? .token transfer amount sender (as-contract tx-sender) memo))
+        (try! (contract-call? .token transfer amount sender this-contract memo))
         (try! (mint amount sender))
         (map-set ledger sender (+ (get-ledger-balance sender) amount))
         (ok true)))
@@ -130,7 +132,7 @@
     (let
         ((recipient tx-sender))
         (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
-        (try! (as-contract (contract-call? .token transfer amount tx-sender recipient memo)))
+        (try! (as-contract (contract-call? .token transfer amount this-contract recipient memo)))
         (try! (burn amount recipient))
         (asserts! (>= (get-ledger-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
         (map-set ledger recipient (- (get-ledger-balance recipient) amount))
