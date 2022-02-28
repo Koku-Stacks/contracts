@@ -5,7 +5,7 @@ costs_version = 1
 
 [contracts.amm]
 path = "contracts/amm.clar"
-depends_on = []
+depends_on = ["lp-token", "token"]
 
 [contracts.token]
 path = "contracts/token.clar"

@@ -7,10 +7,13 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
 (define-constant ERR_NOT_NEW_OWNER (err u107))
+(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
+(define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
 (define-constant buffer-max-limit u10)
 
 (define-map circular-buffer {index: uint} {btc-price: uint})
+(define-map ledger principal uint)
 
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
@@ -21,6 +24,14 @@
 (define-data-var number-inserted-items uint u0)
 
 (define-data-var initialized bool false)
+
+(define-data-var approved-token principal 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token)
+
+(define-read-only (get-approved-token)
+    (ok (var-get approved-token)))
+
+(define-read-only (get-balance (person principal))
+    (default-to u0 (map-get? ledger person)))
 
 (define-read-only (get-owner)
   (var-get owner))
@@ -79,6 +90,25 @@
         (var-set empty false))
       true)
     (ok true)))
+
+(define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
+    (let
+        ((sender tx-sender))
+        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
+        (try! (contract-call? .token transfer amount sender (as-contract tx-sender) memo))
+        (try! (contract-call? .lp-token mint amount sender))
+        (map-set ledger sender (+ (get-balance sender) amount))
+        (ok true)))
+
+(define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
+    (let
+        ((recipient tx-sender))
+        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
+        (try! (as-contract (contract-call? .token transfer amount tx-sender recipient memo)))
+        (try! (contract-call? .lp-token burn amount))
+        (asserts! (>= (get-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
+        (map-set ledger recipient (- (get-balance recipient) amount))
+        (ok true)))
 
 (define-private (get-at (idx uint))
   (unwrap-panic (map-get? circular-buffer {index: idx})))

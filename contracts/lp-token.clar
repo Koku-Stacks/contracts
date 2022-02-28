@@ -91,4 +91,4 @@
         (ft-burn? lp-token amount tx-sender)))
 
 ;; initialize approved contracts map
-(begin (map-set approved-contracts 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.vault true))
+(begin (map-set approved-contracts 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.amm true))

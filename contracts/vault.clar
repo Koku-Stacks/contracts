@@ -44,7 +44,6 @@
     (var-set submitted-new-owner none)
     (ok true)))
 
-;; user should be able to deposit/withdraw his own tokens
 (define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
     (let
         ((sender tx-sender))
