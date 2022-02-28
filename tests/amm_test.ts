@@ -371,3 +371,44 @@ Clarinet.test({
         balance.result.expectOk().expectUint(0);
     },
 });
+
+Clarinet.test({
+    name: "Ensure that set-token-uri can only be called by contract owner",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'set-token-uri',
+                [ types.utf8("www.dyv.com")],
+                userA.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(1000)
+    },
+});
+
+Clarinet.test({
+    name: "Ensure that transfer can only be called by token owner",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'transfer',
+                [ 
+                    types.uint(100),
+                    types.principal(userA.address),
+                    types.principal(deployer.address),
+                    types.none()
+                ],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(1001)
+    },
+});
