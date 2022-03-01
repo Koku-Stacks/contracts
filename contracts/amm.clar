@@ -1,4 +1,5 @@
-;; this contract contains a circular buffer implementation
+;; this contract contains an automatic market maker implementation
+
 (impl-trait .owner-trait.owner-trait)
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
 (use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
@@ -10,6 +11,8 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
 (define-constant ERR_NOT_NEW_OWNER (err u107))
+(define-constant ERR_INVALID_OPTION_TYPE (err u108))
+(define-constant ERR_INVALID_OPTION_DURATION (err u109))
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
 (define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
@@ -19,6 +22,10 @@
 (define-constant this-contract (as-contract tx-sender))
 
 (define-fungible-token lp-token)
+
+(define-constant option-types (list "call" "put"))
+
+(define-constant option-durations (list u1 u3 u7 u15 u30))
 
 (define-map circular-buffer {index: uint} {btc-price: uint})
 (define-map ledger principal uint)
@@ -55,6 +62,151 @@
 
 (define-read-only (get-ledger-balance (person principal))
     (default-to u0 (map-get? ledger person)))
+
+;; ##############################################
+;; buy/sell option interface
+
+;; FIXME this is totally mocked up right now
+(define-public (buy-option (price uint)
+                           (amount uint)
+                           (option-type (string-ascii 4))
+                           (option-duration uint)
+                           (slipage uint))
+  (begin
+    (asserts! (valid-option-type option-type) ERR_INVALID_OPTION_TYPE)
+    (asserts! (valid-option-duration option-duration) ERR_INVALID_OPTION_DURATION)
+    (ok true)))
+
+;; ##############################################
+
+;; ##############################################
+;; integer fixed-point arithmetic with six decimal places
+
+(define-constant HALF_6 500000)
+
+(define-constant ONE_6 1000000)
+(define-constant TWO_6 2000000)
+(define-constant SIX_6 6000000)
+(define-constant EIGHT_6 8000000)
+
+(define-constant LN_2_6 693147)
+(define-constant INV_LN_2_6 1442695)
+
+(define-constant R_SHIFTING_SQRT_CONSTANT 1000)
+
+(define-read-only (fp-add (x int) (y int))
+  (+ x y))
+
+(define-read-only (fp-subtract (x int) (y int))
+  (- x y))
+
+(define-read-only (fp-neg (x int))
+  (* -1 x))
+
+(define-read-only (fp-multiply (x int) (y int))
+  (/ (* x y) ONE_6))
+
+(define-read-only (fp-divide (x int) (y int))
+  (if (is-eq x 0)
+    0
+    (/ (* x ONE_6) y)))
+
+(define-read-only (fp-floor (x int))
+  (* (/ x ONE_6) ONE_6))
+
+(define-read-only (fp-square-of (x int))
+  (fp-multiply x x))
+
+(define-read-only (fp-cube-of (x int))
+  (fp-multiply x (fp-multiply x x)))
+
+;; this only works for values like 1000000, 2000000, etc
+(define-read-only (fp-exp2 (integer-x int))
+  (* (pow 2 (/ integer-x ONE_6)) ONE_6))
+
+(define-read-only (fp-sqrt (x int))
+  (* (sqrti x) R_SHIFTING_SQRT_CONSTANT))
+
+(define-read-only (fp-inverse (x int))
+  (fp-divide ONE_6 x))
+
+(define-read-only (fp-simpson-ln (b int))
+  (fp-multiply (fp-divide (fp-subtract b ONE_6)
+                          SIX_6)
+               (fp-add ONE_6
+                       (fp-add (fp-multiply EIGHT_6
+                                            (fp-inverse (fp-add ONE_6 b)))
+                               (fp-inverse b)))))
+
+(define-read-only (fp-ln (x int))
+  (fp-simpson-ln x))
+
+(define-read-only (fp-reduce-exp (exponent int))
+  (let ((k (fp-floor (fp-add (fp-multiply exponent INV_LN_2_6)
+                             HALF_6)))
+        (r (fp-subtract exponent
+                        (fp-multiply k LN_2_6))))
+    {k: k, r: r}))
+
+(define-read-only (fp-simple-taylor-4-exp (x int))
+  (+ ONE_6
+     x
+     (fp-divide (fp-square-of x) TWO_6)
+     (fp-divide (fp-cube-of x) SIX_6)))
+
+(define-read-only (fp-range-reduced-taylor-4-exp (x int))
+  (let ((range-reduction (fp-reduce-exp x))
+        (k (get k range-reduction))
+        (r (get r range-reduction)))
+    (fp-multiply (fp-exp2 k)
+                 (fp-simple-taylor-4-exp r))))
+
+(define-read-only (fp-exp (x int))
+  (fp-range-reduced-taylor-4-exp x))
+
+;; FIXME just stub for now
+(define-read-only (fp-cdf (x int))
+  x)
+
+(define-read-only (calculate-d1 (s int) (k int) (t int) (r int) (v int))
+  (fp-divide (fp-add (fp-simpson-ln (fp-divide s k))
+                     (fp-multiply t
+                                  (fp-add r
+                                          (fp-divide (fp-square-of v)
+                                                     TWO_6))))
+             (fp-multiply v
+                          (fp-sqrt t))))
+
+(define-read-only (calculate-d2 (s int) (k int) (t int) (r int) (v int))
+  (fp-subtract (calculate-d1 s k t r v)
+               (fp-multiply v
+                            (fp-sqrt t))))
+
+(define-read-only (calculate-european-call (s int) (k int) (t int) (r int) (v int))
+  (let ((d1 (calculate-d1 s k t r v))
+        (d2 (calculate-d2 s k t r v)))
+    (fp-subtract (fp-multiply s
+                              (fp-cdf d1))
+                 (fp-multiply k
+                              (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
+                                           (fp-cdf d2))))))
+
+(define-read-only (calculate-european-put (s int) (k int) (t int) (r int) (v int))
+  (let ((d1 (calculate-d1 s k t r v))
+        (d2 (calculate-d2 s k t r v)))
+    (fp-subtract (fp-multiply k
+                              (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
+                                           (fp-cdf (fp-neg d2))))
+                 (fp-multiply s
+                              (fp-cdf (fp-neg d1))))))
+
+;; ##############################################
+
+(define-read-only (valid-option-duration (duration uint))
+  (is-some (index-of option-durations duration)))
+
+(define-read-only (valid-option-type (type (string-ascii 4)))
+  (is-some (index-of option-types type)))
 
 (define-read-only (get-owner)
   (ok (var-get owner)))
