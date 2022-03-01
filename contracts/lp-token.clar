@@ -41,11 +41,6 @@
 (define-read-only (check-is-approved (sender principal))
     (ok (asserts! (default-to false (map-get? approved-contracts sender)) ERR_NOT_AUTHORIZED)))
 
-(define-public (set-owner (new-owner principal))
-    (begin
-        (asserts! (is-eq (var-get contract-owner) contract-caller) ERR_NOT_AUTHORIZED)
-        (ok (var-set contract-owner new-owner))))
-
 (define-public (set-token-uri (new-token-uri (string-utf8 256)))
   (begin
     (asserts! (is-eq (var-get contract-owner) contract-caller) ERR_NOT_AUTHORIZED)
