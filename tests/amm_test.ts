@@ -254,3 +254,161 @@ Clarinet.test({
         getItemReturn['btc-price'].expectUint(2);
     },
 });
+
+Clarinet.test({
+    name: "Ensure that deposit and withdraw takes a valid token",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const token = `${deployer.address}.token1`;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'token',
+                'add-authorized-contract',
+                [ 
+                    types.principal(deployer.address),
+                ],
+                deployer.address),
+            Tx.contractCall(
+                'token',
+                'mint',
+                [ 
+                    types.uint(1000),
+                    types.principal(userA.address),
+                ],
+                deployer.address),
+            Tx.contractCall(
+                'amm',
+                'deposit',
+                [ 
+                    types.principal(token),
+                    types.uint(100),
+                    types.none()
+                ],
+                userA.address),
+            Tx.contractCall(
+                'amm',
+                'withdraw',
+                [ 
+                    types.principal(token),
+                    types.uint(100),
+                    types.none()
+                ],
+                userA.address)
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true)
+        call.receipts[1].result.expectOk().expectBool(true)
+        call.receipts[2].result.expectErr().expectUint(3000)
+        call.receipts[3].result.expectErr().expectUint(3000)
+    }
+});
+
+Clarinet.test({
+    name: "Ensure that deposit and withdraw are working fine",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const token = `${deployer.address}.token`;
+        const amm = `${deployer.address}.amm`;
+
+        let call1 = chain.mineBlock([
+            Tx.contractCall(
+                'token',
+                'add-authorized-contract',
+                [ 
+                    types.principal(deployer.address),
+                ],
+                deployer.address),
+            Tx.contractCall(
+                'token',
+                'mint',
+                [ 
+                    types.uint(1000),
+                    types.principal(userA.address),
+                ],
+                deployer.address),
+            Tx.contractCall(
+                'amm',
+                'deposit',
+                [ 
+                    types.principal(token),
+                    types.uint(100),
+                    types.none()
+                ],
+                userA.address)
+        ]);
+
+        call1.receipts[0].result.expectOk().expectBool(true)
+        call1.receipts[1].result.expectOk().expectBool(true)
+        call1.receipts[2].result.expectOk().expectBool(true)
+
+        let balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
+        balance.result.expectOk().expectUint(900);
+
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(amm)], userA.address);
+        balance.result.expectOk().expectUint(100);
+
+        let call2 = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'withdraw',
+                [ 
+                    types.principal(token),
+                    types.uint(100),
+                    types.none()
+                ],
+                userA.address)
+        ]);
+
+        call2.receipts[0].result.expectOk().expectBool(true)
+
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
+        balance.result.expectOk().expectUint(1000);
+
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(amm)], userA.address);
+        balance.result.expectOk().expectUint(0);
+    },
+});
+
+Clarinet.test({
+    name: "Ensure that set-token-uri can only be called by contract owner",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'set-token-uri',
+                [ types.utf8("www.dyv.com")],
+                userA.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(1000)
+    },
+});
+
+Clarinet.test({
+    name: "Ensure that transfer can only be called by token owner",
+    async fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                'amm',
+                'transfer',
+                [ 
+                    types.uint(100),
+                    types.principal(userA.address),
+                    types.principal(deployer.address),
+                    types.none()
+                ],
+                deployer.address)
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(1001)
+    },
+});
