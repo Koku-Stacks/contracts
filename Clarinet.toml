@@ -5,7 +5,7 @@ costs_version = 1
 
 [contracts.amm]
 path = "contracts/amm.clar"
-depends_on = ["lp-token", "token"]
+depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
 
 [contracts.custom-sip-010-trait]
 path = "contracts/traits/custom-sip-010-trait.clar"
@@ -19,8 +19,8 @@ depends_on = ["owner-trait", "sip-010-trait-ft-standard", "custom-sip-010-trait"
 path = "contracts/traits/owner-trait.clar"
 depends_on = []
 
-[contracts.sft-trait]
-path = "contracts/traits/sft-trait.clar"
+[contracts.sip013-trait-sft-standard]
+path = "contracts/traits/sip013-trait-sft-standard.clar"
 depends_on = []
 
 [contracts.sip-010-trait-ft-standard]
@@ -33,7 +33,7 @@ depends_on = ["sip-010-trait-ft-standard"]
 
 [contracts.token-option]
 path = "contracts/token-option.clar"
-depends_on = []
+depends_on = ["sip013-trait-sft-standard", "sip-010-trait-ft-standard"]
 
 [contracts.vault]
 path = "contracts/vault.clar"
