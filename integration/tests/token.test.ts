@@ -3,7 +3,7 @@ import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
-import { CONTRACT_FOLDER, STACKS_API_URL } from "../config";
+import { CONTRACT_FOLDER, TRAITS_FOLDER, STACKS_API_URL } from "../config";
 import { StacksChain } from "../framework/stacks.chain";
 
 const chain = new StacksChain(STACKS_API_URL, {
@@ -21,7 +21,7 @@ describe("token contract", () => {
     const deployer = chain.accounts.get("deployer")!;
 
     const sipContractCode = fs.readFileSync(
-      path.join(CONTRACT_FOLDER, `${sipContractName}.clar`),
+      path.join(TRAITS_FOLDER, `${sipContractName}.clar`),
       { encoding: "utf8" }
     );
 
@@ -153,7 +153,7 @@ describe("token contract", () => {
 
     expect(name).to.be.ok;
     expect(name.success).to.be.true;
-    expect(name.value.value).to.be.eq("token");
+    expect(name.value.value).to.be.eq("dYrivaNative");
   });
 
   it("Ensure mint and burn functions work as expected", async () => {
@@ -193,6 +193,29 @@ describe("token contract", () => {
 
     expect(initialWallet1Balance).to.be.ok;
     expect(initialWallet1Balance.success).to.be.true;
+
+    // authorize contract
+    const authorizeContract = await chain.callContract(
+      contractAddress,
+      contractName,
+      "add-authorized-contract",
+      [principalCV(deployer.address)],
+      deployer.secretKey
+    );
+
+    expect(authorizeContract).to.be.ok;
+    expect(authorizeContract.success).to.be.true;
+
+    const getAuthorizeContract = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "is-authorized",
+      [principalCV(deployer.address)],
+      deployer.address
+    );
+
+    expect(getAuthorizeContract).to.be.ok;
+    expect(getAuthorizeContract.success).to.be.true;
 
     // start minting
     const goodMintCall = await chain.callContract(
