@@ -2,28 +2,49 @@
 ;; token-option
 ;; <add a description here>
 
-(impl-trait .sft-trait.sft-trait)
+(impl-trait .sip013-trait-sft-standard.sip013-trait-sft-standard)
+;; (impl-trait .sip-010-trait-ft-standard.sip-010-trait) 
 
 (define-fungible-token sft)
-(define-map token-balances {token-id: uint, owner: principal} uint)
-(define-map token-supplies uint uint)
+(define-non-fungible-token sft-id {token-id: uint, owner: principal})
+
+(define-map token-balances {token-id: uint, owner: principal} {amount: uint})
+(define-map token-supplies {token-id: uint} {supply: uint})
 
 (define-constant contract-owner tx-sender)
 
-(define-constant err-owner-only (err u100))
-(define-constant err-insufficient-balance (err u1))
-(define-constant err-invalid-sender (err u4))
+(define-constant ERR_CONTRACT_OWNER_ONLY (err u103))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u104))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
+(define-constant ERR_NOT_NEW_OWNER (err u107))
+(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u108))
+(define-constant ERR_INVALID_OPTION_DURATION (err u109))
+(define-constant ERR-INSUFFICIENT-BALANCE (err u110))
+(define-constant ERR-INVALID-SENDER (err u111))
+(define-constant ERR_NOT_AUTHORIZED (err u1000))
+(define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
+(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
+(define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
-(define-private (set-balance (token-id uint) (balance uint) (owner principal))
-	(map-set token-balances {token-id: token-id, owner: owner} balance)
+
+(define-data-var token-uri (string-utf8 256) u"https://dy.finance/")
+;; (define-data-var contract-owner principal tx-sender)
+
+(define-private (set-balance (token-id uint) (amount uint) (owner principal))
+	(map-set token-balances {token-id: token-id, owner: owner} {amount: amount})
+)
+
+(define-private (get-total-supply-uint (token-id uint)) 
+    (default-to {supply: u0} (map-get? token-supplies {token-id: token-id}))
 )
 
 (define-private (get-balance-uint (token-id uint) (recipient principal))
-	(default-to u0 (map-get? token-balances {token-id: token-id, owner: recipient}))
+	(default-to {amount: u0} (map-get? token-balances {token-id: token-id, owner: recipient}))
 )
 
 (define-read-only (get-balance (token-id uint) (recipient principal))
-	(ok (get-balance-uint token-id recipient))
+	(ok (get amount (get-balance-uint token-id recipient)))
 )
 
 (define-read-only (get-overall-balance (recipient principal))
@@ -31,7 +52,7 @@
 )
 
 (define-read-only (get-total-supply (token-id uint))
-	(ok (default-to u0 (map-get? token-supplies token-id)))
+	(ok (default-to u0 (get supply (map-get? token-supplies {token-id: token-id}))))
 )
 
 (define-read-only (get-overall-supply)
@@ -46,45 +67,76 @@
 	(ok none)
 )
 
+(define-public (set-token-uri (new-token-uri (string-utf8 256)))
+  (begin
+    (asserts! (is-eq contract-owner contract-caller) ERR_NOT_AUTHORIZED)
+    (ok (var-set token-uri new-token-uri))
+  )
+)
+
 (define-public (transfer (token-id uint) (amount uint) (sender principal) (recipient principal))
 	(let
 		(
-			(sender-balance (get-balance-uint token-id sender))
+			(sender-balance (get amount (get-balance-uint token-id sender)))
+            ;; (map-get? token-balances {amount: amount})
 		)
-		(asserts! (is-eq tx-sender sender) err-invalid-sender)
-		(asserts! (<= amount sender-balance) err-insufficient-balance)
+		(asserts! (is-eq tx-sender sender) ERR-INVALID-SENDER)
+		(asserts! (<= amount sender-balance) ERR-INSUFFICIENT-BALANCE)
 		(try! (ft-transfer? sft amount sender recipient))
 		(set-balance token-id (- sender-balance amount) sender)
-		(set-balance token-id (+ (get-balance-uint token-id recipient) amount) recipient)
-		(print {type: "sft_transfered", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
+		(set-balance token-id (+ (get amount (get-balance-uint token-id recipient)) amount) recipient)
+		(print {type: "sft_transfer_event", token-id: token-id, amount: amount, sender: sender, recipient: recipient})
 		(ok true)
 	)
 )
 
-
-
-(define-public (mint (token-id uint) (amount uint) (recipient principal))
+(define-public (transfer-memo (token-id uint) (amount uint) (sender principal) (recipient principal) (memo (buff 34)))
 	(begin
-		(asserts! (is-eq tx-sender contract-owner) err-owner-only)
-		(try! (ft-mint? sft amount recipient))
-		(set-balance token-id (+ (get-balance-uint token-id recipient) amount) recipient)
-		(map-set token-supplies token-id (+ (unwrap-panic (get-total-supply token-id)) amount))
-		(print {type: "sft_minted", token-id: token-id, amount: amount, recipient: recipient})
+		(try! (transfer token-id amount sender recipient))
+		(print memo)
 		(ok true)
 	)
 )
 
-(define-public (burn (token-id uint) (amount uint) (sender principal)) 
+(define-private (transfer-many-iter (item {token-id: uint, amount: uint, sender: principal, recipient: principal}) (previous-response (response bool uint)))
+	(match previous-response prev-ok (transfer (get token-id item) (get amount item) (get sender item) (get recipient item)) prev-err previous-response)
+)
+
+(define-public (transfer-many (transfers (list 200 {token-id: uint, amount: uint, sender: principal, recipient: principal})))
+	(fold transfer-many-iter transfers (ok true))
+)
+
+(define-private (transfer-many-memo-iter (item {token-id: uint, amount: uint, sender: principal, recipient: principal, memo: (buff 34)}) (previous-response (response bool uint)))
+	(match previous-response prev-ok (transfer-memo (get token-id item) (get amount item) (get sender item) (get recipient item) (get memo item)) prev-err previous-response)
+)
+
+(define-public (transfer-many-memo (transfers (list 200 {token-id: uint, amount: uint, sender: principal, recipient: principal, memo: (buff 34)})))
+	(fold transfer-many-memo-iter transfers (ok true))
+)
+
+(define-public (mint (token-id uint) (amount uint) (recipient principal) (supply uint))
+	(begin
+		(asserts! (is-eq tx-sender contract-owner) ERR_CONTRACT_OWNER_ONLY)
+        (asserts! (> amount u0) ERR_INSUFFICIENT_TOKENS_TO_MINT)
+		(try! (ft-mint? sft amount recipient))
+		(set-balance token-id (+ (get amount (get-balance-uint token-id recipient)) amount) recipient)
+		(map-set token-supplies {token-id: token-id} {supply: (+ (get supply (get-total-supply-uint token-id)) amount)})
+		(print {type: "sft_mint_event", token-id: token-id, amount: amount, recipient: recipient})
+		(ok true)
+	)
+)
+
+(define-public (burn (token-id uint) (amount uint) (sender principal) (supply uint)) 
 	(let 
 		(
-			(sender-balance (get-balance-uint token-id sender))
+			(sender-balance (get amount (get-balance-uint token-id sender)))
 		)
-		(asserts! (is-eq tx-sender sender) err-invalid-sender)
-		(asserts! (>= sender-balance amount) err-insufficient-balance)
+		(asserts! (is-eq tx-sender sender) ERR-INVALID-SENDER)
+		(asserts! (>= sender-balance amount) ERR-INSUFFICIENT-BALANCE)
 		(try! (ft-burn? sft amount sender))
 		(set-balance token-id (- sender-balance amount) sender)
-		(map-set token-supplies token-id (- (unwrap-panic (get-total-supply token-id)) amount))
-		(print {type: "sft_burned", token-id: token-id, amount: amount, sender: sender})
+		(map-set token-supplies {token-id: token-id} {supply: (- (get supply (get-total-supply-uint token-id)) amount)})
+		(print {type: "sft_burn", token-id: token-id, amount: amount, sender: sender})
 		(ok true)
 	)
 )
