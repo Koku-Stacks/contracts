@@ -35,7 +35,6 @@
 (define-data-var empty bool true)
 (define-data-var number-inserted-items uint u0)
 (define-data-var initialized bool false)
-(define-data-var approved-token principal 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token)
 (define-data-var token-uri (string-utf8 256) u"https://dy.finance/")
 
 (define-read-only (get-name)
