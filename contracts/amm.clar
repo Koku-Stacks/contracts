@@ -266,19 +266,17 @@
       true)
     (ok true)))
 
-(define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
+(define-public (deposit (amount uint) (memo (optional (buff 34))))
     (let
         ((sender tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (contract-call? .token transfer amount sender this-contract memo))
         (try! (mint amount sender))
         (map-set ledger sender (+ (get-ledger-balance sender) amount))
         (ok true)))
 
-(define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
+(define-public (withdraw (amount uint) (memo (optional (buff 34))))
     (let
         ((recipient tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (as-contract (contract-call? .token transfer amount this-contract recipient memo)))
         (try! (burn amount recipient))
         (asserts! (>= (get-ledger-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
