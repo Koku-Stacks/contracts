@@ -55,9 +55,6 @@
 (define-read-only (get-token-uri)
   (ok (some (var-get token-uri))))
 
-(define-read-only (get-approved-token)
-    (ok (var-get approved-token)))
-
 (define-read-only (get-ledger-balance (person principal))
     (default-to u0 (map-get? ledger person)))
 
