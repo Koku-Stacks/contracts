@@ -38,10 +38,10 @@
   (ok number-of-decimals))
 
 (define-read-only (get-name)
-  (ok "Koku Liquidity Token"))
+  (ok "dy.finance Liquidity Token"))
 
 (define-read-only (get-symbol)
-  (ok "KLT"))
+  (ok "DYV"))
 
 (define-read-only (get-token-uri)
   (ok (some u"TODO add uri later")))

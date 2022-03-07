@@ -1,19 +1,19 @@
 ;;  Business Source License 1.1
 
-;;  Copyright (c) 2022 Koku
+;;  Copyright (c) 2022 dy.finance
 
 ;;  License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved. "Business Source License" is a trademark of MariaDB Corporation Ab.
 
 ;;  Parameters
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;  Licensor:             Koku
+;;  Licensor:             dy.finance
 
-;;  Licensed Work:        Koku V1 CoreThe Licensed Work is (c) 2022 Koku
+;;  Licensed Work:        dy.finance V1 CoreThe Licensed Work is (c) 2022 dy.finance
 
-;;  Additional Use Grant: Any uses listed and defined at daikoku.network
+;;  Additional Use Grant: Any uses listed and defined at dy.finance
 
-;;  Change Date:          The earlier of 2025-01-01 or a date specified at daikoku.network
+;;  Change Date:          The earlier of 2025-01-01 or a date specified at dy.finance
 
 ;;  Change License:       GNU General Public License v2.0 or later
 
