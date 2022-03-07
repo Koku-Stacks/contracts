@@ -332,8 +332,7 @@ Clarinet.test({
             Tx.contractCall(
                 'amm',
                 'deposit',
-                [ 
-                    types.principal(token),
+                [
                     types.uint(100),
                     types.none()
                 ],
@@ -354,8 +353,7 @@ Clarinet.test({
             Tx.contractCall(
                 'amm',
                 'withdraw',
-                [ 
-                    types.principal(token),
+                [
                     types.uint(100),
                     types.none()
                 ],
