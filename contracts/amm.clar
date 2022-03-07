@@ -15,7 +15,6 @@
 (define-constant ERR_INVALID_OPTION_DURATION (err u109))
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
-(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
 (define-constant buffer-max-limit u10)
