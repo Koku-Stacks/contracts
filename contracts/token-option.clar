@@ -1,32 +1,21 @@
 
 ;; token-option
-;; <add a description here>
+;; Using STX Semi-Fungible Token standard
 
 (impl-trait .sip013-trait-sft-standard.sip013-trait-sft-standard)
-;; (impl-trait .sip-010-trait-ft-standard.sip-010-trait) 
 
-(define-fungible-token sft)
-(define-non-fungible-token sft-id {token-id: uint, owner: principal})
-
-(define-map token-balances {token-id: uint, owner: principal} {amount: uint})
-(define-map token-supplies {token-id: uint} {supply: uint})
+(define-constant ERR_CONTRACT_OWNER_ONLY (err u103))
+(define-constant ERR-INSUFFICIENT-BALANCE (err u110))
+(define-constant ERR-INVALID-SENDER (err u111))
+(define-constant ERR_AMOUNT_IS_NON_POSITIVE (err u112))
+(define-constant ERR_NOT_AUTHORIZED (err u1000)) 
 
 (define-constant contract-owner tx-sender)
 
-(define-constant ERR_CONTRACT_OWNER_ONLY (err u103))
-(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u104))
-(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
-(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
-(define-constant ERR_NOT_NEW_OWNER (err u107))
-(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u108))
-(define-constant ERR_INVALID_OPTION_DURATION (err u109))
-(define-constant ERR-INSUFFICIENT-BALANCE (err u110))
-(define-constant ERR-INVALID-SENDER (err u111))
-(define-constant ERR_NOT_AUTHORIZED (err u1000))
-(define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
-(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
-(define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
+(define-fungible-token sft)
 
+(define-map token-balances {token-id: uint, owner: principal} {amount: uint})
+(define-map token-supplies {token-id: uint} {supply: uint})
 
 (define-data-var token-uri (string-utf8 256) u"https://dy.finance/")
 ;; (define-data-var contract-owner principal tx-sender)
@@ -117,7 +106,7 @@
 (define-public (mint (token-id uint) (amount uint) (recipient principal) (supply uint))
 	(begin
 		(asserts! (is-eq tx-sender contract-owner) ERR_CONTRACT_OWNER_ONLY)
-        (asserts! (> amount u0) ERR_INSUFFICIENT_TOKENS_TO_MINT)
+        (asserts! (> amount u0) ERR_AMOUNT_IS_NON_POSITIVE)
 		(try! (ft-mint? sft amount recipient))
 		(set-balance token-id (+ (get amount (get-balance-uint token-id recipient)) amount) recipient)
 		(map-set token-supplies {token-id: token-id} {supply: (+ (get supply (get-total-supply-uint token-id)) amount)})

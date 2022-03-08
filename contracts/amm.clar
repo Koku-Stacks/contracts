@@ -2,9 +2,8 @@
 
 (impl-trait .owner-trait.owner-trait)
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
-;; (impl-trait .sip013-trait-sft-standard.sip013-trait-sft-standard)
+
 (use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
-(use-trait sft-trait .sip013-trait-sft-standard.sip013-trait-sft-standard)
 
 (define-constant ERR_NOT_INITIALIZED (err u100))
 (define-constant ERR_EMPTY (err u101))
@@ -301,9 +300,6 @@
     )
 )
 
-(define-public (transfer-sft (token-contract <sft-trait>) (token-id uint) (sender principal) (recipient principal) (amount uint))
-	(contract-call? token-contract transfer token-id amount sender recipient )
-)
 
 (define-private (mint (amount uint) (recipient principal))
     (ft-mint? lp-token amount recipient))

@@ -6,7 +6,7 @@ const ERR_NOT_AUTHORIZED = 1000;
 const ERR_INVALID_SENDER = 111;
 const ERR_INSUFFICIENT_BALANCE = 110;
 const ERR_CONTRACT_OWNER_ONLY = 103;
-const ERR_INSUFFICIENT_TOKENS_TO_MINT = 108;
+const ERR_AMOUNT_IS_NON_POSITIVE = 112;
 
 const defaultPaymentAssetContract = 'token-option';
 
@@ -238,7 +238,7 @@ Clarinet.test({
                 deployer.address),
         ]);
 
-        call.receipts[0].result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
+        call.receipts[0].result.expectErr().expectUint(ERR_AMOUNT_IS_NON_POSITIVE);
     },
 });
 
