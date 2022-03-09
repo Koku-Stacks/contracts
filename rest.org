@@ -1,4 +1,42 @@
-* Requests :verb:
+* Bitcoin Price Requests :verb:
+
+** coinmarketcap
+
+   get https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=1
+   X-CMC_PRO_API_KEY: 0acaf66d-e715-4d7b-bae2-f7648453f8e6
+
+
+** nomics
+
+   get https://api.nomics.com/v1/currencies/ticker?key=3bf7ef015adadeaa258ffca8145c56c7475e427d&ids=BTC&per-page=1&page=1
+
+
+** coinbase
+
+   get https://api.coinbase.com/v2/prices/spot?currency=USD
+
+
+** gemini
+
+   get https://api.gemini.com/v1/pricefeed
+
+
+** coindesk
+
+   get https://api.coindesk.com/v1/bpi/currentprice.json
+
+
+** messari
+
+   get https://data.messari.io/api/v1/assets/btc/metrics
+
+
+** coingecko
+
+   get https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin
+
+
+* Stacks API Requests :verb:
 
   template https://stacks-node-api.testnet.stacks.co/
   # template http://localhost:20443
