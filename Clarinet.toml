@@ -3,6 +3,10 @@ name = "koku"
 requirements = []
 costs_version = 1
 
+[contracts.current-price]
+path = "contracts/current-price.clar"
+depends_on = []
+
 [contracts.amm]
 path = "contracts/amm.clar"
 depends_on = ["lp-token", "token"]
