@@ -72,20 +72,8 @@ Clarinet.test({
         const userA = accounts.get('wallet_1')!;
         const Price = 50;
         const { paymentAssetContract, paymentAssetId } = mintFt({ chain, deployer, amount: 100, token_id: 101, supply: 20, recipient: deployer});
-        // chain: Chain, deployer: Account, amount: number, token_id: number, supply: number, recipient: Account, paymentAssetContract?: string
-        // assertEquals(paymentAssetContract, "abc");
         
         let call = chain.mineBlock([
-            // Tx.contractCall(
-            //     'token-option',
-            //     'mint',
-            //     [ 
-            //         types.uint(101),
-            //         types.uint(100),
-            //         types.principal(deployer.address),
-            //         types.uint(20),
-            //     ],
-            //     deployer.address),
             Tx.contractCall(
                 'token-option',
                 'transfer',
@@ -99,7 +87,6 @@ Clarinet.test({
                 deployer.address)
         ]);
 
-        // call.receipts[0].result.expectOk();
         call.receipts[0].result.expectOk().expectBool(true);
 
         call.receipts[0].events.expectFungibleTokenTransferEvent(Price, deployer.address, userA.address, paymentAssetId);
@@ -268,3 +255,4 @@ Clarinet.test({
         call.receipts[0].result.expectErr().expectUint(ERR_INSUFFICIENT_BALANCE);
     },
 });
+
