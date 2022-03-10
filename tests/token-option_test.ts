@@ -10,9 +10,9 @@ const ERR_AMOUNT_IS_NON_POSITIVE = 112;
 
 const defaultPaymentAssetContract = 'token-option';
 
-function mintFt({ chain, deployer, amount, token_id, supply, recipient, paymentAssetContract = defaultPaymentAssetContract }: { chain: Chain, deployer: Account, amount: number, token_id: number, supply: number, recipient: Account, paymentAssetContract?: string }) {
+function mintFt({ chain, deployer, amount, token_id, recipient, paymentAssetContract = defaultPaymentAssetContract }: { chain: Chain, deployer: Account, amount: number, token_id: number, recipient: Account, paymentAssetContract?: string }) {
     const block = chain.mineBlock([
-        Tx.contractCall(paymentAssetContract, 'mint', [types.uint(token_id), types.uint(amount), types.principal(recipient.address), types.uint(supply)], deployer.address),
+        Tx.contractCall(paymentAssetContract, 'mint', [types.uint(token_id), types.uint(amount), types.principal(recipient.address)], deployer.address),
     ]);
     block.receipts[0].result.expectOk();
     const ftMintEvent = block.receipts[0].events[0].ft_mint_event;
@@ -71,7 +71,7 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
         const Price = 50;
-        const { paymentAssetContract, paymentAssetId } = mintFt({ chain, deployer, amount: 100, token_id: 101, supply: 20, recipient: deployer});
+        const { paymentAssetContract, paymentAssetId } = mintFt({ chain, deployer, amount: 100, token_id: 101, recipient: deployer});
         
         let call = chain.mineBlock([
             Tx.contractCall(
@@ -107,7 +107,7 @@ Clarinet.test({
                     types.uint(101),
                     types.uint(100),
                     types.principal(deployer.address),
-                    types.uint(20),
+                    
                 ],
                 deployer.address),
             Tx.contractCall(
@@ -142,7 +142,7 @@ Clarinet.test({
                     types.uint(1001),
                     types.uint(10),
                     types.principal(userA.address),
-                    types.uint(20),
+                    
                 ],
                 deployer.address),
         ]);
@@ -160,7 +160,7 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
         const Price = 50;
-        const { paymentAssetContract, paymentAssetId } = mintFt({ chain, deployer, amount: 100, token_id: 101, supply: 20, recipient: deployer});
+        const { paymentAssetContract, paymentAssetId } = mintFt({ chain, deployer, amount: 100, token_id: 101, recipient: deployer});
         
         let call = chain.mineBlock([
             Tx.contractCall(
@@ -170,7 +170,7 @@ Clarinet.test({
                     types.uint(101),
                     types.uint(10),
                     types.principal(deployer.address),
-                    types.uint(20),
+                    
                     
                 ],
                 deployer.address)
@@ -197,7 +197,7 @@ Clarinet.test({
                     types.uint(1000),
                     types.uint(10),
                     types.principal(userA.address),
-                    types.uint(20),
+                    
                 ],
                 userA.address),
         ]);
@@ -220,7 +220,7 @@ Clarinet.test({
                     types.uint(1000),
                     types.uint(0),
                     types.principal(userA.address),
-                    types.uint(20),
+                    
                 ],
                 deployer.address),
         ]);
@@ -247,7 +247,7 @@ Clarinet.test({
                     types.uint(1000),
                     types.uint(10),
                     types.principal(deployer.address),
-                    types.uint(20),
+                    
                 ],
                 deployer.address),
         ]);
