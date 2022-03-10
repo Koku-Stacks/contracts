@@ -7,7 +7,7 @@
 (define-constant ERR_NOT_NEW_OWNER (err u107))
 
 (define-data-var current-price uint u0)
-(define-data-var current-timestamp (string-ascii 20) "")
+(define-data-var current-timestamp uint u0)
 
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
@@ -43,7 +43,7 @@
     (var-set submitted-new-owner none)
     (ok true)))
 
-(define-public (update-price (new-price uint) (timestamp (string-ascii 20)))
+(define-public (update-price (new-price uint) (timestamp uint))
   (begin
     (asserts! (is-eq tx-sender (var-get owner)) ERR_CONTRACT_OWNER_ONLY)
     (var-set current-price new-price)
