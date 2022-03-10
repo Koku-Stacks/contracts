@@ -76,6 +76,9 @@
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 (define-data-var token-uri (string-utf8 256) u"www.token.com")
+(define-data-var token-name (string-ascii 32) "dYrivaNative")
+(define-data-var token-symbol (string-ascii 32) "DYV")
+
 (define-data-var remaining-tokens-to-mint uint u21000000000000)
 (define-data-var contract-lock bool false)
 
@@ -98,10 +101,10 @@
   (var-get remaining-tokens-to-mint))
 
 (define-read-only (get-name)
-  (ok "dYrivaNative"))
+  (ok (var-get token-name)))
 
 (define-read-only (get-symbol)
-  (ok "DYV"))
+  (ok (var-get token-symbol)))
 
 (define-read-only (get-decimals)
   (ok u6))
@@ -160,6 +163,18 @@
   (begin
     (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
     (var-set token-uri new-token-uri)
+    (ok true)))
+
+(define-public (set-token-name (new-token-name (string-ascii 32)))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (var-set token-name new-token-name)
+    (ok true)))
+
+(define-public (set-token-symbol (new-token-symbol (string-ascii 32)))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (var-set token-symbol new-token-symbol)
     (ok true)))
 
 (define-public (mint (amount uint) (recipient principal))
