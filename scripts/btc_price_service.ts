@@ -178,6 +178,17 @@ async function service_iteration() {
 }
 
 async function service() {
+    console.log("Parameters:");
+    console.log(`-- Outlier price margin: ${config.outlier_price_margin}`);
+    console.log(`-- Price fetching interval: ${config.price_fetching_interval}`);
+    console.log(`-- BTC price contract:`);
+    console.log(`-- -- node url: ${config.btc_price_contract.node_url}`);
+    console.log(`-- -- network type: ${config.btc_price_contract.network_type}`);
+    console.log(`-- -- address: ${config.btc_price_contract.address}`);
+    console.log(`-- -- name: ${config.btc_price_contract.name}`);
+    console.log(`-- -- function: ${config.btc_price_contract.function}`);
+    console.log(`-- -- fixed point decimal places: ${config.btc_price_contract.fp_decimal_places}`);
+
     setInterval(service_iteration, config.price_fetching_interval);
 }
 
