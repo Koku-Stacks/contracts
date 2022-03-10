@@ -653,7 +653,7 @@ Clarinet.test({
 })
 
 Clarinet.test({
-    name: "Ensure the constant read only functions are returning as expected",
+    name: "Ensure get-decimals, get-symbol and get-name functions work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const wallet1 = accounts.get('wallet_1')!;
