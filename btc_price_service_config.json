@@ -1,4 +1,18 @@
 {
     "coinmarketcap_api_key": "0acaf66d-e715-4d7b-bae2-f7648453f8e6",
-    "nomics_api_key": "3bf7ef015adadeaa258ffca8145c56c7475e427d"
+    "nomics_api_key": "3bf7ef015adadeaa258ffca8145c56c7475e427d",
+    "outlier_price_margin": 0.05,
+    "btc_price_contract": {
+        "node_url": "http://3.64.221.107:3999",
+        "network_type": "testnet",
+        "address": "",
+        "name": "current-price",
+        "function": "update-price",
+        "fp_decimal_places": 6
+    },
+    "price_sender": {
+        "secret_key": "tomorrow artist banner price deliver attack design clump holiday reopen devote hedgehog faculty cheese position sun depth nose cat table tomorrow exclude seek place",
+        "password": "123456"
+    },
+    "price_fetching_interval": 60000
 }
