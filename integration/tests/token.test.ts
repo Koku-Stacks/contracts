@@ -48,7 +48,7 @@ describe("token contract", () => {
 
   it("Ensures the token uri facilities work as expected", async () => {
     const deployer = chain.accounts.get("deployer")!;
-    const wallet2 = chain.accounts.get("wallet_2")!;
+    const wallet1 = chain.accounts.get("wallet_1")!;
 
     // read the value
     const readResult = await chain.callReadOnlyFn(
@@ -56,7 +56,7 @@ describe("token contract", () => {
       contractName,
       "get-token-uri",
       [],
-      wallet2.address
+      wallet1.address
     );
 
     expect(readResult).to.be.ok;
@@ -82,7 +82,7 @@ describe("token contract", () => {
       contractName,
       "get-token-uri",
       [],
-      wallet2.address
+      wallet1.address
     );
 
     expect(checkResult).to.be.ok;
@@ -95,7 +95,7 @@ describe("token contract", () => {
       contractName,
       "set-token-uri",
       [stringUtf8CV(newUri)],
-      wallet2.secretKey
+      wallet1.secretKey
     );
 
     expect(wrongUpdateResult).to.be.ok;
@@ -108,7 +108,7 @@ describe("token contract", () => {
       contractName,
       "get-token-uri",
       [],
-      wallet2.address
+      wallet1.address
     );
 
     expect(doubleCheckResult).to.be.ok;
@@ -158,7 +158,7 @@ describe("token contract", () => {
 
   it("Ensure mint and burn functions work as expected", async () => {
     const deployer = chain.accounts.get("deployer")!;
-    const wallet2 = chain.accounts.get("wallet_2")!;
+    const wallet1 = chain.accounts.get("wallet_1")!;
 
     // load initial data
     const initialSupply = await chain.callReadOnlyFn(
@@ -183,16 +183,16 @@ describe("token contract", () => {
     expect(initialDeployerBalance).to.be.ok;
     expect(initialDeployerBalance.success).to.be.true;
 
-    const initialwallet2Balance = await chain.callReadOnlyFn(
+    const initialwallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
       "get-balance",
-      [principalCV(wallet2.address)],
-      wallet2.address
+      [principalCV(wallet1.address)],
+      wallet1.address
     );
 
-    expect(initialwallet2Balance).to.be.ok;
-    expect(initialwallet2Balance.success).to.be.true;
+    expect(initialwallet1Balance).to.be.ok;
+    expect(initialwallet1Balance.success).to.be.true;
 
     const isAuthorizedContract = await chain.callReadOnlyFn(
       contractAddress,
@@ -202,7 +202,7 @@ describe("token contract", () => {
       deployer.address
     );
 
-    if(isAuthorizedContract.false){
+    if(isAuthorizedContract.value == false){
       // authorize contract
       const authorizeContract = await chain.callContract(
         contractAddress,
@@ -214,6 +214,9 @@ describe("token contract", () => {
   
       expect(authorizeContract).to.be.ok;
       expect(authorizeContract.success).to.be.true;
+      console.log("NOT AUTHORIZED");
+    } else {
+      console.log("AUTHORIZED");
     }
 
     // start minting
@@ -232,8 +235,8 @@ describe("token contract", () => {
       contractAddress,
       contractName,
       "mint",
-      [uintCV(100), principalCV(wallet2.address)],
-      wallet2.secretKey
+      [uintCV(100), principalCV(wallet1.address)],
+      wallet1.secretKey
     );
 
     expect(badMintCall).to.be.ok;
@@ -243,7 +246,7 @@ describe("token contract", () => {
       contractAddress,
       contractName,
       "mint",
-      [uintCV(50), principalCV(wallet2.address)],
+      [uintCV(50), principalCV(wallet1.address)],
       deployer.secretKey
     );
 
@@ -276,18 +279,18 @@ describe("token contract", () => {
       +initialDeployerBalance.value.value + 100
     );
 
-    const wallet2Balance = await chain.callReadOnlyFn(
+    const wallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
       "get-balance",
-      [principalCV(wallet2.address)],
-      wallet2.address
+      [principalCV(wallet1.address)],
+      wallet1.address
     );
 
-    expect(wallet2Balance).to.be.ok;
-    expect(wallet2Balance.success).to.be.true;
-    expect(+wallet2Balance.value.value).to.be.equal(
-      +initialwallet2Balance.value.value + 50
+    expect(wallet1Balance).to.be.ok;
+    expect(wallet1Balance.success).to.be.true;
+    expect(+wallet1Balance.value.value).to.be.equal(
+      +initialwallet1Balance.value.value + 50
     );
 
     // burn
@@ -331,18 +334,18 @@ describe("token contract", () => {
       +initialDeployerBalance.value.value + 90
     );
 
-    const updatedwallet2Balance = await chain.callReadOnlyFn(
+    const updatedwallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
       "get-balance",
-      [principalCV(wallet2.address)],
-      wallet2.address
+      [principalCV(wallet1.address)],
+      wallet1.address
     );
 
-    expect(updatedwallet2Balance).to.be.ok;
-    expect(updatedwallet2Balance.success).to.be.true;
-    expect(+updatedwallet2Balance.value.value).to.be.equal(
-      +initialwallet2Balance.value.value + 50
+    expect(updatedwallet1Balance).to.be.ok;
+    expect(updatedwallet1Balance.success).to.be.true;
+    expect(+updatedwallet1Balance.value.value).to.be.equal(
+      +initialwallet1Balance.value.value + 50
     );
   });
 });

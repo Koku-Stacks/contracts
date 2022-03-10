@@ -114,10 +114,6 @@ export class StacksChain {
       senderAddress,
     });
 
-    if (readResult.type === ClarityType.ResponseErr) {
-      throw new Error(ClarityType[readResult.type]);
-    }
-
     if (this.options.logLevel >= LogLevel.DEBUG) {
       console.log(
         "Stacks: transferSTX",
