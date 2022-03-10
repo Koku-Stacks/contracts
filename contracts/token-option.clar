@@ -131,7 +131,7 @@
 	(fold transfer-many-memo-iter transfers (ok true))
 )
 
-(define-public (mint (token-id uint) (amount uint) (recipient principal) (supply uint))
+(define-public (mint (token-id uint) (amount uint) (recipient principal))
 	(begin
 		(asserts! (is-eq tx-sender (var-get owner)) ERR_CONTRACT_OWNER_ONLY)
         (asserts! (> amount u0) ERR_AMOUNT_IS_NON_POSITIVE)
@@ -143,7 +143,7 @@
 	)
 )
 
-(define-public (burn (token-id uint) (amount uint) (sender principal) (supply uint)) 
+(define-public (burn (token-id uint) (amount uint) (sender principal)) 
 	(let 
 		(
 			(sender-balance (get amount (get-balance-uint token-id sender)))
