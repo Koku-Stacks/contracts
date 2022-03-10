@@ -194,29 +194,27 @@ describe("token contract", () => {
     expect(initialwallet2Balance).to.be.ok;
     expect(initialwallet2Balance.success).to.be.true;
 
-    // revoke authorization
-    const revokeAuthorizeContract = await chain.callContract(
+    const isAuthorizedContract = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
-      "revoke-authorized-contract",
+      "is-authorized",
       [principalCV(deployer.address)],
-      deployer.secretKey
+      deployer.address
     );
 
-    expect(revokeAuthorizeContract).to.be.ok;
-    expect(revokeAuthorizeContract.success).to.be.true;
-
-    // authorize contract
-    const authorizeContract = await chain.callContract(
-      contractAddress,
-      contractName,
-      "add-authorized-contract",
-      [principalCV(deployer.address)],
-      deployer.secretKey
-    );
-
-    expect(authorizeContract).to.be.ok;
-    expect(authorizeContract.success).to.be.true;
+    if(isAuthorizedContract.false){
+      // authorize contract
+      const authorizeContract = await chain.callContract(
+        contractAddress,
+        contractName,
+        "add-authorized-contract",
+        [principalCV(deployer.address)],
+        deployer.secretKey
+      );
+  
+      expect(authorizeContract).to.be.ok;
+      expect(authorizeContract.success).to.be.true;
+    }
 
     // start minting
     const goodMintCall = await chain.callContract(

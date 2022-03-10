@@ -114,7 +114,7 @@ export class StacksChain {
       senderAddress,
     });
 
-    if (readResult.type !== ClarityType.ResponseOk) {
+    if (readResult.type === ClarityType.ResponseErr) {
       throw new Error(ClarityType[readResult.type]);
     }
 
