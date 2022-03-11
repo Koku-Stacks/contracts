@@ -38,7 +38,8 @@
 
 * Stacks API Requests :verb:
 
-  template https://stacks-node-api.testnet.stacks.co/
+  # template https://stacks-node-api.testnet.stacks.co/
+  template http://3.64.221.107:3999/
   # template http://localhost:20443
 
 ** v1 endpoints
@@ -87,7 +88,7 @@
 
 **** get transaction by id
 
-     get /8cdf9b99f4e3986eca6a2e152db5469aafb5b0abaee5814252a1d43e2b30c19c
+     get /b9b30f0522ea71e340f442ab1779052f5fb0862386e9c41a77e0eeb3895bad72
 
 *** contracts endpoint
 
