@@ -183,7 +183,7 @@ describe("token contract", () => {
     expect(initialDeployerBalance).to.be.ok;
     expect(initialDeployerBalance.success).to.be.true;
 
-    const initialWallet1Balance = await chain.callReadOnlyFn(
+    const initialwallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
       "get-balance",
@@ -191,22 +191,10 @@ describe("token contract", () => {
       wallet1.address
     );
 
-    expect(initialWallet1Balance).to.be.ok;
-    expect(initialWallet1Balance.success).to.be.true;
+    expect(initialwallet1Balance).to.be.ok;
+    expect(initialwallet1Balance.success).to.be.true;
 
-    // authorize contract
-    const authorizeContract = await chain.callContract(
-      contractAddress,
-      contractName,
-      "add-authorized-contract",
-      [principalCV(deployer.address)],
-      deployer.secretKey
-    );
-
-    expect(authorizeContract).to.be.ok;
-    expect(authorizeContract.success).to.be.true;
-
-    const getAuthorizeContract = await chain.callReadOnlyFn(
+    const isAuthorizedContract = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
       "is-authorized",
@@ -214,8 +202,22 @@ describe("token contract", () => {
       deployer.address
     );
 
-    expect(getAuthorizeContract).to.be.ok;
-    expect(getAuthorizeContract.success).to.be.true;
+    if(isAuthorizedContract.value == false){
+      // authorize contract
+      const authorizeContract = await chain.callContract(
+        contractAddress,
+        contractName,
+        "add-authorized-contract",
+        [principalCV(deployer.address)],
+        deployer.secretKey
+      );
+  
+      expect(authorizeContract).to.be.ok;
+      expect(authorizeContract.success).to.be.true;
+      console.log("NOT AUTHORIZED");
+    } else {
+      console.log("AUTHORIZED");
+    }
 
     // start minting
     const goodMintCall = await chain.callContract(
@@ -288,7 +290,7 @@ describe("token contract", () => {
     expect(wallet1Balance).to.be.ok;
     expect(wallet1Balance.success).to.be.true;
     expect(+wallet1Balance.value.value).to.be.equal(
-      +initialWallet1Balance.value.value + 50
+      +initialwallet1Balance.value.value + 50
     );
 
     // burn
@@ -332,7 +334,7 @@ describe("token contract", () => {
       +initialDeployerBalance.value.value + 90
     );
 
-    const updatedWallet1Balance = await chain.callReadOnlyFn(
+    const updatedwallet1Balance = await chain.callReadOnlyFn(
       contractAddress,
       contractName,
       "get-balance",
@@ -340,10 +342,10 @@ describe("token contract", () => {
       wallet1.address
     );
 
-    expect(updatedWallet1Balance).to.be.ok;
-    expect(updatedWallet1Balance.success).to.be.true;
-    expect(+updatedWallet1Balance.value.value).to.be.equal(
-      +initialWallet1Balance.value.value + 50
+    expect(updatedwallet1Balance).to.be.ok;
+    expect(updatedwallet1Balance.success).to.be.true;
+    expect(+updatedwallet1Balance.value.value).to.be.equal(
+      +initialwallet1Balance.value.value + 50
     );
   });
 });

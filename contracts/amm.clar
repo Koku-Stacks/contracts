@@ -2,6 +2,7 @@
 
 (impl-trait .owner-trait.owner-trait)
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
+
 (use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
 
 (define-constant ERR_NOT_INITIALIZED (err u100))
@@ -288,7 +289,10 @@
         (asserts! (is-eq tx-sender sender) ERR_TOKEN_HOLDER_ONLY)
         (try! (ft-transfer? lp-token amount sender recipient))
         (match memo some-memo (print some-memo) 0x)
-        (ok true)))
+        (ok true)
+    )
+)
+
 
 (define-private (mint (amount uint) (recipient principal))
     (ft-mint? lp-token amount recipient))

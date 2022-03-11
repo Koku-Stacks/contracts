@@ -653,17 +653,60 @@ Clarinet.test({
 })
 
 Clarinet.test({
-    name: "Ensure the constant read only functions are returning as expected",
+    name: "Ensure get-decimals, get-symbol and get-name functions work as expected",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
+        const wallet1 = accounts.get('wallet_1')!;
         const decimals = chain.callReadOnlyFn('token', 'get-decimals', [], deployer.address);
          decimals.result.expectOk().expectUint(6);
 
-         const symbol = chain.callReadOnlyFn('token', 'get-symbol', [], deployer.address);
+         let symbol = chain.callReadOnlyFn('token', 'get-symbol', [], deployer.address);
          symbol.result.expectOk().expectAscii('DYV');
 
-         const name = chain.callReadOnlyFn('token', 'get-name', [], deployer.address);
+         let name = chain.callReadOnlyFn('token', 'get-name', [], deployer.address);
          name.result.expectOk().expectAscii('dYrivaNative');
+
+        const call = chain.mineBlock(
+        [
+            Tx.contractCall('token',
+            'set-token-name',
+            [
+                types.ascii('new_name')
+            ],
+            deployer.address),
+
+            Tx.contractCall('token',
+            'set-token-symbol',
+            [
+                types.ascii('new_symbol')
+            ],
+            deployer.address),
+
+            Tx.contractCall('token',
+            'set-token-name',
+            [
+                types.ascii('new_name')
+            ],
+            wallet1.address),
+
+            Tx.contractCall('token',
+            'set-token-symbol',
+            [
+                types.ascii('new_symbol')
+            ],
+            wallet1.address),
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true);
+        call.receipts[1].result.expectOk().expectBool(true);
+        call.receipts[2].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+        call.receipts[3].result.expectErr().expectUint(ERR_CONTRACT_OWNER_ONLY);
+
+        symbol = chain.callReadOnlyFn('token', 'get-symbol', [], deployer.address);
+        symbol.result.expectOk().expectAscii('new_symbol');
+
+        name = chain.callReadOnlyFn('token', 'get-name', [], deployer.address);
+        name.result.expectOk().expectAscii('new_name');
      }
  })
 
