@@ -180,7 +180,7 @@ async function service_iteration() {
 async function service() {
     console.log("Parameters:");
     console.log(`-- Outlier price margin: ${config.outlier_price_margin}`);
-    console.log(`-- Price fetching interval: ${config.price_fetching_interval}`);
+    console.log(`-- Price fetching interval (ms): ${config.price_fetching_interval}`);
     console.log(`-- BTC price contract:`);
     console.log(`-- -- node url: ${config.btc_price_contract.node_url}`);
     console.log(`-- -- network type: ${config.btc_price_contract.network_type}`);
