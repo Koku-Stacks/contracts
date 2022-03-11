@@ -3,39 +3,49 @@ import { StacksTestnet, StacksMainnet } from "@stacks/network"
 import { generateWallet } from '@stacks/wallet-sdk'
 import { readFileSync } from "fs";
 
+const config = read_config();
+
+function read_config() {
+    const raw_file_content = readFileSync('script_deploy_config.json');
+
+    const json_config = JSON.parse(raw_file_content.toString());
+
+    return json_config;
+}
+
 // sender information
 
-const seed_phrase = "elevator outdoor lava twelve knock illegal belt sound prize build brand trigger desk subway shallow boil pistol rail gauge relief similar advice angry license";
-const password = "testing_password";
+const seed_phrase = config.seed_phrase;
+const password = config.password;
 
 // getting some arguments
 
-const yargs = require('yargs/yargs');
-const argv = yargs(process.argv).argv;
+const network_type = config.network_type;
+const contract_name = config.contract_name;
 
-const network_name = argv.network || "testnet";
-const contract_name = argv.contract;
-
-// argument validation
+// contract parameter validation
 
 function log_and_quit(message: string, exit_code: number): void {
     console.log(message);
     process.exit(exit_code);
 }
 
-if (contract_name == null) {
+if (contract_name === '') {
     log_and_quit("contract argument should be provided", 0);
 }
 
-let network: StacksMainnet | StacksTestnet = new StacksTestnet();
-if (network_name === "mainnet" || network_name === "testnet") {
-    if (network_name === "mainnet") {
-        network = new StacksMainnet();
-    }
-}
-else {
+// network parameter
+
+if (network_type !== 'mainnet' && network_type !== 'testnet') {
     log_and_quit("invalid network argument", 0);
 }
+
+let network_builder = StacksTestnet;
+if (network_type === 'mainnet') {
+    network_builder = StacksMainnet;
+}
+
+const network = new network_builder({url: config.node_url});
 
 // getting contract source code
 
@@ -44,8 +54,15 @@ const contract_code = readFileSync(contract_path).toString();
 
 // performing deployment
 
-generateWallet({ secretKey: seed_phrase, password: password })
-    .then((wallet): void => {
+async function deploy_contract() {
+    console.log('Parameters:');
+    console.log(`-- node url: ${config.node_url}`);
+    console.log(`-- network type: ${config.network_type}`);
+    console.log(`-- contract name: ${config.contract_name}`);
+
+    try {
+        const wallet = await generateWallet({secretKey: seed_phrase, password: password});
+
         const tx_options = {
             contractName: contract_name,
             codeBody: contract_code,
@@ -54,23 +71,16 @@ generateWallet({ secretKey: seed_phrase, password: password })
             anchorMode: AnchorMode.Any
         };
 
-        makeContractDeploy(tx_options)
-            .then((transaction): void => {
-                broadcastTransaction(transaction, network)
-                    .then((broadcast_response): void => {
-                        const tx_id = broadcast_response.txid;
+        const transaction = await makeContractDeploy(tx_options);
 
-                        log_and_quit(`contract ${contract_name} was successfully deployed.\n Transaction id: ${tx_id}`, 0);
-                    })
-                    .catch((reason): void => {
-                        log_and_quit(`some error has occurred when broadcasting deployment transaction of contract ${contract_name}\nReason: ${reason}`, 1)
-                    });
-            })
-            .catch((reason): void => {
-                log_and_quit(`some error has occurred when preparing deployment of contract ${contract_name}\nReason: ${reason}`, 1);
-            });
-    })
-    .catch((reason) => {
-        log_and_quit(`some error has occurred when recovering wallet: ${reason}`, 1);
-    });
+        const response = await broadcastTransaction(transaction, network);
 
+        const tx_id = response.txid;
+
+        log_and_quit(`contract ${contract_name} was successfully deployed.\n Transaction id: ${tx_id}`, 0);
+    } catch (error) {
+        log_and_quit(error.toString(), 1);
+    }
+}
+
+deploy_contract();
