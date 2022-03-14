@@ -1,19 +1,19 @@
 ;;  Business Source License 1.1
 
-;;  Copyright (c) 2022 Koku
+;;  Copyright (c) 2022 dy.finance
 
 ;;  License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved. "Business Source License" is a trademark of MariaDB Corporation Ab.
 
 ;;  Parameters
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;  Licensor:             Koku
+;;  Licensor:             dy.finance
 
-;;  Licensed Work:        Koku V1 CoreThe Licensed Work is (c) 2022 Koku
+;;  Licensed Work:        dy.finance V1 CoreThe Licensed Work is (c) 2022 dy.finance
 
-;;  Additional Use Grant: Any uses listed and defined at daikoku.network
+;;  Additional Use Grant: Any uses listed and defined at dy.finance
 
-;;  Change Date:          The earlier of 2025-01-01 or a date specified at daikoku.network
+;;  Change Date:          The earlier of 2025-01-01 or a date specified at dy.finance
 
 ;;  Change License:       GNU General Public License v2.0 or later
 
@@ -76,6 +76,9 @@
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 (define-data-var token-uri (string-utf8 256) u"www.token.com")
+(define-data-var token-name (string-ascii 32) "dYrivaNative")
+(define-data-var token-symbol (string-ascii 32) "DYV")
+
 (define-data-var remaining-tokens-to-mint uint u21000000000000)
 (define-data-var contract-lock bool false)
 
@@ -98,10 +101,10 @@
   (var-get remaining-tokens-to-mint))
 
 (define-read-only (get-name)
-  (ok "dYrivaNative"))
+  (ok (var-get token-name)))
 
 (define-read-only (get-symbol)
-  (ok "DYV"))
+  (ok (var-get token-symbol)))
 
 (define-read-only (get-decimals)
   (ok u6))
@@ -160,6 +163,18 @@
   (begin
     (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
     (var-set token-uri new-token-uri)
+    (ok true)))
+
+(define-public (set-token-name (new-token-name (string-ascii 32)))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (var-set token-name new-token-name)
+    (ok true)))
+
+(define-public (set-token-symbol (new-token-symbol (string-ascii 32)))
+  (begin
+    (asserts! (is-eq (get-owner) tx-sender) ERR_CONTRACT_OWNER_ONLY)
+    (var-set token-symbol new-token-symbol)
     (ok true)))
 
 (define-public (mint (amount uint) (recipient principal))

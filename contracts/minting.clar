@@ -39,12 +39,12 @@
     (err no-minter-transfer-to-confirm)))
 
 (define-read-only (get-remaining-tokens-to-mint)
-  (contract-call? .dyv-token get-remaining-tokens-to-mint))
+  (contract-call? .token get-remaining-tokens-to-mint))
 
 (define-public (mint (amount uint) (to principal))
   (begin
     (asserts! (is-eq tx-sender (get-minter)) (err unauthorized-minter))
-    (match (as-contract (contract-call? .dyv-token mint amount to))
+    (match (as-contract (contract-call? .token mint amount to))
       ok-mint
       (ok true)
       err-mint
