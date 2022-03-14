@@ -180,9 +180,6 @@ export class StacksChain {
 
     const transactionInfo = await this.waitTransaction(broadcast_response.txid);
     const contractInfo = await this.listenContractInfo(`${contractAddress}.${contractName}`);
-
-    console.log(`Contract: ${contractInfo.tx_type}}`);
-
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
 
@@ -292,25 +289,15 @@ export class StacksChain {
     return transactionInfo;
   }
 
-  private async listenContractInfo(contractId: string) {
-    let contractInfo;
+  public async listenContractInfo(contractId: string) {
 
-    do {
-      await delay(500);
-
-      contractInfo = await fetch(`${this.url}/extended/v1/contract/${contractId}`).then(
-        (x) => x.json()
-      );
-
-      if (this.options.logLevel >= LogLevel.DEBUG) {
-        console.log("Stacks: check contract", contractInfo);
-      }
-    } while (contractInfo.tx_status === "pending")
+    let contractInfo = await fetch(`${this.url}/extended/v1/contract/${contractId}`).then(
+      (x) => x.json()
+    );
 
     if (this.options.logLevel >= LogLevel.INFO) {
       console.log(
         "Stacks: contract succeeded",
-        `tx_status: ${contractInfo.tx_status}`,
         `smart_contract: ${contractId}`
       );
     }

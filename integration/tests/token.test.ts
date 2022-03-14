@@ -1,4 +1,4 @@
-import { stringUtf8CV, uintCV } from "@stacks/transactions";
+import { noneCV, stringUtf8CV, uintCV } from "@stacks/transactions";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
 import { expect } from "chai";
 import * as fs from "fs";
@@ -46,117 +46,117 @@ describe("token contract", () => {
     contractAddress = contractId.split(".")[0];
   });
 
-  it("Ensures the token uri facilities work as expected", async () => {
-    const deployer = chain.accounts.get("deployer")!;
-    const wallet1 = chain.accounts.get("wallet_1")!;
+  // it("Ensures the token uri facilities work as expected", async () => {
+  //   const deployer = chain.accounts.get("deployer")!;
+  //   const wallet1 = chain.accounts.get("wallet_1")!;
 
-    // read the value
-    const readResult = await chain.callReadOnlyFn(
-      contractAddress,
-      contractName,
-      "get-token-uri",
-      [],
-      wallet1.address
-    );
+  //   // read the value
+  //   const readResult = await chain.callReadOnlyFn(
+  //     contractAddress,
+  //     contractName,
+  //     "get-token-uri",
+  //     [],
+  //     wallet1.address
+  //   );
 
-    expect(readResult).to.be.ok;
-    expect(readResult.success).to.be.true;
+  //   expect(readResult).to.be.ok;
+  //   expect(readResult.success).to.be.true;
 
-    // update the value
-    const newUri = `www.token${Date.now()}.com`;
+  //   // update the value
+  //   const newUri = `www.token${Date.now()}.com`;
 
-    const updateResult = await chain.callContract(
-      contractAddress,
-      contractName,
-      "set-token-uri",
-      [stringUtf8CV(newUri)],
-      deployer.secretKey
-    );
+  //   const updateResult = await chain.callContract(
+  //     contractAddress,
+  //     contractName,
+  //     "set-token-uri",
+  //     [stringUtf8CV(newUri)],
+  //     deployer.secretKey
+  //   );
 
-    expect(updateResult).to.be.ok;
-    expect(updateResult.success).to.be.true;
+  //   expect(updateResult).to.be.ok;
+  //   expect(updateResult.success).to.be.true;
 
-    // read the value again
-    const checkResult = await chain.callReadOnlyFn(
-      contractAddress,
-      contractName,
-      "get-token-uri",
-      [],
-      wallet1.address
-    );
+  //   // read the value again
+  //   const checkResult = await chain.callReadOnlyFn(
+  //     contractAddress,
+  //     contractName,
+  //     "get-token-uri",
+  //     [],
+  //     wallet1.address
+  //   );
 
-    expect(checkResult).to.be.ok;
-    expect(checkResult.success).to.be.true;
-    expect(checkResult.value.value.value).to.be.eq(newUri);
+  //   expect(checkResult).to.be.ok;
+  //   expect(checkResult.success).to.be.true;
+  //   expect(checkResult.value.value.value).to.be.eq(newUri);
 
-    // try to updated with wrong wallet
-    const wrongUpdateResult = await chain.callContract(
-      contractAddress,
-      contractName,
-      "set-token-uri",
-      [stringUtf8CV(newUri)],
-      wallet1.secretKey
-    );
+  //   // try to updated with wrong wallet
+  //   const wrongUpdateResult = await chain.callContract(
+  //     contractAddress,
+  //     contractName,
+  //     "set-token-uri",
+  //     [stringUtf8CV(newUri)],
+  //     wallet1.secretKey
+  //   );
 
-    expect(wrongUpdateResult).to.be.ok;
-    expect(wrongUpdateResult.success).to.be.false;
-    expect(wrongUpdateResult.value.value).to.be.eq("103");
+  //   expect(wrongUpdateResult).to.be.ok;
+  //   expect(wrongUpdateResult.success).to.be.false;
+  //   expect(wrongUpdateResult.value.value).to.be.eq("103");
 
-    // double check that value wasn't changed
-    const doubleCheckResult = await chain.callReadOnlyFn(
-      contractAddress,
-      contractName,
-      "get-token-uri",
-      [],
-      wallet1.address
-    );
+  //   // double check that value wasn't changed
+  //   const doubleCheckResult = await chain.callReadOnlyFn(
+  //     contractAddress,
+  //     contractName,
+  //     "get-token-uri",
+  //     [],
+  //     wallet1.address
+  //   );
 
-    expect(doubleCheckResult).to.be.ok;
-    expect(doubleCheckResult.success).to.be.true;
-    expect(doubleCheckResult.value.value.value).to.be.eq(newUri);
-  });
+  //   expect(doubleCheckResult).to.be.ok;
+  //   expect(doubleCheckResult.success).to.be.true;
+  //   expect(doubleCheckResult.value.value.value).to.be.eq(newUri);
+  // });
 
-  it("Ensure the constant read only functions are returning as expected", async () => {
-    const deployer = chain.accounts.get("deployer")!;
+  // it("Ensure the constant read only functions are returning as expected", async () => {
+  //   const deployer = chain.accounts.get("deployer")!;
 
-    const decimals = await chain.callReadOnlyFn(
-      contractAddress,
-      contractName,
-      "get-decimals",
-      [],
-      deployer.address
-    );
+  //   const decimals = await chain.callReadOnlyFn(
+  //     contractAddress,
+  //     contractName,
+  //     "get-decimals",
+  //     [],
+  //     deployer.address
+  //   );
 
-    expect(decimals).to.be.ok;
-    expect(decimals.success).to.be.true;
-    expect(decimals.value.value).to.be.eq("6");
+  //   expect(decimals).to.be.ok;
+  //   expect(decimals.success).to.be.true;
+  //   expect(decimals.value.value).to.be.eq("6");
 
-    const symbol = await chain.callReadOnlyFn(
-      contractAddress,
-      contractName,
-      "get-symbol",
-      [],
-      deployer.address
-    );
+  //   const symbol = await chain.callReadOnlyFn(
+  //     contractAddress,
+  //     contractName,
+  //     "get-symbol",
+  //     [],
+  //     deployer.address
+  //   );
 
-    expect(symbol).to.be.ok;
-    expect(symbol.success).to.be.true;
-    expect(symbol.value.value).to.be.eq("DYV");
+  //   expect(symbol).to.be.ok;
+  //   expect(symbol.success).to.be.true;
+  //   expect(symbol.value.value).to.be.eq("DYV");
 
-    const name = await chain.callReadOnlyFn(
-      contractAddress,
-      contractName,
-      "get-name",
-      [],
-      deployer.address
-    );
+  //   const name = await chain.callReadOnlyFn(
+  //     contractAddress,
+  //     contractName,
+  //     "get-name",
+  //     [],
+  //     deployer.address
+  //   );
 
-    expect(name).to.be.ok;
-    expect(name.success).to.be.true;
-    expect(name.value.value).to.be.eq("dYrivaNative");
-  });
+  //   expect(name).to.be.ok;
+  //   expect(name.success).to.be.true;
+  //   expect(name.value.value).to.be.eq("dYrivaNative");
+  // });
 
-  it("Ensure mint and burn functions work as expected", async () => {
+  it("Ensure mint, burn and transfer functions work as expected", async () => {
     const deployer = chain.accounts.get("deployer")!;
     const wallet1 = chain.accounts.get("wallet_1")!;
 
@@ -289,6 +289,31 @@ describe("token contract", () => {
     expect(wallet1Balance.success).to.be.true;
     expect(+wallet1Balance.value.value).to.be.equal(
       +initialWallet1Balance.value.value + 50
+    );
+
+    const deployerTransfer = await chain.callContract(
+      contractAddress,
+      contractName,
+      "transfer",
+      [uintCV(50), principalCV(deployer.address), principalCV(wallet1.address), noneCV()],
+      deployer.secretKey
+    );
+
+    expect(deployerTransfer).to.be.ok;
+    expect(deployerTransfer.success).to.be.true;
+
+    const wallet1NewBalance = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "get-balance",
+      [principalCV(wallet1.address)],
+      wallet1.address
+    );
+
+    expect(wallet1NewBalance).to.be.ok;
+    expect(wallet1NewBalance.success).to.be.true;
+    expect(+wallet1NewBalance.value.value).to.be.equal(
+      +wallet1Balance.value.value + 50
     );
 
     // burn

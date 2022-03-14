@@ -18,6 +18,10 @@ describe("stacks.chain", () => {
 
         (define-read-only (echo-number (val int))
           (ok val))
+
+        (define-public (say-hello-world)
+          (ok (print "hello world"))
+        )
       `,
       deployer.secretKey
     );
