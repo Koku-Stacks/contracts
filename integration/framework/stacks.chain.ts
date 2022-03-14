@@ -175,7 +175,6 @@ export class StacksChain {
     }
 
     const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-    const contractInfo = await this.listenContractInfo(`${contractAddress}.${contractName}`);
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
 
@@ -285,9 +284,9 @@ export class StacksChain {
     return transactionInfo;
   }
 
-  public async listenContractInfo(contractId: string) {
+  public async getContractEventsInfo(contractId: string) {
 
-    let contractInfo = await fetch(`${this.url}/extended/v1/contract/${contractId}`).then(
+    let contractInfo = await fetch(`${this.url}/extended/v1/contract/${contractId}/events`).then(
       (x) => x.json()
     );
 

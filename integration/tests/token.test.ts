@@ -293,6 +293,7 @@ describe("token contract", () => {
       +initialwallet1Balance.value.value + 50
     );
 
+    // transfer
     const deployerTransfer = await chain.callContract(
       contractAddress,
       contractName,
@@ -303,6 +304,9 @@ describe("token contract", () => {
 
     expect(deployerTransfer).to.be.ok;
     expect(deployerTransfer.success).to.be.true;
+
+    const contractEventsInfo = await chain.getContractEventsInfo(`${contractAddress}.${contractName}`);
+    console.log(contractEventsInfo);
 
     const wallet1NewBalance = await chain.callReadOnlyFn(
       contractAddress,
@@ -356,7 +360,7 @@ describe("token contract", () => {
     expect(updatedDeployerBalance).to.be.ok;
     expect(updatedDeployerBalance.success).to.be.true;
     expect(+updatedDeployerBalance.value.value).to.be.equal(
-      +initialDeployerBalance.value.value + 90
+      +initialDeployerBalance.value.value + 90 - 50
     );
 
     const updatedwallet1Balance = await chain.callReadOnlyFn(
@@ -370,7 +374,7 @@ describe("token contract", () => {
     expect(updatedwallet1Balance).to.be.ok;
     expect(updatedwallet1Balance.success).to.be.true;
     expect(+updatedwallet1Balance.value.value).to.be.equal(
-      +initialwallet1Balance.value.value + 50
+      +initialwallet1Balance.value.value + 50 + 50
     );
   });
 });
