@@ -1,3 +1,5 @@
+(impl-trait .mint-trait.mint-trait)
+
 (define-constant unauthorized-minter u100)
 (define-constant minter-transfer-not-submitted-by-minter u107)
 (define-constant another-minter-transfer-is-submitted u108)
