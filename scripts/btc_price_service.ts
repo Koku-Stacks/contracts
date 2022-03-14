@@ -1,14 +1,22 @@
-import { StacksMainnet, StacksTestnet } from "@stacks/network";
-import { AnchorMode, broadcastTransaction, makeContractCall, uintCV } from "@stacks/transactions";
-import { generateWallet } from "@stacks/wallet-sdk";
+import { TransactionVersion, uintCV } from "@stacks/transactions";
+import { generateWallet, getStxAddress } from "@stacks/wallet-sdk";
 import { readFileSync } from "fs";
+import { StacksChain } from "../integration/framework/stacks.chain";
 
 const axios = require('axios').default;
+
+const coinmarketcap_api_key = "0acaf66d-e715-4d7b-bae2-f7648453f8e6";
+const nomics_api_key = "3bf7ef015adadeaa258ffca8145c56c7475e427d";
+const outlier_price_margin = 0.05;
+const price_fetching_interval_ms = 60000;
+const contract_name = "current-price";
+const method_name = "update-price";
+const fp_decimal_places = 6;
 
 const config = read_config();
 
 function read_config() {
-    const raw_file_content = readFileSync('btc_price_service_config.json');
+    const raw_file_content = readFileSync('stacks_config.json');
 
     const json_config = JSON.parse(raw_file_content.toString());
 
@@ -68,9 +76,8 @@ async function fetch_btc_price_from_coingecko(): Promise<number> {
 async function fetch_btc_price_from_coinmarketcap(): Promise<number> {
     try {
         const request_url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=1';
-        const api_key = config.coinmarketcap_api_key;
 
-        const response = await axios.get(request_url, { headers: { 'X-CMC_PRO_API_KEY': api_key } });
+        const response = await axios.get(request_url, { headers: { 'X-CMC_PRO_API_KEY': coinmarketcap_api_key } });
 
         return parseFloat(response.data.data.find((entry) => entry.name === 'Bitcoin').quote.USD.price);
     } catch (error) {
@@ -80,8 +87,7 @@ async function fetch_btc_price_from_coinmarketcap(): Promise<number> {
 
 async function fetch_btc_price_from_nomics(): Promise<number> {
     try {
-        const api_key = config.nomics_api_key;
-        const request_url = `https://api.nomics.com/v1/currencies/ticker?key=${api_key}&ids=BTC&per-page=1&page=1`
+        const request_url = `https://api.nomics.com/v1/currencies/ticker?key=${nomics_api_key}&ids=BTC&per-page=1&page=1`
 
         const response = await axios.get(request_url);
 
@@ -112,49 +118,50 @@ async function calculate_btc_price_average(price_sources: Array<() => Promise<nu
 
     const prices = await Promise.all(price_promises);
 
-    const outlier_margin = config.outlier_price_margin;
-
     const average_price = average(prices);
 
-    const non_outlier_prices = drop_outliers(prices, average_price, outlier_margin);
+    const non_outlier_prices = drop_outliers(prices, average_price, outlier_price_margin);
 
     return average(non_outlier_prices);
 }
 
-async function register_btc_price_on_chain(btc_price: number, timestamp: number) {
-    let network_builder = StacksTestnet;
-    if (config.btc_price_contract.network_type === 'mainnet') {
-        network_builder = StacksMainnet;
+const transaction_version = get_transaction_version(config.network_type);
+
+function get_transaction_version(network_type): TransactionVersion {
+    if (network_type === 'mainnet') {
+        return TransactionVersion.Mainnet;
+    } else {
+        return TransactionVersion.Testnet;
     }
+}
 
-    const network = new network_builder({url: config.btc_price_contract.node_url});
+const networkEndPoint = config.node_url;
 
-    const wallet = generateWallet({
-        secretKey: config.price_sender.secret_key,
-        password: config.price_sender.password
+const chain = new StacksChain(networkEndPoint, {
+    defaultFee: config.default_fee,
+});
+
+async function register_btc_price_on_chain(btc_price: number, timestamp: number) {
+    const wallet = await generateWallet({
+        secretKey: config.seed_phrase,
+        password: "testing_password"
     });
 
-    const btc_price_as_fixed_point_uint = Math.floor(btc_price * 10 ** config.btc_price_contract.fp_decimal_places);
+    const account = wallet.accounts[0];
 
-    const postConditions = [];
+    const address = getStxAddress({ account, transactionVersion: transaction_version });
 
-    const tx_options = {
-        contractAddress: config.btc_price_contract.address,
-        contractName: config.btc_price_contract.name,
-        functionName: config.btc_price_contract.function,
-        functionArgs: [uintCV(btc_price_as_fixed_point_uint), uintCV(timestamp)],
-        senderKey: (await wallet).accounts[0].stxPrivateKey,
-        validateWithAbi: true,
-        network,
-        postConditions,
-        anchorMode: AnchorMode.Any
-    };
+    const btc_price_as_fixed_point_uint = Math.floor(btc_price * 10 ** fp_decimal_places);
 
-    const transaction = await makeContractCall(tx_options);
+    const tx_id = await chain.callContract(
+        address,
+        contract_name,
+        method_name,
+        [uintCV(btc_price_as_fixed_point_uint), uintCV(timestamp)],
+        account.stxPrivateKey
+    )
 
-    const response = await broadcastTransaction(transaction, network);
-
-    return response.txid;
+    return tx_id;
 }
 
 const btc_price_sources = [
@@ -179,17 +186,12 @@ async function service_iteration() {
 
 async function service() {
     console.log("Parameters:");
-    console.log(`-- Outlier price margin: ${config.outlier_price_margin}`);
-    console.log(`-- Price fetching interval (ms): ${config.price_fetching_interval}`);
-    console.log(`-- BTC price contract:`);
-    console.log(`-- -- node url: ${config.btc_price_contract.node_url}`);
-    console.log(`-- -- network type: ${config.btc_price_contract.network_type}`);
-    console.log(`-- -- address: ${config.btc_price_contract.address}`);
-    console.log(`-- -- name: ${config.btc_price_contract.name}`);
-    console.log(`-- -- function: ${config.btc_price_contract.function}`);
-    console.log(`-- -- fixed point decimal places: ${config.btc_price_contract.fp_decimal_places}`);
+    console.log(`-- node url: ${config.node_url}`);
+    console.log(`-- network type: ${config.network_type}`);
+    console.log(`-- default fee: ${config.default_fee}`);
+    console.log('------');
 
-    setInterval(service_iteration, config.price_fetching_interval);
+    setInterval(service_iteration, price_fetching_interval_ms);
 }
 
 service();
