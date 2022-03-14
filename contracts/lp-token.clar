@@ -88,6 +88,6 @@
 
 ;; initialize approved contracts map
 (begin 
-  (map-set approved-contracts 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.amm true)
-  (map-set approved-contracts 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.vault true)
+  (map-set approved-contracts .amm true)
+  (map-set approved-contracts .vault true)
 )
