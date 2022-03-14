@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "clarinet test",
-    "deploy": "ts-node scripts/script_deploy.ts",
+    "deploy": "ts-node scripts/deploy_contract.ts",
     "btc-price-service": "ts-node scripts/btc_price_service.ts"
   },
   "devDependencies": {
