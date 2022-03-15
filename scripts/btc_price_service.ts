@@ -197,9 +197,9 @@ async function service_iteration() {
 
     const timestamp = Date.now();
 
-    const transaction_id = await register_btc_price_on_chain(btc_price, timestamp);
+    await register_btc_price_on_chain(btc_price, timestamp);
 
-    console.log(`BTC price ${btc_price} registered at ${new Date(timestamp).toString()} by transaction ${transaction_id}`);
+    console.log(`BTC price ${btc_price} registered at ${timestamp}`);
 }
 
 async function service() {
