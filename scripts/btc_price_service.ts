@@ -9,6 +9,7 @@ const coinmarketcap_api_key = "0acaf66d-e715-4d7b-bae2-f7648453f8e6";
 const nomics_api_key = "3bf7ef015adadeaa258ffca8145c56c7475e427d";
 const outlier_price_margin = 0.05;
 const price_fetching_interval_ms = 60000;
+const price_fetching_timeout_ms = 1000;
 const contract_name = "current-price";
 const method_name = "update-price";
 const fp_decimal_places = 6;
@@ -127,9 +128,15 @@ function promiseTimeoutDefaultValue<T>(promise: Promise<T>, timeout: number, def
 async function calculate_btc_price_average(price_sources: Array<() => Promise<number>>): Promise<number> {
     const price_promises = price_sources.map((price_source) => price_source());
 
-    const prices = await Promise.all(price_promises);
+    const price_promises_with_timeout = price_promises.map(
+        (price_promise) => promiseTimeoutDefaultValue(price_promise, price_fetching_timeout_ms, -1)
+    );
 
-    const average_price = average(prices);
+    const prices = await Promise.all(price_promises_with_timeout);
+
+    const non_time_out_prices = prices.filter((price) => price !== -1);
+
+    const average_price = average(non_time_out_prices);
 
     const non_outlier_prices = drop_outliers(prices, average_price, outlier_price_margin);
 
