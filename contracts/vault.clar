@@ -10,7 +10,7 @@
 
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
-(define-data-var approved-token principal 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token)
+(define-data-var approved-token principal .token)
 (define-map ledger principal uint)
 
 (define-read-only (get-owner)

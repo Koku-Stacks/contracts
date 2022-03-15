@@ -57,6 +57,8 @@
 ;;  The Business Source License (this document, or the "License") is not an Open Source license. However, the Licensed Work will eventually be made available under an Open Source License, as stated in this License.
 
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
+(impl-trait .mint-trait.mint-trait)
+(impl-trait .burn-trait.burn-trait)
 
 (define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u100))
 (define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u101))

@@ -1,6 +1,7 @@
 (impl-trait .owner-trait.owner-trait)
 (impl-trait .sip-010-trait-ft-standard.sip-010-trait)
-(impl-trait .custom-sip-010-trait.custom-sip-010-trait)
+(impl-trait .mint-trait.mint-trait)
+(impl-trait .burn-trait.burn-trait)
 
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
@@ -87,6 +88,6 @@
 
 ;; initialize approved contracts map
 (begin 
-  (map-set approved-contracts 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.amm true)
-  (map-set approved-contracts 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.vault true)
+  (map-set approved-contracts .amm true)
+  (map-set approved-contracts .vault true)
 )

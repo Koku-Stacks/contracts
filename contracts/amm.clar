@@ -16,7 +16,6 @@
 (define-constant ERR_INVALID_OPTION_DURATION (err u109))
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
-(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
 (define-constant buffer-max-limit u10)
@@ -37,7 +36,6 @@
 (define-data-var empty bool true)
 (define-data-var number-inserted-items uint u0)
 (define-data-var initialized bool false)
-(define-data-var approved-token principal 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token)
 (define-data-var token-uri (string-utf8 256) u"https://dy.finance/")
 
 (define-read-only (get-name)
@@ -57,9 +55,6 @@
 
 (define-read-only (get-token-uri)
   (ok (some (var-get token-uri))))
-
-(define-read-only (get-approved-token)
-    (ok (var-get approved-token)))
 
 (define-read-only (get-ledger-balance (person principal))
     (default-to u0 (map-get? ledger person)))
@@ -272,19 +267,17 @@
       true)
     (ok true)))
 
-(define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
+(define-public (deposit (amount uint) (memo (optional (buff 34))))
     (let
         ((sender tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (contract-call? .token transfer amount sender this-contract memo))
         (try! (mint amount sender))
         (map-set ledger sender (+ (get-ledger-balance sender) amount))
         (ok true)))
 
-(define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
+(define-public (withdraw (amount uint) (memo (optional (buff 34))))
     (let
         ((recipient tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (as-contract (contract-call? .token transfer amount this-contract recipient memo)))
         (try! (burn amount recipient))
         (asserts! (>= (get-ledger-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
