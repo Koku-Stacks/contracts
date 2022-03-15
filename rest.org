@@ -88,7 +88,7 @@
 
 **** get transaction by id
 
-     get /b9b30f0522ea71e340f442ab1779052f5fb0862386e9c41a77e0eeb3895bad72
+     get /f9a061bf0feb5b4f320ad3e3b15718ea8c7fb0e38a737a05455d4abb964fc73a
 
 *** contracts endpoint
 
@@ -96,7 +96,7 @@
 
 **** info by id
 
-     get /ST2MS242NQPHMPNQRJ5YZDZQZQDVBBC14J8XM3JT7.testing
+     get /ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.current-price
 
 *** address endpoint
 
@@ -137,3 +137,29 @@
 *** accounts endpoint
 
    get /accounts
+
+*** contracts endpoint
+
+    template /contracts
+
+**** call read only function endpoint
+
+     template /call-read
+
+***** current-price contract
+
+      template /ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM/current-price
+      Content-Type: application/json
+
+      {
+          "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+          "arguments": []
+      }
+
+****** get current price call
+
+       post /get-current-price
+       
+****** get current timestamp call
+
+       post /get-current-timestamp
