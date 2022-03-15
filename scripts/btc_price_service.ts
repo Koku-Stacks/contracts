@@ -113,6 +113,17 @@ function drop_outliers(prices: number[], average: number, margin: number): numbe
     return prices.filter((price) => within_margin(price, average, margin));
 }
 
+function promiseTimeoutDefaultValue<T>(promise: Promise<T>, timeout: number, default_value: T): Promise<T> {
+    const timeout_promise: Promise<T> = new Promise((resolve, _reject) => {
+        const id = setTimeout(() => {
+            clearTimeout(id);
+            resolve(default_value);
+        }, timeout);
+    });
+
+    return Promise.race([promise, timeout_promise]);
+}
+
 async function calculate_btc_price_average(price_sources: Array<() => Promise<number>>): Promise<number> {
     const price_promises = price_sources.map((price_source) => price_source());
 
