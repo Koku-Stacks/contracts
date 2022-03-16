@@ -12,24 +12,26 @@
   },
   "scripts": {
     "test": "clarinet test",
-    "deploy": "ts-node scripts/script_deploy.ts"
+    "deploy": "ts-node scripts/script_deploy.ts",
+    "multi_sig": "ts-node scripts/multi_sig.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^10",
+    "@types/node": "^10.17.60",
     "chai": "^4.2.0",
-    "mocha": "^6.1.4",
+    "mocha": "^9.2.2",
     "ts-node": "^8.10.2",
     "typescript": "^3.5.2"
   },
   "dependencies": {
     "@blockstack/clarity": "^0.3.15",
-    "@stacks/cli": "3.0.0",
+    "@stacks/cli": "^3.4.0",
     "@stacks/keychain": "3.0.0",
     "@stacks/network": "3.0.0",
     "@stacks/transactions": "3.0.0",
     "@stacks/wallet-sdk": "3.0.0",
-    "yargs": "^13.3.2"
+    "big-integer": "^1.6.51",
+    "yargs": "^17.3.1"
   }
 }
