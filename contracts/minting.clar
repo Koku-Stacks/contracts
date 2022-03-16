@@ -1,53 +1,47 @@
 (impl-trait .mint-trait.mint-trait)
+(impl-trait .owner-trait.owner-trait)
 
-(define-constant unauthorized-minter u100)
-(define-constant minter-transfer-not-submitted-by-minter u107)
-(define-constant another-minter-transfer-is-submitted u108)
-(define-constant minter-transfer-not-cancelled-by-minter u109)
-(define-constant no-minter-transfer-to-cancel u110)
-(define-constant no-minter-transfer-to-confirm u111)
-(define-constant minter-transfer-not-confirmed-by-new-minter u112)
+(define-constant ERR_NOT_AUTHORIZED (err u1000))
+(define-constant ERR_NOT_NEW_OWNER (err u2000))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
 
 (define-constant this-contract (as-contract tx-sender))
 
-(define-data-var minter principal tx-sender)
-(define-data-var submitted-new-minter (optional principal) none)
+(define-data-var contract-owner principal tx-sender)
+(define-data-var submitted-new-owner (optional principal) none)
 
-(define-read-only (get-minter)
-  (var-get minter))
+(define-read-only (get-owner)
+  (ok (var-get contract-owner)))
 
-(define-public (submit-minter-transfer (new-minter principal))
+(define-public (submit-ownership-transfer (new-owner principal))
   (begin
-    (asserts! (is-eq (get-minter) tx-sender) (err minter-transfer-not-submitted-by-minter))
-    (asserts! (is-none (var-get submitted-new-minter)) (err another-minter-transfer-is-submitted))
-    (var-set submitted-new-minter (some new-minter))
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-none (var-get submitted-new-owner)) ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED)
+    (var-set submitted-new-owner (some new-owner))
     (ok true)))
 
-(define-public (cancel-minter-transfer)
+(define-public (cancel-ownership-transfer)
   (begin
-    (asserts! (is-eq (get-minter) tx-sender) (err minter-transfer-not-cancelled-by-minter))
-    (asserts! (is-some (var-get submitted-new-minter)) (err no-minter-transfer-to-cancel))
-    (var-set submitted-new-minter none)
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL)
+    (var-set submitted-new-owner none)
     (ok true)))
 
-(define-public (confirm-minter-transfer)
-  (match (var-get submitted-new-minter)
-    new-minter
-    (begin
-      (asserts! (is-eq (some tx-sender) (var-get submitted-new-minter)) (err minter-transfer-not-confirmed-by-new-minter))
-      (var-set submitted-new-minter none)
-      (var-set minter new-minter)
-      (ok true))
-    (err no-minter-transfer-to-confirm)))
+(define-public (confirm-ownership-transfer)
+  (begin
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM)
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_NOT_NEW_OWNER)
+    (var-set contract-owner (unwrap-panic (var-get submitted-new-owner)))
+    (var-set submitted-new-owner none)
+    (ok true)))
 
 (define-read-only (get-remaining-tokens-to-mint)
   (contract-call? .token get-remaining-tokens-to-mint))
 
-(define-public (mint (amount uint) (to principal))
+(define-public (mint (amount uint) (recipient principal))
   (begin
-    (asserts! (is-eq tx-sender (get-minter)) (err unauthorized-minter))
-    (match (as-contract (contract-call? .token mint amount to))
-      ok-mint
-      (ok true)
-      err-mint
-      (err err-mint))))
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (try! (as-contract (contract-call? .token mint amount recipient)))
+    (ok true)))
