@@ -8,7 +8,6 @@ const axios = require('axios').default;
 const coinmarketcap_api_key = "0acaf66d-e715-4d7b-bae2-f7648453f8e6";
 const nomics_api_key = "3bf7ef015adadeaa258ffca8145c56c7475e427d";
 const outlier_price_margin = 0.05;
-const price_fetching_interval_ms = 60000;
 const price_fetching_timeout_ms = 1000;
 const contract_name = "current-price";
 const method_name = "update-price";
