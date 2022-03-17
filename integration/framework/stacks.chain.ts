@@ -174,8 +174,7 @@ export class StacksChain {
       );
     }
 
-    const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-    return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
+    return broadcast_response;
   }
 
   async deployContract(
@@ -258,6 +257,21 @@ export class StacksChain {
     }
   }
 
+  public async getTransactionResponse(txid: string) {
+    const transactionInfo = await this.waitTransaction(txid);
+    return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
+  }
+
+  public async getTransactionEvents(txid: string) {
+    const transactionEvents = await this.waitTransaction(txid);
+    transactionEvents.events.forEach((event: any) => {
+      if(event.event_type == "smart_contract_log"){
+        console.log(cvToJSON(hexToCV(event.contract_log.value.hex)).value);
+      }
+    });
+    return transactionEvents.events;
+  }
+
   private async waitTransaction(txId: string) {
     let transactionInfo;
 
@@ -282,22 +296,6 @@ export class StacksChain {
     }
 
     return transactionInfo;
-  }
-
-  public async getContractEventsInfo(contractId: string) {
-
-    let contractInfo = await fetch(`${this.url}/extended/v1/contract/${contractId}/events`).then(
-      (x) => x.json()
-    );
-
-    if (this.options.logLevel >= LogLevel.INFO) {
-      console.log(
-        "Stacks: contract succeeded",
-        `smart_contract: ${contractId}`
-      );
-    }
-
-    return contractInfo;
   }
 }
 

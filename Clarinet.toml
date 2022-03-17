@@ -2,7 +2,6 @@
 name = "dy.finance"
 requirements = []
 costs_version = 1
-
 [contracts.amm]
 path = "contracts/amm.clar"
 depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
@@ -11,24 +10,28 @@ depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
 path = "contracts/traits/custom-sip-010-trait.clar"
 depends_on = []
 
-[contracts.minting]
-path = "contracts/minting.clar"
-depends_on = ["token"]
+[contracts.hello]
+path = "contracts/hello.clar"
+depends_on = []
 
 [contracts.lp-token]
 path = "contracts/lp-token.clar"
 depends_on = ["owner-trait", "sip-010-trait-ft-standard", "custom-sip-010-trait"]
 
+[contracts.minting]
+path = "contracts/minting.clar"
+depends_on = ["token"]
+
 [contracts.owner-trait]
 path = "contracts/traits/owner-trait.clar"
 depends_on = []
 
-[contracts.sip013-trait-sft-standard]
-path = "contracts/traits/sip013-trait-sft-standard.clar"
-depends_on = []
-
 [contracts.sip-010-trait-ft-standard]
 path = "contracts/traits/sip-010-trait-ft-standard.clar"
+depends_on = []
+
+[contracts.sip013-trait-sft-standard]
+path = "contracts/traits/sip013-trait-sft-standard.clar"
 depends_on = []
 
 [contracts.token]
