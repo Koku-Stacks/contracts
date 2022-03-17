@@ -46,30 +46,18 @@ async function multi_signature() {
     publicKeys: pubKeyStrings, // public key string array with >= numSignatures elements
     anchorMode: AnchorMode.Any,
   });
-  // console.log(transaction);
-
-  // console.log(serializedTx);
-
-  // deserialize and sign transaction
-  // const bufferReader = Buffer.from(serializedTx);
-
+  
   const signer = new TransactionSigner(transaction);
-  // console.log(signer);
 
   for (let i = 0; i < numberOfSignatureRequired; i++) {
-    // // first signature
     signer.signOrigin(privKeys[i]);
   }
   signer.appendOrigin(pubKeys[2]);
-  // console.log(signer);
+  
   const serializedTx = transaction.serialize();
   const bufferReader = new BufferReader(serializedTx);
   const deserializedTx = deserializeTransaction(bufferReader);
-  // console.log(deserializedTx);
-  // after meeting the numSignatures requirement, the public
-  // keys of the participants who did not sign must be appended
 
-  // the serialized multi-sig tx
   const serializedSignedTx = deserializedTx.serialize();
   console.log(serializedSignedTx);
 }
