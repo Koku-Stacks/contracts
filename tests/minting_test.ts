@@ -1,137 +1,128 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
-const insufficientTokensToMint = 108;
-const minterTransferNotSubmittedByMinter = 107;
-const anotherMinterTransferIsSubmitted = 108;
-const minterTransferNotCancelledByMinter = 109;
-const noMinterTransferToCancel = 110;
-const noMinterTransferToConfirm = 111;
-const minterTransferNotConfirmedByNewMinter = 112;
+const ERR_NOT_AUTHORIZED = 102;
+const ERR_CONTRACT_OWNER_ONLY = 103;
+const ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED = 104;
+const ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL = 105;
+const ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM = 106;
+const ERR_NOT_NEW_OWNER = 107;
+const ERR_INSUFFICIENT_TOKENS_TO_MINT = 108;
 
 Clarinet.test({
-    name: "Ensure the minter management facilities work as expected",
+    name: "Ensure that submit ownership can only be called by owner",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
-        const wallet1 = accounts.get('wallet_1')!;
-        const wallet2 = accounts.get('wallet_2')!;
-
-        let minter = chain.callReadOnlyFn('minting', 'get-minter', [], wallet2.address);
-        minter.result.expectPrincipal(deployer.address);
-
-        const block1 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'submit-minter-transfer',
-                            [types.principal(wallet1.address)],
-                            wallet1.address)
-        ]);
-
-        const [badSubmitMinterTransferCall1] = block1.receipts;
-
-        badSubmitMinterTransferCall1.result.expectErr().expectUint(minterTransferNotSubmittedByMinter);
-
-        const block2 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'submit-minter-transfer',
-                            [types.principal(wallet1.address)],
-                            deployer.address)
-        ]);
-
-        const [goodSubmitMinterTransferCall1] = block2.receipts;
-
-        goodSubmitMinterTransferCall1.result.expectOk().expectBool(true);
-
-        const block3 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'submit-minter-transfer',
-                            [types.principal(wallet2.address)],
-                            deployer.address)
-        ]);
-
-        const [badSubmitMinterTransferCall3] = block3.receipts;
-
-        badSubmitMinterTransferCall3.result.expectErr().expectUint(anotherMinterTransferIsSubmitted);
-
-        const block4 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'cancel-minter-transfer',
-                            [],
-                            wallet2.address)
-        ]);
-
-        const [badCancelMinterTransferCall1] = block4.receipts;
-
-        badCancelMinterTransferCall1.result.expectErr().expectUint(minterTransferNotCancelledByMinter);
-
-        const block5 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'cancel-minter-transfer',
-                            [],
-                            deployer.address)
-        ]);
-
-        const [goodCancelMinterTransferCall] = block5.receipts;
-
-        goodCancelMinterTransferCall.result.expectOk().expectBool(true);
-
-        const block6 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'confirm-minter-transfer',
-                            [],
-                            wallet1.address)
-        ]);
-
-        const [badConfirmMinterTransferCall1] = block6.receipts;
-
-        badConfirmMinterTransferCall1.result.expectErr().expectUint(noMinterTransferToConfirm);
-
-        const block7 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'cancel-minter-transfer',
-                            [],
-                            deployer.address)
-        ]);
-
-        const [badCancelMinterTransferCall2] = block7.receipts;
-
-        badCancelMinterTransferCall2.result.expectErr().expectUint(noMinterTransferToCancel);
-
-        const block8 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'submit-minter-transfer',
-                            [types.principal(wallet2.address)],
-                            deployer.address)
-        ]);
-
-        const [goodSubmitMinterTransferCall2] = block8.receipts;
-
-        goodSubmitMinterTransferCall2.result.expectOk().expectBool(true);
-
-        const block9 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'confirm-minter-transfer',
-                            [],
-                            deployer.address)
-        ]);
-
-        const [badConfirmMinterTransferCall2] = block9.receipts;
-
-        badConfirmMinterTransferCall2.result.expectErr().expectUint(minterTransferNotConfirmedByNewMinter);
-
-        const block10 = chain.mineBlock([
-            Tx.contractCall('minting',
-                            'confirm-minter-transfer',
-                            [],
-                            wallet2.address)
-        ]);
-
-        const [goodConfirmMinterTransferCall] = block10.receipts;
-
-        goodConfirmMinterTransferCall.result.expectOk().expectBool(true);
-
-        minter = chain.callReadOnlyFn('minting', 'get-minter', [], wallet2.address);
-        minter.result.expectPrincipal(wallet2.address);
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+        
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('minting',
+                'submit-ownership-transfer',
+                [types.principal(userB.address)],
+                userB.address)
+            ]);
+        call.receipts[0].result.expectErr().expectUint(1000);
     }
-});
+})
+
+Clarinet.test({
+    name: "Ensure that submit ownership transfer cannot be called again if already submitted",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+        
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('minting',
+                'submit-ownership-transfer',
+                [types.principal(userB.address)],
+                deployer.address),
+                Tx.contractCall('minting',
+                'submit-ownership-transfer',
+                [types.principal(userB.address)],
+                deployer.address)
+            ]);
+        call.receipts[1].result.expectErr().expectUint(2001);
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that cancel ownership can only be called by owner",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+        
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('minting',
+                'cancel-ownership-transfer',
+                [],
+                userB.address)
+            ]);
+        call.receipts[0].result.expectErr().expectUint(1000);
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that cancel ownership transfer cannot be called for non submitted user",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+        
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('minting',
+                'cancel-ownership-transfer',
+                [],
+                deployer.address)
+            ]);
+        call.receipts[0].result.expectErr().expectUint(2002);
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that confirm ownership can only be called when a transfer has been submitted",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+        
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('minting',
+                'confirm-ownership-transfer',
+                [],
+                userA.address)
+            ]);
+        call.receipts[0].result.expectErr().expectUint(2003);
+    }
+})
+
+Clarinet.test({
+    name: "Ensure that confirm ownership transfer can only be called by submitted owner",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+        
+        let call = chain.mineBlock(
+            [
+                Tx.contractCall('minting',
+                'submit-ownership-transfer',
+                [types.principal(userB.address)],
+                deployer.address),
+                Tx.contractCall('minting',
+                'confirm-ownership-transfer',
+                [],
+                userA.address)
+            ]);
+        call.receipts[1].result.expectErr().expectUint(2000);
+    }
+})
 
 Clarinet.test({
     name: "Ensure the token max supply constraint is respected",
@@ -193,7 +184,7 @@ Clarinet.test({
 
         const [badMintCall1] = block4.receipts;
 
-        badMintCall1.result.expectErr().expectUint(insufficientTokensToMint);
+        badMintCall1.result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
 
         remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(maxTokensToMint - 2 * amountToMint);
@@ -215,7 +206,7 @@ Clarinet.test({
 
         const [badMintCall2] = block6.receipts;
 
-        badMintCall2.result.expectErr().expectUint(insufficientTokensToMint);
+        badMintCall2.result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
 
         remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(0);
@@ -252,7 +243,7 @@ Clarinet.test({
         const [goodMintCall, badMintCall] = block1.receipts;
 
         goodMintCall.result.expectOk().expectBool(true);
-        badMintCall.result.expectErr().expectUint(insufficientTokensToMint);
+        badMintCall.result.expectErr().expectUint(ERR_INSUFFICIENT_TOKENS_TO_MINT);
 
         remainingTokensToMint = chain.callReadOnlyFn('minting', 'get-remaining-tokens-to-mint', [], deployer.address);
         remainingTokensToMint.result.expectUint(maxTokensToMint - toMintMoreThanHalf);
