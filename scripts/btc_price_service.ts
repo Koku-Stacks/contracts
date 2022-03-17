@@ -192,16 +192,6 @@ const btc_price_sources = [
     fetch_btc_price_from_nomics
 ];
 
-async function service_iteration() {
-    const btc_price = await calculate_btc_price_average(btc_price_sources);
-
-    const timestamp = Date.now();
-
-    await register_btc_price_on_chain(btc_price, timestamp);
-
-    console.log(`BTC price ${btc_price} registered at ${timestamp}`);
-}
-
 async function service() {
     console.log("Parameters:");
     console.log(`-- node url: ${config.node_url}`);
@@ -209,7 +199,13 @@ async function service() {
     console.log(`-- default fee: ${config.default_fee}`);
     console.log('------');
 
-    setInterval(service_iteration, price_fetching_interval_ms);
+    const btc_price = await calculate_btc_price_average(btc_price_sources);
+
+    const timestamp = Date.now();
+
+    await register_btc_price_on_chain(btc_price, timestamp);
+
+    console.log(`BTC price ${btc_price} registered at ${timestamp}`);
 }
 
 service();
