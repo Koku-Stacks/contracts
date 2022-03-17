@@ -1,6 +1,6 @@
 import { TransactionVersion, uintCV } from "@stacks/transactions";
 import { generateWallet, getStxAddress } from "@stacks/wallet-sdk";
-import { readFileSync } from "fs";
+import * as config from "../config";
 import { StacksChain } from "../integration/framework/stacks.chain";
 
 const axios = require('axios').default;
@@ -12,16 +12,6 @@ const price_fetching_timeout_ms = 1000;
 const contract_name = "current-price";
 const method_name = "update-price";
 const fp_decimal_places = 6;
-
-const config = read_config();
-
-function read_config() {
-    const raw_file_content = readFileSync('stacks_config.json');
-
-    const json_config = JSON.parse(raw_file_content.toString());
-
-    return json_config;
-}
 
 async function fetch_btc_price_from_coinbase(): Promise<number> {
     try {
