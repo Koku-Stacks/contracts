@@ -11,7 +11,7 @@ const outlier_price_margin = 0.05;
 const price_fetching_timeout_ms = 1000;
 const contract_name = "current-price";
 const method_name = "update-price";
-const fp_decimal_places = 6;
+export const fp_decimal_places = 6;
 
 async function fetch_btc_price_from_coinbase(): Promise<number> {
     try {
@@ -181,7 +181,7 @@ const btc_price_sources = [
     fetch_btc_price_from_nomics
 ];
 
-async function service() {
+export async function service() {
     console.log("Parameters:");
     console.log(`-- node url: ${config.node_url}`);
     console.log(`-- network type: ${config.network_type}`);
@@ -194,7 +194,9 @@ async function service() {
 
     await register_btc_price_on_chain(btc_price, timestamp);
 
-    console.log(`BTC price ${btc_price} registered at ${timestamp}`);
+    console.log(`BTC price ${btc_price} registered at ${timestamp}`)
+
+    return {btc_price: btc_price, timestamp: timestamp};
 }
 
 service();
