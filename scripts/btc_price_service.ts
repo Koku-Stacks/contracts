@@ -1,7 +1,8 @@
-import { uintCV } from "@stacks/transactions";
-import { generateWallet, getStxAddress } from "@stacks/wallet-sdk";
 import * as config from "../config";
 import { StacksChain } from "../integration/framework/stacks.chain";
+
+const transactions = require("@stacks/transactions");
+const wallet_sdk = require("@stacks/wallet-sdk");
 
 const axios = require('axios').default;
 
@@ -155,14 +156,14 @@ const chain = new StacksChain(networkEndPoint, {
 });
 
 async function register_btc_price_on_chain(btc_price: number, timestamp: number) {
-    const wallet = await generateWallet({
+    const wallet = await wallet_sdk.generateWallet({
         secretKey: config.seed_phrase,
         password: "testing_password"
     });
 
     const account = wallet.accounts[0];
 
-    const address = getStxAddress({ account, transactionVersion: transaction_version });
+    const address = wallet_sdk.getStxAddress({ account, transactionVersion: transaction_version });
 
     const btc_price_as_fixed_point_uint = Math.floor(btc_price * 10 ** fp_decimal_places);
 
@@ -170,7 +171,7 @@ async function register_btc_price_on_chain(btc_price: number, timestamp: number)
         address,
         contract_name,
         method_name,
-        [uintCV(btc_price_as_fixed_point_uint), uintCV(timestamp)],
+        [transactions.uintCV(btc_price_as_fixed_point_uint), transactions.uintCV(timestamp)],
         account.stxPrivateKey
     )
 
