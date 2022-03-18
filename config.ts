@@ -5,7 +5,7 @@ export const network_type = "testnet";
 export const node_url = "http://3.64.221.107:3999";
 export const default_fee = 100000;
 
-export function get_transaction_version(network_type): TransactionVersion {
+export function get_transaction_version(network_type: string): TransactionVersion {
     if (network_type === 'mainnet') {
         return TransactionVersion.Mainnet;
     } else {
