@@ -146,15 +146,7 @@ async function calculate_btc_price_average(price_sources: Array<() => Promise<nu
     return average(non_outlier_prices);
 }
 
-const transaction_version = get_transaction_version(config.network_type);
-
-function get_transaction_version(network_type): TransactionVersion {
-    if (network_type === 'mainnet') {
-        return TransactionVersion.Mainnet;
-    } else {
-        return TransactionVersion.Testnet;
-    }
-}
+const transaction_version = config.get_transaction_version(config.network_type);
 
 const networkEndPoint = config.node_url;
 
