@@ -20,6 +20,8 @@ async function fetch_btc_price_from_coinbase(): Promise<number> {
         return parseFloat(response.data.data.amount)
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
@@ -27,9 +29,11 @@ async function fetch_btc_price_from_gemini(): Promise<number> {
     try {
         const response = await axios.get('https://api.gemini.com/v1/pricefeed');
 
-        return parseFloat(response.data.find((entry) => entry.pair === "BTCUSD").price);
+        return parseFloat(response.data.find((entry: any) => entry.pair === "BTCUSD").price);
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
@@ -40,6 +44,8 @@ async function fetch_btc_price_from_coindesk(): Promise<number> {
         return parseFloat(response.data.bpi.USD.rate_float);
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
@@ -50,6 +56,8 @@ async function fetch_btc_price_from_messari(): Promise<number> {
         return parseFloat(response.data.data.market_data.price_usd);
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
@@ -57,9 +65,11 @@ async function fetch_btc_price_from_coingecko(): Promise<number> {
     try {
         const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin');
 
-        return parseFloat(response.data.find((entry) => entry.id === "bitcoin").current_price);
+        return parseFloat(response.data.find((entry: any) => entry.id === "bitcoin").current_price);
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
@@ -69,9 +79,11 @@ async function fetch_btc_price_from_coinmarketcap(): Promise<number> {
 
         const response = await axios.get(request_url, { headers: { 'X-CMC_PRO_API_KEY': coinmarketcap_api_key } });
 
-        return parseFloat(response.data.data.find((entry) => entry.name === 'Bitcoin').quote.USD.price);
+        return parseFloat(response.data.data.find((entry: any) => entry.name === 'Bitcoin').quote.USD.price);
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
@@ -81,9 +93,11 @@ async function fetch_btc_price_from_nomics(): Promise<number> {
 
         const response = await axios.get(request_url);
 
-        return parseFloat(response.data.find((entry) => entry.id === 'BTC').price);
+        return parseFloat(response.data.find((entry: any) => entry.id === 'BTC').price);
     } catch (error) {
         console.error(error);
+
+        return -1;
     }
 }
 
