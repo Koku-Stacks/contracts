@@ -1,4 +1,3 @@
-import { TransactionVersion } from "@stacks/transactions";
 import { generateWallet, getStxAddress } from '@stacks/wallet-sdk';
 import { readFileSync } from "fs";
 import { StacksChain } from "../integration/framework/stacks.chain";
