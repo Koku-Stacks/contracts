@@ -147,11 +147,7 @@ async function calculate_btc_price_average(price_sources: Array<() => Promise<nu
     return average(non_outlier_prices);
 }
 
-const chain = new StacksChain(config.node_url, {
-    defaultFee: config.default_fee,
-});
-
-async function register_btc_price_on_chain(btc_price: number, timestamp: number) {
+async function register_btc_price_on_chain(btc_price: number, timestamp: number, chain: StacksChain) {
     await chain.loadAccounts();
 
     const account = chain.accounts.get("deployer")!;
@@ -181,7 +177,7 @@ const btc_price_sources = [
     fetch_btc_price_from_nomics
 ];
 
-export async function service() {
+export async function service(chain?: StacksChain) {
     console.log("Parameters:");
     console.log(`-- node url: ${config.node_url}`);
     console.log(`-- network type: ${config.network_type}`);
@@ -192,7 +188,13 @@ export async function service() {
 
     const timestamp = Date.now();
 
-    await register_btc_price_on_chain(btc_price, timestamp);
+    if (typeof chain === 'undefined') {
+        chain = new StacksChain(config.node_url, {
+            defaultFee: config.default_fee,
+        });
+    }
+
+    await register_btc_price_on_chain(btc_price, timestamp, chain);
 
     console.log(`BTC price ${btc_price} registered at ${timestamp}`)
 
