@@ -16,7 +16,6 @@
 (define-constant ERR_INVALID_OPTION_DURATION (err u109))
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 (define-constant ERR_TOKEN_HOLDER_ONLY (err u1001))
-(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
 (define-constant buffer-max-limit u10)
@@ -37,7 +36,6 @@
 (define-data-var empty bool true)
 (define-data-var number-inserted-items uint u0)
 (define-data-var initialized bool false)
-(define-data-var approved-token principal 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token)
 (define-data-var token-uri (string-utf8 256) u"https://dy.finance/")
 
 (define-read-only (get-name)
@@ -57,9 +55,6 @@
 
 (define-read-only (get-token-uri)
   (ok (some (var-get token-uri))))
-
-(define-read-only (get-approved-token)
-    (ok (var-get approved-token)))
 
 (define-read-only (get-ledger-balance (person principal))
     (default-to u0 (map-get? ledger person)))
@@ -165,42 +160,6 @@
 (define-read-only (fp-exp (x int))
   (fp-range-reduced-taylor-4-exp x))
 
-;; FIXME just stub for now
-(define-read-only (fp-cdf (x int))
-  x)
-
-(define-read-only (calculate-d1 (s int) (k int) (t int) (r int) (v int))
-  (fp-divide (fp-add (fp-simpson-ln (fp-divide s k))
-                     (fp-multiply t
-                                  (fp-add r
-                                          (fp-divide (fp-square-of v)
-                                                     TWO_6))))
-             (fp-multiply v
-                          (fp-sqrt t))))
-
-(define-read-only (calculate-d2 (s int) (k int) (t int) (r int) (v int))
-  (fp-subtract (calculate-d1 s k t r v)
-               (fp-multiply v
-                            (fp-sqrt t))))
-
-(define-read-only (calculate-european-call (s int) (k int) (t int) (r int) (v int))
-  (let ((d1 (calculate-d1 s k t r v))
-        (d2 (calculate-d2 s k t r v)))
-    (fp-subtract (fp-multiply s
-                              (fp-cdf d1))
-                 (fp-multiply k
-                              (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
-                                           (fp-cdf d2))))))
-
-(define-read-only (calculate-european-put (s int) (k int) (t int) (r int) (v int))
-  (let ((d1 (calculate-d1 s k t r v))
-        (d2 (calculate-d2 s k t r v)))
-    (fp-subtract (fp-multiply k
-                              (fp-multiply (fp-inverse (fp-exp (fp-multiply r t)))
-                                           (fp-cdf (fp-neg d2))))
-                 (fp-multiply s
-                              (fp-cdf (fp-neg d1))))))
-
 ;; ##############################################
 
 (define-read-only (valid-option-duration (duration uint))
@@ -272,19 +231,17 @@
       true)
     (ok true)))
 
-(define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
+(define-public (deposit (amount uint) (memo (optional (buff 34))))
     (let
         ((sender tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (contract-call? .token transfer amount sender this-contract memo))
         (try! (mint amount sender))
         (map-set ledger sender (+ (get-ledger-balance sender) amount))
         (ok true)))
 
-(define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
+(define-public (withdraw (amount uint) (memo (optional (buff 34))))
     (let
         ((recipient tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (as-contract (contract-call? .token transfer amount this-contract recipient memo)))
         (try! (burn amount recipient))
         (asserts! (>= (get-ledger-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)

@@ -10,8 +10,8 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
 (define-constant ERR_NOT_NEW_OWNER (err u107))
-(define-constant ERR-INSUFFICIENT-BALANCE (err u110))
-(define-constant ERR-INVALID-SENDER (err u111))
+(define-constant ERR_INSUFFICIENT_BALANCE (err u110))
+(define-constant ERR_INVALID_SENDER (err u111))
 (define-constant ERR_AMOUNT_IS_NON_POSITIVE (err u112))
 (define-constant ERR_NOT_AUTHORIZED (err u1000))
 
@@ -97,8 +97,8 @@
 		(
 			(sender-balance (get amount (get-balance-uint token-id sender)))
 		)
-		(asserts! (is-eq tx-sender sender) ERR-INVALID-SENDER)
-		(asserts! (<= amount sender-balance) ERR-INSUFFICIENT-BALANCE)
+		(asserts! (is-eq tx-sender sender) ERR_INVALID_SENDER)
+		(asserts! (<= amount sender-balance) ERR_INSUFFICIENT_BALANCE)
 		(try! (ft-transfer? sft amount sender recipient))
 		(set-balance token-id (- sender-balance amount) sender)
 		(set-balance token-id (+ (get amount (get-balance-uint token-id recipient)) amount) recipient)
@@ -148,8 +148,8 @@
 		(
 			(sender-balance (get amount (get-balance-uint token-id sender)))
 		)
-		(asserts! (is-eq tx-sender sender) ERR-INVALID-SENDER)
-		(asserts! (>= sender-balance amount) ERR-INSUFFICIENT-BALANCE)
+		(asserts! (is-eq tx-sender sender) ERR_INVALID_SENDER)
+		(asserts! (>= sender-balance amount) ERR_INSUFFICIENT_BALANCE)
 		(try! (ft-burn? sft amount sender))
 		(set-balance token-id (- sender-balance amount) sender)
 		(map-set token-supplies {token-id: token-id} {supply: (- (get supply (get-total-supply-uint token-id)) amount)})
