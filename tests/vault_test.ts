@@ -134,14 +134,14 @@ Clarinet.test({
             Tx.contractCall(
                 'token',
                 'add-authorized-contract',
-                [ 
+                [
                     types.principal(deployer.address),
                 ],
                 deployer.address),
             Tx.contractCall(
                 'token',
                 'mint',
-                [ 
+                [
                     types.uint(1000),
                     types.principal(userA.address),
                 ],
@@ -149,7 +149,7 @@ Clarinet.test({
             Tx.contractCall(
                 'vault',
                 'deposit',
-                [ 
+                [
                     types.uint(100),
                     types.none()
                 ],
@@ -170,7 +170,7 @@ Clarinet.test({
             Tx.contractCall(
                 'vault',
                 'withdraw',
-                [ 
+                [
                     types.uint(100),
                     types.none()
                 ],
