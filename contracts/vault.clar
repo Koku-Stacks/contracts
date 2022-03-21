@@ -7,19 +7,35 @@
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
 (define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
+(define-constant ERR_TOO_SOON_TO_WITHDRAW (err u4000)) ;; FIXME devise appropriate error code for this according to ERRORS.md
 
 (define-constant this-contract (as-contract tx-sender))
 
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
-(define-map ledger {principal: principal} {balance: uint})
+(define-data-var cooldown uint u0)
+
+(define-map ledger {principal: principal}
+                   {balance: uint,
+                    last-deposit-block: uint,
+                    cooldown: uint})
 
 (define-read-only (get-owner)
     (ok (var-get contract-owner)))
 
+(define-read-only (get-deposit (principal principal))
+  (default-to {balance: u0, last-deposit-block: u0, cooldown: u0}
+              (map-get? ledger {principal: principal})))
+
 (define-read-only (get-balance (principal principal))
-    (get balance (default-to {balance: u0} (map-get? ledger {principal: principal}))))
+    (get balance (get-deposit principal)))
+
+(define-public (set-cooldown (new-cooldown uint))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (var-set cooldown new-cooldown)
+    (ok true)))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -44,16 +60,30 @@
     (ok true)))
 
 (define-public (deposit (amount uint) (memo (optional (buff 34))))
-    (let ((sender tx-sender))
-      (try! (contract-call? .token transfer amount sender this-contract memo))
-      (try! (contract-call? .lp-token mint amount sender))
-      (map-set ledger {principal: sender} {balance: (+ (get-balance sender) amount)})
+    (let ((sender-deposit (get-deposit tx-sender)))
+      (try! (contract-call? .token transfer amount tx-sender this-contract memo))
+      (try! (contract-call? .lp-token mint amount tx-sender))
+      (map-set ledger {principal: tx-sender}
+                      {balance: (+ (get balance sender-deposit) amount),
+                       last-deposit-block: block-height,
+                       cooldown: (if (> (var-get cooldown) (get cooldown sender-deposit))
+                                     (var-get cooldown)
+                                     (get cooldown sender-deposit))})
       (ok true)))
 
 (define-public (withdraw (amount uint) (memo (optional (buff 34))))
-    (let ((recipient tx-sender))
-      (try! (as-contract (contract-call? .token transfer amount this-contract recipient memo)))
+    (let ((sender tx-sender)
+          (sender-deposit (get-deposit tx-sender)))
+      (asserts! (>= (get balance sender-deposit) amount) ERR_NOT_ENOUGH_BALANCE)
+      (asserts! (>= block-height
+                    (+ (get last-deposit-block sender-deposit)
+                       (get cooldown sender-deposit))) ERR_TOO_SOON_TO_WITHDRAW)
+      (try! (as-contract (contract-call? .token transfer amount this-contract sender memo)))
       (try! (contract-call? .lp-token burn amount))
-      (asserts! (>= (get-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
-      (map-set ledger {principal: recipient} {balance: (- (get-balance recipient) amount)})
+      (if (is-eq amount (get balance sender-deposit))
+          (map-delete ledger {principal: tx-sender})
+          (map-set ledger {principal: tx-sender}
+                          {balance: (- (get balance sender-deposit) amount),
+                           last-deposit-block: (get last-deposit-block sender-deposit),
+                           cooldown: (get cooldown sender-deposit)}))
       (ok true)))
