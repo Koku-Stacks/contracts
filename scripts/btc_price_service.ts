@@ -202,8 +202,6 @@ export async function service() {
     return {btc_price: btc_price, timestamp: timestamp};
 }
 
-console.log(process.argv);
-
 if (process.argv[2] === "--service") {
     console.log('started as a service');
     console.log(`cron schedule string: ${cron_schedule_string}`)
