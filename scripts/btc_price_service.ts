@@ -147,8 +147,6 @@ async function calculate_btc_price_average(price_sources: Array<() => Promise<nu
     return average(non_outlier_prices);
 }
 
-const transaction_version = config.get_transaction_version(config.network_type);
-
 const chain = new StacksChain(config.node_url, {
     defaultFee: config.default_fee,
 });
