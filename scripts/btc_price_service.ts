@@ -152,14 +152,11 @@ const chain = new StacksChain(config.node_url, {
 });
 
 async function register_btc_price_on_chain(btc_price: number, timestamp: number) {
-    const wallet = await generateWallet({
-        secretKey: config.seed_phrase,
-        password: "testing_password"
-    });
+    await chain.loadAccounts();
 
-    const account = wallet.accounts[0];
+    const account = chain.accounts.get("deployer")!;
 
-    const address = getStxAddress({ account, transactionVersion: transaction_version });
+    const address = account.address;
 
     const btc_price_as_fixed_point_uint = Math.floor(btc_price * 10 ** fp_decimal_places);
 
@@ -168,7 +165,7 @@ async function register_btc_price_on_chain(btc_price: number, timestamp: number)
         contract_name,
         method_name,
         [uintCV(btc_price_as_fixed_point_uint), uintCV(timestamp)],
-        account.stxPrivateKey
+        account.secretKey
     )
 
     return tx_id;
