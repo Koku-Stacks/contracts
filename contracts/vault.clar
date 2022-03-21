@@ -5,7 +5,6 @@
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
-(define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 (define-constant ERR_TOO_SOON_TO_WITHDRAW (err u4000)) ;; FIXME devise appropriate error code for this according to ERRORS.md
 
