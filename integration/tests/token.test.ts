@@ -92,7 +92,7 @@ describe("token contract", () => {
     expect(printCallResponse.success).to.be.true;
 
     const transactionEvents = await chain.getTransactionEvents(printCall.txid, Event.smart_contract_log);
-    console.log("EVENTS: " + transactionEvents);
+    console.log(transactionEvents);
   });
 
   it("Ensures the token uri facilities work as expected", async () => {
@@ -362,7 +362,7 @@ describe("token contract", () => {
     expect(deployerTransferResponse.success).to.be.true;
 
     const transactionEvents = await chain.getTransactionEvents(deployerTransfer.txid, Event.fungible_token_asset);
-    console.log("EVENTS: " + transactionEvents);
+    console.log(transactionEvents);
 
     const wallet1NewBalance = await chain.callReadOnlyFn(
       contractAddress,
