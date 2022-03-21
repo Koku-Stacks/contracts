@@ -15,10 +15,11 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('vault',
-                'submit-ownership-transfer',
-                [types.principal(userB.address)],
-                userB.address)
+                Tx.contractCall(
+                    'vault',
+                    'submit-ownership-transfer',
+                    [types.principal(userB.address)],
+                    userB.address)
             ]);
         call.receipts[0].result.expectErr().expectUint(ERR_NOT_AUTHORIZED);
     }
@@ -32,14 +33,16 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('vault',
-                'submit-ownership-transfer',
-                [types.principal(userB.address)],
-                deployer.address),
-                Tx.contractCall('vault',
-                'submit-ownership-transfer',
-                [types.principal(userB.address)],
-                deployer.address)
+                Tx.contractCall(
+                    'vault',
+                    'submit-ownership-transfer',
+                    [types.principal(userB.address)],
+                    deployer.address),
+                Tx.contractCall(
+                    'vault',
+                    'submit-ownership-transfer',
+                    [types.principal(userB.address)],
+                    deployer.address)
             ]);
         call.receipts[1].result.expectErr().expectUint(ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED);
     }
@@ -52,10 +55,11 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('vault',
-                'cancel-ownership-transfer',
-                [],
-                userB.address)
+                Tx.contractCall(
+                    'vault',
+                    'cancel-ownership-transfer',
+                    [],
+                    userB.address)
             ]);
         call.receipts[0].result.expectErr().expectUint(ERR_NOT_AUTHORIZED);
     }
@@ -68,10 +72,11 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('vault',
-                'cancel-ownership-transfer',
-                [],
-                deployer.address)
+                Tx.contractCall(
+                    'vault',
+                    'cancel-ownership-transfer',
+                    [],
+                    deployer.address)
             ]);
         call.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL);
     }
@@ -84,10 +89,11 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('vault',
-                'confirm-ownership-transfer',
-                [],
-                userA.address)
+                Tx.contractCall(
+                    'vault',
+                    'confirm-ownership-transfer',
+                    [],
+                    userA.address)
             ]);
         call.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM);
     }
@@ -102,14 +108,16 @@ Clarinet.test({
 
         let call = chain.mineBlock(
             [
-                Tx.contractCall('vault',
-                'submit-ownership-transfer',
-                [types.principal(userB.address)],
-                deployer.address),
-                Tx.contractCall('vault',
-                'confirm-ownership-transfer',
-                [],
-                userA.address)
+                Tx.contractCall(
+                    'vault',
+                    'submit-ownership-transfer',
+                    [types.principal(userB.address)],
+                    deployer.address),
+                Tx.contractCall(
+                    'vault',
+                    'confirm-ownership-transfer',
+                    [],
+                    userA.address)
             ]);
         call.receipts[1].result.expectErr().expectUint(ERR_NOT_NEW_OWNER);
     }
