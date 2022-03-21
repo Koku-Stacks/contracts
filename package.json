@@ -32,6 +32,7 @@
     "@stacks/transactions": "3.0.0",
     "@stacks/wallet-sdk": "3.0.0",
     "axios": "^0.26.0",
+    "cron": "^1.8.2",
     "yargs": "^13.3.2"
   }
 }
