@@ -262,14 +262,14 @@ export class StacksChain {
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
 
-  public async getTransactionEvents(txid: string) {
+  public async getTransactionEvents(txid: string, event_type: string) {
     const transactionEvents = await this.waitTransaction(txid);
-    transactionEvents.events.forEach((event: any) => {
-      if(event.event_type == "smart_contract_log"){
-        console.log(cvToJSON(hexToCV(event.contract_log.value.hex)).value);
+    const filteredEvents = transactionEvents.events.filter((event: any) => {
+      if(event.event_type == event_type){
+        return event;
       }
-    });
-    return transactionEvents.events;
+    })
+    return filteredEvents;
   }
 
   private async waitTransaction(txId: string) {
