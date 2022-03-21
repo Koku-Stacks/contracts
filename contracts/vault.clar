@@ -8,19 +8,18 @@
 (define-constant ERR_NOT_APPROVED_TOKEN (err u3000))
 (define-constant ERR_NOT_ENOUGH_BALANCE (err u3001))
 
+(define-constant this-contract (as-contract tx-sender))
+
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
-(define-data-var approved-token principal .token)
-(define-map ledger principal uint)
+
+(define-map ledger {principal: principal} {balance: uint})
 
 (define-read-only (get-owner)
     (ok (var-get contract-owner)))
 
-(define-read-only (get-approved-token)
-    (ok (var-get approved-token)))
-
-(define-read-only (get-balance (person principal))
-    (default-to u0 (map-get? ledger person)))
+(define-read-only (get-balance (principal principal))
+    (get balance (default-to {balance: u0} (map-get? ledger {principal: principal}))))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -44,21 +43,17 @@
     (var-set submitted-new-owner none)
     (ok true)))
 
-(define-public (deposit (token principal) (amount uint) (memo (optional (buff 34))))
-    (let
-        ((sender tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
-        (try! (contract-call? .token transfer amount sender (as-contract tx-sender) memo))
-        (try! (contract-call? .lp-token mint amount sender))
-        (map-set ledger sender (+ (get-balance sender) amount))
-        (ok true)))
+(define-public (deposit (amount uint) (memo (optional (buff 34))))
+    (let ((sender tx-sender))
+      (try! (contract-call? .token transfer amount sender this-contract memo))
+      (try! (contract-call? .lp-token mint amount sender))
+      (map-set ledger {principal: sender} {balance: (+ (get-balance sender) amount)})
+      (ok true)))
 
-(define-public (withdraw (token principal) (amount uint) (memo (optional (buff 34))))
-    (let
-        ((recipient tx-sender))
-        (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
-        (try! (as-contract (contract-call? .token transfer amount tx-sender recipient memo)))
-        (try! (contract-call? .lp-token burn amount))
-        (asserts! (>= (get-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
-        (map-set ledger recipient (- (get-balance recipient) amount))
-        (ok true)))
+(define-public (withdraw (amount uint) (memo (optional (buff 34))))
+    (let ((recipient tx-sender))
+      (try! (as-contract (contract-call? .token transfer amount this-contract recipient memo)))
+      (try! (contract-call? .lp-token burn amount))
+      (asserts! (>= (get-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
+      (map-set ledger {principal: recipient} {balance: (- (get-balance recipient) amount)})
+      (ok true)))
