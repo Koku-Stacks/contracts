@@ -1,5 +1,4 @@
 import { uintCV } from "@stacks/transactions";
-import { generateWallet, getStxAddress } from "@stacks/wallet-sdk";
 import * as config from "../config";
 import { StacksChain } from "../integration/framework/stacks.chain";
 
