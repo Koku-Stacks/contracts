@@ -11,10 +11,8 @@ const ERR_TOO_SOON_TO_WITHDRAW = 4000;
 Clarinet.test({
     name: "Ensure that submit ownership can only be called by owner",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const deployer = accounts.get('deployer')!;
-        const userA = accounts.get('wallet_1')!;
         const userB = accounts.get('wallet_2')!;
-        
+
         let call = chain.mineBlock(
             [
                 Tx.contractCall('vault',
@@ -30,9 +28,8 @@ Clarinet.test({
     name: "Ensure that submit ownership transfer cannot be called again if already submitted",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
-        const userA = accounts.get('wallet_1')!;
         const userB = accounts.get('wallet_2')!;
-        
+
         let call = chain.mineBlock(
             [
                 Tx.contractCall('vault',
@@ -51,10 +48,8 @@ Clarinet.test({
 Clarinet.test({
     name: "Ensure that cancel ownership can only be called by owner",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const deployer = accounts.get('deployer')!;
-        const userA = accounts.get('wallet_1')!;
         const userB = accounts.get('wallet_2')!;
-        
+
         let call = chain.mineBlock(
             [
                 Tx.contractCall('vault',
@@ -70,9 +65,7 @@ Clarinet.test({
     name: "Ensure that cancel ownership transfer cannot be called for non submitted user",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
-        const userA = accounts.get('wallet_1')!;
-        const userB = accounts.get('wallet_2')!;
-        
+
         let call = chain.mineBlock(
             [
                 Tx.contractCall('vault',
@@ -87,10 +80,8 @@ Clarinet.test({
 Clarinet.test({
     name: "Ensure that confirm ownership can only be called when a transfer has been submitted",
     fn(chain: Chain, accounts: Map<string, Account>) {
-        const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
-        const userB = accounts.get('wallet_2')!;
-        
+
         let call = chain.mineBlock(
             [
                 Tx.contractCall('vault',
@@ -108,7 +99,7 @@ Clarinet.test({
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
         const userB = accounts.get('wallet_2')!;
-        
+
         let call = chain.mineBlock(
             [
                 Tx.contractCall('vault',
@@ -129,7 +120,6 @@ Clarinet.test({
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
-        const token = `${deployer.address}.token`;
         const vault = `${deployer.address}.vault`;
 
         let call1 = chain.mineBlock([
