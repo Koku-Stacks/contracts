@@ -4,11 +4,13 @@ import * as config from "../config";
 import { StacksChain } from "../integration/framework/stacks.chain";
 
 const axios = require('axios').default;
+const cron_job = require('cron').CronJob;
 
 const coinmarketcap_api_key = "0acaf66d-e715-4d7b-bae2-f7648453f8e6";
 const nomics_api_key = "3bf7ef015adadeaa258ffca8145c56c7475e427d";
 const outlier_price_margin = 0.05;
 const price_fetching_timeout_ms = 1000;
+const cron_schedule_string = "0 * * * * *"
 const contract_name = "current-price";
 const method_name = "update-price";
 export const fp_decimal_places = 6;
@@ -205,4 +207,15 @@ export async function service() {
     return {btc_price: btc_price, timestamp: timestamp};
 }
 
-service();
+console.log(process.argv);
+
+if (process.argv[2] === "--service") {
+    console.log('started as a service');
+    console.log(`cron schedule string: ${cron_schedule_string}`)
+
+    const job = new cron_job(cron_schedule_string, service);
+
+    job.start();
+} else {
+    service();
+}
