@@ -1,40 +1,38 @@
 [project]
 name = "dy.finance"
-authors = []
-description = ""
-telemetry = false
 requirements = []
 costs_version = 1
+
 [contracts.amm]
 path = "contracts/amm.clar"
 depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
 
-[contracts.burn-trait]
-path = "contracts/traits/burn-trait.clar"
-depends_on = []
-
-[contracts.lp-token]
-path = "contracts/lp-token.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
-
 [contracts.mint-trait]
 path = "contracts/traits/mint-trait.clar"
+depends_on = []
+
+[contracts.burn-trait]
+path = "contracts/traits/burn-trait.clar"
 depends_on = []
 
 [contracts.minting]
 path = "contracts/minting.clar"
 depends_on = ["token"]
 
+[contracts.lp-token]
+path = "contracts/lp-token.clar"
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
+
 [contracts.owner-trait]
 path = "contracts/traits/owner-trait.clar"
 depends_on = []
 
-[contracts.sip-010-trait-ft-standard]
-path = "contracts/traits/sip-010-trait-ft-standard.clar"
-depends_on = []
-
 [contracts.sip013-trait-sft-standard]
 path = "contracts/traits/sip013-trait-sft-standard.clar"
+depends_on = []
+
+[contracts.sip-010-trait-ft-standard]
+path = "contracts/traits/sip-010-trait-ft-standard.clar"
 depends_on = []
 
 [contracts.token]

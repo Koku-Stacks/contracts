@@ -10,6 +10,6 @@
     "sourceMap": true,
     "noEmit": true
   },
-  "include": ["tests", "framework/stacks.chain.ts", "multi-sig/multi_sig.test.ts"],
+  "include": ["tests", "framework/stacks.chain.ts"],
   "exclude": ["node_modules"]
 }
