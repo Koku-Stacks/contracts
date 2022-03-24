@@ -4,6 +4,7 @@ import { CONTRACT_FOLDER, STACKS_API_URL } from "../config";
 import { StacksChain } from "../framework/stacks.chain";
 import * as btc_price_service from "../../scripts/btc_price_service";
 import { expect } from "chai";
+import { uintCV } from "@stacks/transactions";
 
 const current_price_contract_name = "current-price";
 
@@ -40,11 +41,11 @@ describe("current-price contract", () => {
         const mocked_btc_price = 1000;
         const mocked_timestamp = 2000;
 
-        const tx_id = await btc_price_service.register_btc_price_on_chain(
-            mocked_btc_price,
-            mocked_timestamp,
-            chain,
+        const tx_id = await chain.callContract(
             deployer.address,
+            "current-price",
+            "update-price",
+            [uintCV(mocked_btc_price), uintCV(mocked_timestamp)],
             deployer.secretKey
         );
 
