@@ -66,7 +66,9 @@ describe("events contract", () => {
     expect(printCallResponse).to.be.ok;
     expect(printCallResponse.success).to.be.true;
 
-    const transactionEvents = await chain.getTransactionEvents(printCall.txid, Event.smart_contract_log);
-    console.log(transactionEvents);
+    const transactionInfo = await chain.waitTransaction(printCall.txid);
+    const blockInfo = await chain.searchByBlockHash(transactionInfo.block_hash);
+    const blockTxns = await chain.getTxnsByBlockInfo(blockInfo, Event.smart_contract_log);
+    
   });
 });

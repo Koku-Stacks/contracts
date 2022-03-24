@@ -263,8 +263,8 @@ export class StacksChain {
   }
 
   public async getTransactionEvents(txid: string, event_type: string) {
-    const transactionEvents = await this.waitTransaction(txid);
-    const filteredEvents = transactionEvents.events.filter((event: any) => {
+    const transactionInfo = await this.waitTransaction(txid);
+    const filteredEvents = transactionInfo.events.filter((event: any) => {
       if(event.event_type == event_type){
         return event;
       }
@@ -272,7 +272,40 @@ export class StacksChain {
     return filteredEvents;
   }
 
-  private async waitTransaction(txId: string) {
+  public getTxnsByBlockInfo(blockInfo: any, event_type: string) {
+    const blockTxnEvents = blockInfo.result.metadata.txs.filter(async (txnId: any) => {
+      const txnEvent = await this.getTransactionEvents(txnId, event_type);
+      console.log(txnEvent);
+      return txnEvent;
+    });
+    return blockTxnEvents
+  }
+
+  public async searchByBlockHash(blockHash: string) {
+    let blockInfo;
+
+    do {
+      await delay(500);
+
+      blockInfo = await fetch(`${this.url}/extended/v1/search/${blockHash}?include_metadata=true`).then(
+        (x) => x.json()
+      );
+
+      if(this.options.logLevel >= LogLevel.DEBUG) {
+        console.log("Stacks: checking block hash", blockInfo);
+      }
+    } while (blockInfo.found == "false");
+
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: block hash found",
+      );
+    }
+
+    return blockInfo;
+  }
+
+  public async waitTransaction(txId: string) {
     let transactionInfo;
 
     do {
