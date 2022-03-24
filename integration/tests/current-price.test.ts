@@ -57,7 +57,7 @@ describe("current-price contract", () => {
             wallet1.address
         );
 
-        expect(price_result.value).to.be.eq(mocked_btc_price);
+        expect(price_result.value).to.be.eq(mocked_btc_price.toString());
 
         const timestamp_result = await chain.callReadOnlyFn(
             current_price_contract_address,
@@ -67,6 +67,6 @@ describe("current-price contract", () => {
             wallet1.address
         );
 
-        expect(timestamp_result.value).to.be.eq(mocked_timestamp);
+        expect(timestamp_result.value).to.be.eq(mocked_timestamp.toString());
     });
 });
