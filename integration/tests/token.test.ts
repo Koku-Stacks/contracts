@@ -13,13 +13,6 @@ const chain = new StacksChain(STACKS_API_URL, {
 let contractAddress: string;
 const contractName = "token";
 const sipContractName = "sip-010-trait-ft-standard";
-const helloContractName = "hello";
-
-const enum Event {
-  smart_contract_log = "smart_contract_log",
-  non_fungible_token_asset = "non_fungible_token_asset",
-  fungible_token_asset = "fungible_token_asset"
-}
 
 describe("token contract", () => {
   before(async () => {
@@ -37,21 +30,10 @@ describe("token contract", () => {
       { encoding: "utf8" }
     );
 
-    const helloCode = fs.readFileSync(
-      path.join(CONTRACT_FOLDER, `${helloContractName}.clar`),
-      { encoding: "utf8" }
-    );
-
     // deploy the dependency contract first
     await chain.deployContract(
       sipContractName,
       sipContractCode,
-      deployer.secretKey
-    );
-
-    await chain.deployContract(
-      helloContractName,
-      helloCode,
       deployer.secretKey
     );
 
@@ -62,37 +44,6 @@ describe("token contract", () => {
     );
 
     contractAddress = contractId.split(".")[0];
-  });
-
-  it("Ensures print is working", async () => {
-    const deployer = chain.accounts.get("deployer")!;
-
-    // read the value
-    const readResult = await chain.callReadOnlyFn(
-      contractAddress,
-      helloContractName,
-      "say-hello",
-      [],
-      deployer.address
-    );
-
-    expect(readResult).to.be.ok;
-    expect(readResult.value).to.be.equal("hello world");
-
-    // read the value
-    const printCall = await chain.callContract(
-      contractAddress,
-      helloContractName,
-      "say-hello-world",
-      [],
-      deployer.secretKey
-    );
-    const printCallResponse = await chain.getTransactionResponse(printCall.txid);
-    expect(printCallResponse).to.be.ok;
-    expect(printCallResponse.success).to.be.true;
-
-    const transactionEvents = await chain.getTransactionEvents(printCall.txid, Event.smart_contract_log);
-    console.log(transactionEvents);
   });
 
   it("Ensures the token uri facilities work as expected", async () => {
@@ -360,9 +311,6 @@ describe("token contract", () => {
     const deployerTransferResponse = await chain.getTransactionResponse(deployerTransfer.txid);
     expect(deployerTransferResponse).to.be.ok;
     expect(deployerTransferResponse.success).to.be.true;
-
-    const transactionEvents = await chain.getTransactionEvents(deployerTransfer.txid, Event.fungible_token_asset);
-    console.log(transactionEvents);
 
     const wallet1NewBalance = await chain.callReadOnlyFn(
       contractAddress,
