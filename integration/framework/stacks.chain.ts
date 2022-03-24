@@ -10,8 +10,11 @@ import {
   makeContractCall,
   makeContractDeploy,
   makeSTXTokenTransfer,
+  makeUnsignedContractCall,
   PostConditionMode,
+  StacksTransaction,
   TransactionVersion,
+  UnsignedMultiSigContractCallOptions,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
@@ -283,6 +286,39 @@ export class StacksChain {
     }
 
     return transactionInfo;
+  }
+
+  public async makeUnsignedMultiSigContractCall(
+    options: UnsignedMultiSigContractCallOptions,
+    senderSecretKey: string,
+  ): Promise<StacksTransaction> { 
+    try {
+      options.fee = this.options.defaultFee;
+      options.postConditionMode = PostConditionMode.Allow;
+      options.network = this.network;
+      const transaction = await makeUnsignedContractCall(options);
+      return transaction;
+    } catch (err) {
+      if (err instanceof Error && err.message === "ContractAlreadyExists") {
+        const address = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+
+        const contractId = `${address}.${options.contractName}`;
+
+        if (this.options.logLevel >= LogLevel.INFO) {
+          console.log(
+            "Stacks: Skipped Deployment, Contract Already Exists",
+            `contractId: ${contractId}`
+          );
+        }
+      }
+
+      throw err;
+    }
   }
 }
 
