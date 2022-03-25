@@ -1,13 +1,9 @@
 import {
-  createStacksPrivateKey,
   deserializeTransaction,
-  pubKeyfromPrivKey,
   publicKeyToString,
-  TransactionSigner,
   standardPrincipalCV,
   BufferReader,
   AnchorMode,
-  broadcastTransaction,
   UnsignedMultiSigContractCallOptions,
   MultiSigSpendingCondition,
   AuthType,
@@ -16,17 +12,17 @@ import {
   uintCV,
   bufferCV,
   someCV,
-  nextSignature,
   createTransactionAuthField,
   AddressHashMode,
+  StacksPublicKey,
 } from "@stacks/transactions";
 import { StacksChain } from "../framework/stacks.chain";
 import * as fs from "fs";
 import * as path from "path";
 import { CONTRACT_FOLDER, TRAITS_FOLDER, STACKS_API_URL } from "../config";
 import { expect } from "chai";
-import { StacksTestnet } from "@stacks/network";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
+import { getSignerPublicKey, signTransaction } from "../../scripts/signer";
 
 // const chain = new StacksChain("http://3.64.221.107:3999/");
 
@@ -99,25 +95,16 @@ describe("multi-sig on chain", () => {
 
     const wallet_2 = chain.accounts.get("wallet_2")!;
 
-    const recipient = standardPrincipalCV(deployer.address);
-    const amount = 250;
     const fee = 100000;
     const memo = "test memo";
-    // private keys of the participants in the transaction
-    const privKeyStrings = [
-      deployer.secretKey,
-      wallet_1.secretKey,
-      wallet_2.secretKey,
+
+    const pubKeys: StacksPublicKey[] = [
+      getSignerPublicKey(deployer),
+      getSignerPublicKey(wallet_1),
+      getSignerPublicKey(wallet_2),
     ];
 
-    // create private key objects from string array
-    const privKeys = privKeyStrings.map(createStacksPrivateKey);
-
-    // corresponding public keys
-    const pubKeys = privKeyStrings.map(pubKeyfromPrivKey);
-
-    // create public key string array from objects
-    const pubKeyStrings = pubKeys.map(publicKeyToString);
+    const pubKeyStrings: string[] = pubKeys.map(publicKeyToString);
 
     // number of signatures required
     const numberOfSignatureRequired = 2;
@@ -155,7 +142,7 @@ describe("multi-sig on chain", () => {
       [uintCV(100), principalCV(deployer.address)],
       deployer.secretKey
     );
-    
+
     // dependant on the below transfer function
     expect(mintCall).to.be.ok;
     expect(mintCall.success).to.be.true;
@@ -175,92 +162,85 @@ describe("multi-sig on chain", () => {
       ],
       anchorMode: AnchorMode.Any,
     };
-    
+
     const transaction = await chain.makeUnsignedMultiSigContractCall(
       multi_sig_options,
-      deployer.secretKey,
+      deployer.secretKey
     );
     expect(transaction).to.be.ok;
-    const signer = new TransactionSigner(transaction);
-    const authType = AuthType.Standard;
-    const nonce = 0;
-    const sig1 = nextSignature(
-      signer.sigHash,
-      authType,
-      fee,
-      nonce,
-      privKeys[0]
-    ).nextSig;
 
-    const compressed1 = privKeys[0].data.toString("hex").endsWith("01");
-    const field1 = createTransactionAuthField(
-      compressed1 ? PubKeyEncoding.Compressed : PubKeyEncoding.Uncompressed,
-      sig1
-    );
-    signer.signOrigin(privKeys[0]);
+    let signatureAcquired = 0;
+    let signerfields = [];
+
+    const signer1 = signTransaction(transaction, deployer);
+
+    signerfields.push(signer1.field);
+
+    signatureAcquired++;
 
     // serialize
     const partiallySignedSerialized = transaction.serialize();
 
     // deserialize
     const bufferReader2 = new BufferReader(partiallySignedSerialized);
-    expect(() => deserializeTransaction(bufferReader2)).to.throw("Incorrect number of signatures");
-
-    // finish signing with new TransactionSigner
-    const signer2 = new TransactionSigner(transaction);
-
-    const sig2 = nextSignature(
-      signer2.sigHash,
-      authType,
-      fee,
-      nonce,
-      privKeys[1]
-    ).nextSig;
-
-    const compressed2 = privKeys[1].data.toString("hex").endsWith("01");
-    const field2 = createTransactionAuthField(
-      compressed2 ? PubKeyEncoding.Compressed : PubKeyEncoding.Uncompressed,
-      sig2
+    expect(() => deserializeTransaction(bufferReader2)).to.throw(
+      "Incorrect number of signatures"
     );
+
+    const signer2 = signTransaction(transaction, wallet_1);
+
+    signerfields.push(signer2.field);
+
+    signatureAcquired++;
 
     const compressedPub = isCompressed(pubKeys[2]);
-    const field3 = createTransactionAuthField(
+    const unsignerField = createTransactionAuthField(
       compressedPub ? PubKeyEncoding.Compressed : PubKeyEncoding.Uncompressed,
-      pubKeys[2]
+      pubKeys[signatureAcquired]
     );
 
-    signer2.signOrigin(privKeys[1]);
-    signer2.appendOrigin(pubKeys[2]);
+    signerfields.push(unsignerField);
+
+    signer2.signer.appendOrigin(pubKeys[signatureAcquired]); // doesn't accepts new signers, last signer must append all the remaining unsigners
 
     const serializedTx = transaction.serialize();
 
     const bufferReader = new BufferReader(serializedTx);
     const deserializedTx = deserializeTransaction(bufferReader);
+
     const addressHashMode = AddressHashMode.SerializeP2SH;
 
+    const authType = AuthType.Standard;
+    const nonce = 0;
+
     expect(deserializedTx.auth.authType).to.be.equal(authType);
-    
+
     expect(deserializedTx.auth.spendingCondition!.hashMode).to.be.equal(
       addressHashMode
     );
-    
+
     expect(deserializedTx.auth.spendingCondition!.nonce).to.be.equal(
       BigInt(nonce)
     );
-    
+
     expect(deserializedTx.auth.spendingCondition!.fee).to.be.equal(
       BigInt(fee) // default private testnet fee
     );
-    
+
     const spendingCondition = deserializedTx.auth
       .spendingCondition as MultiSigSpendingCondition;
-    
-      // For verifying signature hash
-    expect(spendingCondition.fields[0].contents.data.toString()).to.be.equal(field1.contents.data.toString());
-    expect(spendingCondition.fields[1].contents.data.toString()).to.be.equal(field2.contents.data.toString());
-    expect(spendingCondition.fields[2].contents.data.toString()).to.be.equal(field3.contents.data.toString());
 
-    const serializedSignedTx = deserializedTx.serialize();
+    // For verifying signature hash
+    for (let i = 0; i < signerfields.length; i++) {
+      expect(spendingCondition.fields[i].contents.data.toString()).to.be.equal(
+        signerfields[i].contents.data.toString()
+      );
+    }
+
+    expect(signatureAcquired).to.be.equal(
+        numberOfSignatureRequired
+    );
+
     // const broadcast_response = await broadcastTransaction(
     //     transaction,
     //     new StacksTestnet(),
@@ -269,6 +249,6 @@ describe("multi-sig on chain", () => {
     //   if (broadcast_response.error) {
     //     throw new Error(broadcast_response.reason);
     //   }
-    // giving error; NotEnoughFunds on the private testnet 
+    // giving error; NotEnoughFunds on the private testnet
   });
 });

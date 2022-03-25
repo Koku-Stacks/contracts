@@ -299,24 +299,6 @@ export class StacksChain {
       const transaction = await makeUnsignedContractCall(options);
       return transaction;
     } catch (err) {
-      if (err instanceof Error && err.message === "ContractAlreadyExists") {
-        const address = getAddressFromPrivateKey(
-          senderSecretKey,
-          this.options.isMainnet
-            ? TransactionVersion.Mainnet
-            : TransactionVersion.Testnet
-        );
-
-        const contractId = `${address}.${options.contractName}`;
-
-        if (this.options.logLevel >= LogLevel.INFO) {
-          console.log(
-            "Stacks: Skipped Deployment, Contract Already Exists",
-            `contractId: ${contractId}`
-          );
-        }
-      }
-
       throw err;
     }
   }
