@@ -166,9 +166,19 @@
 
    get https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=future
 
+   withidrawal fee
+
 ** ftx
 
-   get https://ftx.com/api/futures/BTC-PERP
+   template https://ftx.com/api/
+
+*** BTC perpetual future endpoint
+
+    get futures/BTC-PERP
+
+*** funding fees
+
+    get funding_rates
 
 ** bitmex
 
