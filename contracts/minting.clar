@@ -11,6 +11,8 @@
 
 (define-constant this-contract (as-contract tx-sender))
 
+(define-map authorized-minters {minter: principal} {dummy: bool})
+
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
@@ -19,6 +21,23 @@
 
 (define-read-only (get-owner)
   (ok (var-get contract-owner)))
+
+(define-read-only (is-authorized-minter (minter principal))
+  (is-some (map-get? authorized-minters {minter: minter})))
+
+(define-public (authorize-minter (new-minter principal))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (asserts! (not (is-authorized-minter new-minter)) ERR_MINTER_ALREADY_AUTHORIZED)
+    (map-set authorized-minters {minter: new-minter} {dummy: true})
+    (ok true)))
+
+(define-public (unauthorize-minter (minter principal))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (asserts! (is-authorized-minter minter) ERR_MINTER_NOT_AUTHORIZED)
+    (map-delete authorized-minters {minter: minter})
+    (ok true)))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
