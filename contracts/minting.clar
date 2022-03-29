@@ -66,3 +66,5 @@
     (asserts! (is-authorized-minter tx-sender) ERR_NOT_AUTHORIZED)
     (try! (as-contract (contract-call? .token mint amount recipient)))
     (ok true)))
+
+(authorize-minter (var-get contract-owner))
