@@ -12,6 +12,9 @@
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
+(define-read-only (get-remaining-tokens-to-mint)
+  (contract-call? .token get-remaining-tokens-to-mint))
+
 (define-read-only (get-owner)
   (ok (var-get contract-owner)))
 
@@ -36,9 +39,6 @@
     (var-set contract-owner (unwrap-panic (var-get submitted-new-owner)))
     (var-set submitted-new-owner none)
     (ok true)))
-
-(define-read-only (get-remaining-tokens-to-mint)
-  (contract-call? .token get-remaining-tokens-to-mint))
 
 (define-public (mint (amount uint) (recipient principal))
   (begin
