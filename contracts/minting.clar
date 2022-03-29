@@ -63,6 +63,6 @@
 
 (define-public (mint (amount uint) (recipient principal))
   (begin
-    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-authorized-minter tx-sender) ERR_NOT_AUTHORIZED)
     (try! (as-contract (contract-call? .token mint amount recipient)))
     (ok true)))
