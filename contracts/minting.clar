@@ -6,6 +6,8 @@
 (define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
 (define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
+(define-constant ERR_MINTER_ALREADY_AUTHORIZED (err u3000)) ;; FIXME devise a proper error code according to ERRORS.md and update it.
+(define-constant ERR_MINTER_NOT_AUTHORIZED (err u3001)) ;; FIXME devise a proper error code according to ERRORS.md and update it.
 
 (define-constant this-contract (as-contract tx-sender))
 
