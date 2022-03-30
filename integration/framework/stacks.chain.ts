@@ -1,9 +1,11 @@
 import { StacksTestnet } from "@stacks/network";
 import {
   AnchorMode,
+  AuthType,
   broadcastTransaction,
   callReadOnlyFunction,
-  ClarityType,
+  createStacksPrivateKey,
+  createTransactionAuthField,
   cvToJSON,
   getAddressFromPrivateKey,
   hexToCV,
@@ -11,8 +13,12 @@ import {
   makeContractDeploy,
   makeSTXTokenTransfer,
   makeUnsignedContractCall,
+  nextSignature,
   PostConditionMode,
+  PubKeyEncoding,
+  pubKeyfromPrivKey,
   StacksTransaction,
+  TransactionSigner,
   TransactionVersion,
   UnsignedMultiSigContractCallOptions,
 } from "@stacks/transactions";
@@ -149,6 +155,7 @@ export class StacksChain {
       anchorMode: AnchorMode.Any,
       postConditionMode: PostConditionMode.Allow,
       fee: options?.fee ?? this.options.defaultFee,
+      validateWithAbi: true
     });
 
     const broadcast_response = await broadcastTransaction(
@@ -289,9 +296,8 @@ export class StacksChain {
   }
 
   public async makeUnsignedMultiSigContractCall(
-    options: UnsignedMultiSigContractCallOptions,
-    senderSecretKey: string,
-  ): Promise<StacksTransaction> { 
+    options: UnsignedMultiSigContractCallOptions
+  ): Promise<StacksTransaction> {
     try {
       options.fee = this.options.defaultFee;
       options.postConditionMode = PostConditionMode.Allow;
@@ -304,6 +310,39 @@ export class StacksChain {
   }
 }
 
+// made the interface for signing multi-sig transactions
+export class accountSigner {
+  private account: Account;
+
+  constructor(account: Account) {
+    this.account = account;
+  }
+  public signTransaction(transaction: StacksTransaction) {
+    const privKey = createStacksPrivateKey(this.account.secretKey);
+    const signer = new TransactionSigner(transaction);
+    const authType = AuthType.Standard;
+    const nonce = 0;
+    const sig1 = nextSignature(
+      signer.sigHash,
+      authType,
+      transaction.auth.spendingCondition.fee,
+      nonce,
+      privKey
+    ).nextSig;
+
+    const compressed1 = privKey.data.toString("hex").endsWith("01");
+    const field = createTransactionAuthField(
+      compressed1 ? PubKeyEncoding.Compressed : PubKeyEncoding.Uncompressed,
+      sig1
+    );
+    signer.signOrigin(privKey);
+    return {field: field, signer: signer};
+  }
+  public getPublicKey() {
+    const privateKey = createStacksPrivateKey(this.account.secretKey);
+    return pubKeyfromPrivKey(privateKey.data);
+  }
+}
 export interface Account {
   address: string;
   btcAddress: string;
