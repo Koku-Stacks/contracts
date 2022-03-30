@@ -12,12 +12,13 @@
   },
   "scripts": {
     "test": "clarinet test",
-    "deploy": "ts-node scripts/script_deploy.ts"
+    "deploy": "ts-node scripts/deploy_contract.ts",
+    "btc-price-service": "ts-node scripts/btc_price_service.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^10",
+    "@types/node": "^10.17.60",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "ts-node": "^8.10.2",
@@ -30,6 +31,8 @@
     "@stacks/network": "3.0.0",
     "@stacks/transactions": "3.0.0",
     "@stacks/wallet-sdk": "3.0.0",
+    "axios": "^0.26.0",
+    "cron": "^1.8.2",
     "yargs": "^13.3.2"
   }
 }
