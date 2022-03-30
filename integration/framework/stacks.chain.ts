@@ -331,8 +331,15 @@ export class accountSigner {
     ).nextSig;
 
     const compressed1 = privKey.data.toString("hex").endsWith("01");
+    let encoding: PubKeyEncoding;
+    if(compressed1){
+      encoding = PubKeyEncoding.Compressed; 
+    }
+    else{
+      encoding = PubKeyEncoding.Uncompressed;
+    }
     const field = createTransactionAuthField(
-      compressed1 ? PubKeyEncoding.Compressed : PubKeyEncoding.Uncompressed,
+      encoding,
       sig1
     );
     signer.signOrigin(privKey);
