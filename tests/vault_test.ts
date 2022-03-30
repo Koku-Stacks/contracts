@@ -177,7 +177,7 @@ Clarinet.test({
                 userA.address)
         ]);
 
-        call2.receipts[0].result.expectOk().expectBool(true)
+        call2.receipts[0].result.expectOk();
 
         balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
         balance.result.expectOk().expectUint(1000);
@@ -263,6 +263,6 @@ Clarinet.test({
             )
         ]);
 
-        call4.receipts[0].result.expectOk().expectBool(true);
+        call4.receipts[0].result.expectOk();
     },
 });
