@@ -85,4 +85,4 @@
                           {balance: (- (get balance sender-deposit) amount),
                            last-deposit-block: (get last-deposit-block sender-deposit),
                            cooldown: (get cooldown sender-deposit)}))
-      (ok true)))
+      (ok (get-block-info? time (- block-height u1)))))
