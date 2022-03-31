@@ -43,15 +43,9 @@ async function request_funds_to_all_accounts() {
 }
 
 async function test() {
-    // await chain.loadAccounts();
+    await chain.loadAccounts();
 
-    // const deployer = chain.accounts.get('deployer')!;
-
-    const deployer = {
-        secretKey: '753b7cc01a1a2e86221266a154af739463fce51219d97e4f856cd7200c3bd2a601',
-        address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-        btcAddress: ''
-    };
+    const deployer = chain.accounts.get('deployer')!;
 
     await chain.deployContract(
         contract_name,
@@ -59,20 +53,8 @@ async function test() {
         deployer.secretKey
     );
 
-    // const userA = chain.accounts.get('wallet_1')!;
-    // const userB = chain.accounts.get('wallet_2')!;
-
-    const userA = {
-        secretKey: '7287ba251d44a4d3fd9276c88ce34c5c52a038955511cccaf77e61068649c17801',
-        address: 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5',
-        btcAddress: ''
-    };
-
-    const userB = {
-        secretKey: '530d9f61984c888536871c6573073bdfc0058896dc1adfe9a6a10dfacadc209101',
-        address: 'ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG',
-        btcAddress: ''
-    };
+    const userA = chain.accounts.get('wallet_1')!;
+    const userB = chain.accounts.get('wallet_2')!;
 
     const tx_parts = [userA, userB];
 
