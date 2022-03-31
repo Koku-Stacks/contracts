@@ -7,8 +7,8 @@ import * as fs from "fs"
 import * as path from "path"
 import { StacksTestnet } from "@stacks/network"
 
-// const api_url = STACKS_API_URL;
-const api_url = 'https://stacks-node-api.testnet.stacks.co';
+const api_url = STACKS_API_URL;
+// const api_url = 'https://stacks-node-api.testnet.stacks.co';
 
 import axios from 'axios'
 
