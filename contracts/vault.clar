@@ -79,16 +79,16 @@
 (define-public (withdraw (amount uint) (memo (optional (buff 34))))
     (let ((sender tx-sender)
           (sender-deposit (get-deposit tx-sender))
-          (block-height-limit (+ (get last-deposit-block sender-deposit)
-                                 (get cooldown sender-deposit))))
+          (timestamp-limit (+ (get last-deposit-timestamp sender-deposit)
+                              (cooldown-to-seconds (get cooldown sender-deposit)))))
       (asserts! (>= (get balance sender-deposit) amount) ERR_NOT_ENOUGH_BALANCE)
-      (asserts! (> block-height block-height-limit) ERR_TOO_SOON_TO_WITHDRAW)
+      (asserts! (> (get-timestamp) timestamp-limit) ERR_TOO_SOON_TO_WITHDRAW)
       (try! (as-contract (contract-call? .token transfer amount this-contract sender memo)))
       (try! (contract-call? .lp-token burn amount))
       (if (is-eq amount (get balance sender-deposit))
           (map-delete ledger {principal: tx-sender})
           (map-set ledger {principal: tx-sender}
                           {balance: (- (get balance sender-deposit) amount),
-                           last-deposit-block: (get last-deposit-block sender-deposit),
+                           last-deposit-timestamp: (get last-deposit-timestamp sender-deposit),
                            cooldown: (get cooldown sender-deposit)}))
-      (ok (get-block-info? time (- block-height u1)))))
+      (ok true)))
