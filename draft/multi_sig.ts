@@ -40,7 +40,9 @@ async function test() {
 
     const tx_parts = [userA, userB];
 
-    const tx_parts_public_keys = tx_parts.map((part) => tx.publicKeyToString(tx.pubKeyfromPrivKey(part.secretKey)))
+    const tx_parts_public_keys = tx_parts.map((part) => tx.pubKeyfromPrivKey(part.secretKey));
+
+    const tx_parts_public_keys_str = tx_parts_public_keys.map(public_key => tx.publicKeyToString(public_key));
 
     const multisig_tx_options = {
         contractAddress: deployer.address,
@@ -50,7 +52,7 @@ async function test() {
         network: network,
         anchorMode: tx.AnchorMode.Any,
         numSignatures: tx_parts.length,
-        publicKeys: tx_parts_public_keys,
+        publicKeys: tx_parts_public_keys_str,
         fee: default_fee,
     };
 
