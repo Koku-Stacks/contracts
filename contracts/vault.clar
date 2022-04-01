@@ -30,7 +30,7 @@
     (ok (var-get contract-owner)))
 
 (define-read-only (get-deposit (principal principal))
-  (default-to {balance: u0, last-deposit-block: u0, cooldown: u0}
+  (default-to {balance: u0, last-deposit-timestamp: u0, cooldown: u0}
               (map-get? ledger {principal: principal})))
 
 (define-read-only (get-balance (principal principal))
@@ -70,7 +70,7 @@
       (try! (contract-call? .lp-token mint amount tx-sender))
       (map-set ledger {principal: tx-sender}
                       {balance: (+ (get balance sender-deposit) amount),
-                       last-deposit-block: block-height,
+                       last-deposit-timestamp: (get-timestamp),
                        cooldown: (if (> (var-get cooldown) (get cooldown sender-deposit))
                                      (var-get cooldown)
                                      (get cooldown sender-deposit))})
