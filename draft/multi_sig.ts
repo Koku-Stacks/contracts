@@ -24,22 +24,6 @@ const contract_code = fs.readFileSync(
 
 const network = new StacksTestnet({url: api_url});
 
-async function request_funds(account: Account) {
-    const request_url = `${api_url}/extended/v1/faucets/stx?address=${account.address}`;
-
-    await axios.post(request_url);
-}
-
-async function request_funds_to_all_accounts() {
-    await chain.loadAccounts();
-
-    const accounts = Array.from(chain.accounts.values());
-
-    for (const account of accounts) {
-        await request_funds(account);
-    }
-}
-
 async function test() {
     await chain.loadAccounts();
 
