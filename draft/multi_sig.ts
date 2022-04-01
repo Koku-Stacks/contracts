@@ -1,4 +1,4 @@
-import { Account, StacksChain } from "../integration/framework/stacks.chain"
+import { StacksChain } from "../integration/framework/stacks.chain"
 import {STACKS_API_URL} from "../integration/config"
 
 import * as tx from "@stacks/transactions"
@@ -9,8 +9,6 @@ import { StacksTestnet } from "@stacks/network"
 
 const api_url = STACKS_API_URL;
 // const api_url = 'https://stacks-node-api.testnet.stacks.co';
-
-import axios from 'axios'
 
 const default_fee = 100000;
 
