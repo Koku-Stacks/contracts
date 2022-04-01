@@ -44,16 +44,25 @@ async function test() {
 
     const tx_parts_public_keys_str = tx_parts_public_keys.map(public_key => tx.publicKeyToString(public_key));
 
+    const address_version = tx.AddressVersion.TestnetMultiSig;
+
+    const hash_mode = tx.AddressHashMode.SerializeP2SH;
+
+    const multisig_address = tx.addressFromPublicKeys(address_version, hash_mode, tx_parts.length, tx_parts_public_keys);
+
+    const multisig_address_str = tx.addressToString(multisig_address);
+
     const multisig_tx_options = {
         contractAddress: deployer.address,
         contractName: contract_name,
         functionName: 'setter',
-        functionArgs: [tx.uintCV(42)],
+        functionArgs: [tx.uintCV(40)],
         network: network,
         anchorMode: tx.AnchorMode.Any,
         numSignatures: tx_parts.length,
         publicKeys: tx_parts_public_keys_str,
         fee: default_fee,
+        nonce: await tx.getNonce(multisig_address_str, network)
     };
 
     const unsigned_transaction = await tx.makeUnsignedContractCall(multisig_tx_options);
@@ -71,16 +80,6 @@ async function test() {
     // // signer.appendOrigin(...);
 
     const signed_transaction = signer.transaction;
-
-    // NOTE at this point, if I go ahead and try to broadcast it, I receive a NotEnoughFunds error
-
-    const address_version = tx.AddressVersion.TestnetMultiSig;
-
-    const hash_mode = tx.AddressHashMode.SerializeP2SH;
-
-    const multisig_address = tx.addressFromPublicKeys(address_version, hash_mode, tx_parts.length, tx_parts_public_keys);
-
-    const multisig_address_str = tx.addressToString(multisig_address);
 
     const funding_tx_senderA = await tx.makeSTXTokenTransfer({
         recipient: multisig_address_str,
