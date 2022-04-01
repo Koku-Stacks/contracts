@@ -20,6 +20,12 @@
                     last-deposit-block: uint,
                     cooldown: uint})
 
+(define-read-only (get-timestamp)
+  (default-to u0 (get-block-info? time (- block-height u1))))
+
+(define-read-only (cooldown-to-seconds (c uint))
+  (* u60 c))
+
 (define-read-only (get-owner)
     (ok (var-get contract-owner)))
 
