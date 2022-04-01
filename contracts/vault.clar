@@ -13,11 +13,11 @@
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
-(define-data-var cooldown uint u0)
+(define-data-var cooldown uint u0) ;; in minutes
 
 (define-map ledger {principal: principal}
                    {balance: uint,
-                    last-deposit-block: uint,
+                    last-deposit-timestamp: uint, ;; UNIX epoch based, in seconds
                     cooldown: uint})
 
 (define-read-only (get-timestamp)
