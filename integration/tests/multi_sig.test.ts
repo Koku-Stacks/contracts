@@ -8,8 +8,9 @@ import {
   bufferCV,
   someCV,
   AddressHashMode,
+  publicKeyToString,
 } from "@stacks/transactions";
-import { StacksChain } from "../framework/stacks.chain";
+import { accountSigner, StacksChain } from "../framework/stacks.chain";
 import * as fs from "fs";
 import * as path from "path";
 import { CONTRACT_FOLDER, TRAITS_FOLDER, STACKS_API_URL } from "../config";
@@ -122,18 +123,18 @@ describe("multi-sig on chain", () => {
     expect(mintCall).to.be.ok;
     expect(mintCall.success).to.be.true;
 
+    const transferamount = 50;
     const authFields = await generateMultiSignature(chain, {
       contractAddress: contractAddress,
       contractName: contractName,
       functionName: "transfer",
       functionArgs: [
-        uintCV(50),
+        uintCV(transferamount),
         standardPrincipalCV(deployer.address),
         standardPrincipalCV(wallet_1.address),
         someCV(bufferCV(Buffer.from("transfer test"))),
       ],
     });
-    console.log(authFields);
 
     const transaction = authFields[0].signer.transaction;
     // index relies on the length of authfield
@@ -170,7 +171,56 @@ describe("multi-sig on chain", () => {
       );
     }
 
-    // const response = await chain.testBroadcast(deserializedTx);
-    // giving error; NotEnoughFunds on the private testnet
+    const initialwallet1Balance = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "get-balance",
+      [principalCV(wallet_1.address)],
+      wallet_1.address
+    );
+
+    expect(initialwallet1Balance).to.be.ok;
+    expect(initialwallet1Balance.success).to.be.true;
+
+    const initialDeployerBalance = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "get-balance",
+      [principalCV(deployer.address)],
+      deployer.address
+    );
+
+    expect(initialDeployerBalance).to.be.ok;
+    expect(initialDeployerBalance.success).to.be.true;
+
+    const response = await chain.testbroadcast(deserializedTx, deployer);
+
+    const updatedDeployerBalance = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "get-balance",
+      [principalCV(deployer.address)],
+      deployer.address
+    );
+
+    expect(updatedDeployerBalance).to.be.ok;
+    expect(updatedDeployerBalance.success).to.be.true;
+    expect(+updatedDeployerBalance.value.value).to.be.equal(
+      +initialDeployerBalance.value.value - transferamount
+    );
+
+    const updatedwallet1Balance = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "get-balance",
+      [principalCV(wallet_1.address)],
+      wallet_1.address
+    );
+
+    expect(updatedwallet1Balance).to.be.ok;
+    expect(updatedwallet1Balance.success).to.be.true;
+    expect(+updatedwallet1Balance.value.value).to.be.equal(
+      +initialwallet1Balance.value.value + transferamount
+    );
   });
 });
