@@ -74,6 +74,27 @@ async function test() {
 
     // NOTE at this point, if I go ahead and try to broadcast it, I receive a NotEnoughFunds error
 
+    const address_version = tx.AddressVersion.TestnetMultiSig;
+
+    const hash_mode = tx.AddressHashMode.SerializeP2SH;
+
+    const multisig_address = tx.addressFromPublicKeys(address_version, hash_mode, tx_parts.length, tx_parts_public_keys);
+
+    const multisig_address_str = tx.addressToString(multisig_address);
+
+    const funding_tx_senderA = await tx.makeSTXTokenTransfer({
+        recipient: multisig_address_str,
+        amount: 1000000,
+        senderKey: userA.secretKey,
+        network: network,
+        fee: default_fee,
+        anchorMode: tx.AnchorMode.Any
+    });
+
+    const response_funding_tx_senderA = await tx.broadcastTransaction(funding_tx_senderA, network);
+
+    console.log(response_funding_tx_senderA);
+
     const broadcast_response = await tx.broadcastTransaction(signed_transaction, network);
 
     console.log(broadcast_response);
