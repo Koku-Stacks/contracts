@@ -314,22 +314,22 @@ export class StacksChain {
     }
   }
 
-  public async testbroadcast(StacksTransaction: StacksTransaction, user: Account) {
+  public async testBroadcast(transaction: StacksTransaction, user: Account) {
     const addressHashMode = AddressHashMode.SerializeP2PKH;
-    const publicKey = publicKeyToString(getPublicKey(createStacksPrivateKey(user.secretKey)));
+    const privKey = createStacksPrivateKey(user.secretKey);
+    const publicKey = publicKeyToString(getPublicKey(privKey));
     const nonce = await getNonce(user.address, this.network);
-    const newoptions = createSingleSigSpendingCondition(
+    const newOptions = createSingleSigSpendingCondition(
       addressHashMode,
       publicKey,
       nonce,
-      StacksTransaction.auth.spendingCondition.fee
+      transaction.auth.spendingCondition.fee
     );
-    StacksTransaction.auth.spendingCondition = newoptions;
-    const privKey = createStacksPrivateKey(user.secretKey);
-    const signer = new TransactionSigner(StacksTransaction);
+    transaction.auth.spendingCondition = newOptions;
+    const signer = new TransactionSigner(transaction);
     signer.signOrigin(privKey);
     const broadcast_response = await broadcastTransaction(
-      StacksTransaction,
+      transaction,
       this.network
     );
     if (broadcast_response.error) {

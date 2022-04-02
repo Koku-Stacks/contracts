@@ -8,7 +8,7 @@ import {
 import {
   accountSigner,
   StacksChain,
-} from "../integration/framework/stacks.chain";
+} from "../framework/stacks.chain";
 import { signMultiSignature } from "./multisig_3";
 
 export async function generateMultiSignature(

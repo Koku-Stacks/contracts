@@ -4,7 +4,7 @@ import {
   import {
     accountSigner,
     StacksChain,
-  } from "../integration/framework/stacks.chain";
+  } from "../framework/stacks.chain";
   
   export function signMultiSignature(chain: StacksChain, transaction: StacksTransaction) {
 

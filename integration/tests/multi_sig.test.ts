@@ -16,7 +16,7 @@ import * as path from "path";
 import { CONTRACT_FOLDER, TRAITS_FOLDER, STACKS_API_URL } from "../config";
 import { expect } from "chai";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
-import { generateMultiSignature } from "../../scripts/multisig_2";
+import { generateMultiSignature } from "../multi-sig/multisig_2";
 // const chain = new StacksChain("http://3.64.221.107:3999/");
 
 const chain = new StacksChain(STACKS_API_URL, {
@@ -193,7 +193,7 @@ describe("multi-sig on chain", () => {
     expect(initialDeployerBalance).to.be.ok;
     expect(initialDeployerBalance.success).to.be.true;
 
-    const response = await chain.testbroadcast(deserializedTx, deployer);
+    const response = await chain.testBroadcast(deserializedTx, deployer);
 
     const updatedDeployerBalance = await chain.callReadOnlyFn(
       contractAddress,
