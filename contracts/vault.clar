@@ -12,9 +12,12 @@
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
+(define-map authorized-contracts {contract: principal} {dummy: bool})
 
 (define-map ledger {principal: principal} {balance: uint})
 
+(define-read-only (is-authorized-contract (contract principal))
+  (is-some (map-get? authorized-contracts {contract: contract})))
 
 (define-read-only (get-owner)
     (ok (var-get contract-owner)))
@@ -26,8 +29,16 @@
 (define-read-only (get-balance (principal principal))
     (get balance (get-deposit principal)))
 
+(define-public (authorize-contract (contract principal))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (map-insert authorized-contracts {contract: contract} {dummy: true})
+    (ok true)))
+
+(define-public (unauthorize-contract (contract principal))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (map-delete authorized-contracts {contract: contract})
     (ok true)))
 
 (define-public (submit-ownership-transfer (new-owner principal))
@@ -54,6 +65,7 @@
 
 (define-public (deposit (amount uint) (memo (optional (buff 34))))
     (let ((sender-deposit (get-deposit tx-sender)))
+      (asserts! (is-authorized-contract contract-caller) ERR_NOT_AUTHORIZED)
       (try! (contract-call? .token transfer amount tx-sender this-contract memo))
       (try! (contract-call? .lp-token mint amount tx-sender))
       (map-set ledger {principal: tx-sender} {balance: (+ (get balance sender-deposit) amount)})
@@ -63,6 +75,7 @@
     (let ((sender tx-sender)
           (sender-deposit (get-deposit tx-sender))
           (timestamp-limit (+ (get last-deposit-timestamp sender-deposit)
+      (asserts! (is-authorized-contract contract-caller) ERR_NOT_AUTHORIZED)
       (try! (as-contract (contract-call? .token transfer amount this-contract sender memo)))
       (try! (contract-call? .lp-token burn amount))
       (if (is-eq amount (get balance sender-deposit))
