@@ -3,7 +3,6 @@ import {
   AnchorMode,
   broadcastTransaction,
   callReadOnlyFunction,
-  ClarityType,
   cvToJSON,
   getAddressFromPrivateKey,
   hexToCV,
@@ -265,41 +264,47 @@ export class StacksChain {
   public async getTransactionEvents(txid: string, event_type: string) {
     const transactionInfo = await this.waitTransaction(txid);
     const filteredEvents = transactionInfo.events.filter((event: any) => {
-      if(event.event_type == event_type){
+      if (event.event_type == event_type) {
         return event;
       }
-    })
+    });
     return filteredEvents;
   }
 
-  public getTxnsByBlockInfo(blockInfo: any, event_type: string) {
-    const blockTxnEvents = blockInfo.result.metadata.txs.filter(async (txnId: any) => {
-      const txnEvent = await this.getTransactionEvents(txnId, event_type);
-      console.log(txnEvent);
-      return txnEvent;
-    });
-    return blockTxnEvents
+  public async getTxnsByBlockInfo(blockInfo: any, event_type: string) {
+    let blockTxnEvents = [];
+    const length = blockInfo.result.metadata.txs.length;
+    let threads = Array(length);
+    for(let i = 0; i < length; i++){
+      threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
+    } 
+    const allThreads = await Promise.all(threads);
+    blockTxnEvents = allThreads.filter((thread) => {
+      if(thread.length > 0){
+        return thread;
+      }
+    })
+    return blockTxnEvents;
   }
 
   public async searchByBlockHash(blockHash: string) {
     let blockInfo;
 
-    do {
+    try {
       await delay(500);
 
-      blockInfo = await fetch(`${this.url}/extended/v1/search/${blockHash}?include_metadata=true`).then(
-        (x) => x.json()
-      );
-
-      if(this.options.logLevel >= LogLevel.DEBUG) {
+      blockInfo = await fetch(
+        `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
+      ).then((x) => x.json());
+      if (this.options.logLevel >= LogLevel.DEBUG) {
         console.log("Stacks: checking block hash", blockInfo);
       }
-    } while (blockInfo.found == "false");
 
-    if (this.options.logLevel >= LogLevel.INFO) {
-      console.log(
-        "Stacks: block hash found",
-      );
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log("Stacks: block hash " + (blockInfo.found? "Found" : "NotFound"));
+      }
+    } catch (err) {
+      console.log(err);
     }
 
     return blockInfo;
