@@ -291,8 +291,6 @@ export class StacksChain {
     let blockInfo;
 
     try {
-      await delay(500);
-
       blockInfo = await fetch(
         `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
       ).then((x) => x.json());
