@@ -58,7 +58,7 @@ async function test() {
         functionArgs: [tx.uintCV(40)],
         network: network,
         anchorMode: tx.AnchorMode.Any,
-        numSignatures: 1,
+        numSignatures: tx_parts.length,
         publicKeys: tx_parts_public_keys_str,
         fee: default_fee,
         nonce: await tx.getNonce(multisig_address_str, network)
@@ -66,31 +66,10 @@ async function test() {
 
     const unsigned_transaction = await tx.makeUnsignedContractCall(multisig_tx_options);
 
-    let signer = new tx.TransactionSigner(unsigned_transaction);
+    const signer = new tx.TransactionSigner(unsigned_transaction);
 
     // userA is signing the transaction
     signer.signOrigin(tx.createStacksPrivateKey(userA.secretKey));
-
-    // transferring transaction to userB
-
-    const partially_signed_transaction = signer.transaction;
-
-    const serialized_partially_signed_transaction = partially_signed_transaction.serialize();
-
-    fs.writeFileSync('partially_signed_tx_bin', serialized_partially_signed_transaction);
-
-    // userB has received the transaction
-
-    const serialized_partially_signed_transaction_from_file = fs.readFileSync('partially_signed_tx_bin');
-
-    const deserialized_partially_signed_transaction = tx.deserializeTransaction(serialized_partially_signed_transaction_from_file);
-
-    const partially_signed_spending_condition = deserialized_partially_signed_transaction.auth.spendingCondition as tx.MultiSigSpendingCondition;
-
-    partially_signed_spending_condition.signaturesRequired++;
-
-    signer = new tx.TransactionSigner(deserialized_partially_signed_transaction);
-
     // userB is signing the transaction
     signer.signOrigin(tx.createStacksPrivateKey(userB.secretKey));
 
