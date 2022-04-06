@@ -7,6 +7,8 @@ import * as fs from "fs"
 import * as path from "path"
 import { StacksNetwork, StacksTestnet } from "@stacks/network"
 
+const utils = require('./utils');
+
 const api_url = STACKS_API_URL;
 
 const default_fee = 100000;
@@ -70,6 +72,7 @@ async function test() {
 
     // userA is signing the transaction
     signer.signOrigin(tx.createStacksPrivateKey(userA.secretKey));
+
     // userB is signing the transaction
     signer.signOrigin(tx.createStacksPrivateKey(userB.secretKey));
 
@@ -98,8 +101,6 @@ async function test() {
     console.log(broadcast_response);
 }
 
-test();
-
 interface MultiSigContractCallManagerOptions {
     contract_address: string;
     contract_name: string;
@@ -109,7 +110,7 @@ interface MultiSigContractCallManagerOptions {
     anchor_mode?: tx.AnchorMode;
     num_signatures: number;
     public_keys: tx.StacksPublicKey[];
-    private_keys?: tx.StacksPrivateKey[];
+    private_keys?: string[];
     fee?: number;
     nonce?: bigint;
 }
@@ -123,7 +124,7 @@ class MultiSigContractCallManager {
     private anchor_mode: tx.AnchorMode;
     private num_signatures: number;
     private public_keys: tx.StacksPublicKey[];
-    private private_keys: tx.StacksPrivateKey[];
+    private private_keys: string[];
     private fee: number;
     private nonce: bigint;
     private multi_sig_address: tx.Address;
@@ -153,7 +154,7 @@ class MultiSigContractCallManager {
         this.private_keys = options.private_keys ?? [];
     }
 
-    async init() {
+    async prepare_to_broadcast() {
         if (this.nonce === BigInt(-1)) {
             this.nonce = await tx.getNonce(tx.addressToString(this.multi_sig_address), this.network);
         }
@@ -172,7 +173,7 @@ class MultiSigContractCallManager {
         });
     }
 
-    sign(private_key: tx.StacksPrivateKey) {
+    sign(private_key: string) {
         this.private_keys.push(private_key);
     }
 
@@ -202,7 +203,7 @@ class MultiSigContractCallManager {
         const funding_transaction = await tx.makeSTXTokenTransfer({
             recipient: tx.addressToString(this.multi_sig_address),
             amount: amount,
-            senderKey: tx.privateKeyToString(this.private_keys[who]),
+            senderKey: this.private_keys[who],
             network: this.network,
             fee: fee ?? default_fee,
             anchorMode: tx.AnchorMode.Any
@@ -217,7 +218,7 @@ class MultiSigContractCallManager {
         const signer = new tx.TransactionSigner(this.transaction);
 
         for (const private_key of this.private_keys) {
-            signer.signOrigin(private_key);
+            signer.signOrigin(tx.createStacksPrivateKey(private_key));
         }
 
         const signed_transaction = signer.transaction;
@@ -227,3 +228,56 @@ class MultiSigContractCallManager {
         return response;
     }
 }
+
+async function test_class() {
+    await chain.loadAccounts();
+
+    const deployer = chain.accounts.get('deployer')!;
+
+    await chain.deployContract(
+        contract_name,
+        contract_code,
+        deployer.secretKey
+    );
+
+    const userA = chain.accounts.get('wallet_1')!;
+    const userB = chain.accounts.get('wallet_2')!;
+
+    const tx_parts = [userA, userB];
+
+    const multisig_tx_options: MultiSigContractCallManagerOptions = {
+        contract_address: deployer.address,
+        contract_name: contract_name,
+        function_name: 'setter',
+        function_args: [tx.uintCV(40)],
+        network: network,
+        num_signatures: tx_parts.length,
+        public_keys: tx_parts.map(part => tx.pubKeyfromPrivKey(part.secretKey)),
+    };
+
+    const multi_sig_manager = new MultiSigContractCallManager(multisig_tx_options);
+
+    // userA "signs" the transaction
+    multi_sig_manager.sign(userA.secretKey);
+
+    // mow the multi-sig manager is serialized
+    const serialized_multi_sig_manager = multi_sig_manager.serialize();
+
+    // userB receives the multi-sig manager payload. Warning: userB receives userA private key as well.
+
+    // userB deserializes the multi-sig manager
+    const deserialized_multi_sig_manager = MultiSigContractCallManager.deserialize(serialized_multi_sig_manager);
+
+    // // userB "signs" the transaction
+    // deserialized_multi_sig_manager.sign(userB.secretKey);
+
+    // // now userB is going to broadcast the transaction
+
+    // await deserialized_multi_sig_manager.prepare_to_broadcast();
+
+    // const response = await deserialized_multi_sig_manager.broadcast_transaction();
+
+    // console.log(response);
+}
+
+test_class();
