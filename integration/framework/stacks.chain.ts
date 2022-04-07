@@ -1,5 +1,8 @@
 import { StacksTestnet } from "@stacks/network";
 import {
+  addressFromPublicKeys,
+  AddressHashMode,
+  AddressVersion,
   AnchorMode,
   broadcastTransaction,
   callReadOnlyFunction,
@@ -12,6 +15,7 @@ import {
   makeContractDeploy,
   makeSTXTokenTransfer,
   PostConditionMode,
+  StacksPublicKey,
   TransactionVersion,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
@@ -258,6 +262,14 @@ export class StacksChain {
 
       throw err;
     }
+  }
+
+  static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
+    const addressVersion = AddressVersion.TestnetMultiSig;
+
+    const hashMode = AddressHashMode.;
+
+    return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
   }
 
   private async waitTransaction(txId: string) {
