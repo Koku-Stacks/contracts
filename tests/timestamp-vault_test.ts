@@ -15,7 +15,7 @@ Clarinet.test({
         let call = chain.mineBlock(
             [
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'submit-ownership-transfer',
                     [types.principal(userB.address)],
                     userB.address)
@@ -33,12 +33,12 @@ Clarinet.test({
         let call = chain.mineBlock(
             [
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'submit-ownership-transfer',
                     [types.principal(userB.address)],
                     deployer.address),
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'submit-ownership-transfer',
                     [types.principal(userB.address)],
                     deployer.address)
@@ -55,7 +55,7 @@ Clarinet.test({
         let call = chain.mineBlock(
             [
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'cancel-ownership-transfer',
                     [],
                     userB.address)
@@ -72,7 +72,7 @@ Clarinet.test({
         let call = chain.mineBlock(
             [
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'cancel-ownership-transfer',
                     [],
                     deployer.address)
@@ -89,7 +89,7 @@ Clarinet.test({
         let call = chain.mineBlock(
             [
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'confirm-ownership-transfer',
                     [],
                     userA.address)
@@ -108,12 +108,12 @@ Clarinet.test({
         let call = chain.mineBlock(
             [
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'submit-ownership-transfer',
                     [types.principal(userB.address)],
                     deployer.address),
                 Tx.contractCall(
-                    'vault',
+                    'timestamp-vault',
                     'confirm-ownership-transfer',
                     [],
                     userA.address)
@@ -127,7 +127,7 @@ Clarinet.test({
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
-        const vault = `${deployer.address}.vault`;
+        const timestamp_vault = `${deployer.address}.timestamp-vault`;
 
         let call1 = chain.mineBlock([
             Tx.contractCall(
@@ -146,7 +146,7 @@ Clarinet.test({
                 ],
                 deployer.address),
             Tx.contractCall(
-                'vault',
+                'timestamp-vault',
                 'deposit',
                 [
                     types.uint(100),
@@ -162,12 +162,12 @@ Clarinet.test({
         let balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
         balance.result.expectOk().expectUint(900);
 
-        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(vault)], userA.address);
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(timestamp_vault)], userA.address);
         balance.result.expectOk().expectUint(100);
 
         let call2 = chain.mineBlock([
             Tx.contractCall(
-                'vault',
+                'timestamp-vault',
                 'withdraw',
                 [
                     types.uint(100),
@@ -176,13 +176,13 @@ Clarinet.test({
                 userA.address)
         ]);
 
-        // call2.receipts[0].result.expectOk();
+        call2.receipts[0].result.expectOk();
 
-        // balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
-        // balance.result.expectOk().expectUint(1000);
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(userA.address)], userA.address);
+        balance.result.expectOk().expectUint(1000);
 
-        // balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(vault)], userA.address);
-        // balance.result.expectOk().expectUint(0);
+        balance = chain.callReadOnlyFn('token', 'get-balance', [types.principal(timestamp_vault)], userA.address);
+        balance.result.expectOk().expectUint(0);
     },
 });
 
@@ -209,7 +209,7 @@ Clarinet.test({
                 ],
                 deployer.address),
             Tx.contractCall(
-                'vault',
+                'timestamp-vault',
                 'set-cooldown',
                 [
                     types.uint(1),
@@ -223,7 +223,7 @@ Clarinet.test({
 
         const call2 = chain.mineBlock([
             Tx.contractCall(
-                'vault',
+                'timestamp-vault',
                 'deposit',
                 [
                     types.uint(100),
@@ -236,7 +236,7 @@ Clarinet.test({
 
         const call3 = chain.mineBlock([
             Tx.contractCall(
-                'vault',
+                'timestamp-vault',
                 'withdraw',
                 [
                     types.uint(10),
@@ -252,7 +252,7 @@ Clarinet.test({
 
         const call4 = chain.mineBlock([
             Tx.contractCall(
-                'vault',
+                'timestamp-vault',
                 'withdraw',
                 [
                     types.uint(10),

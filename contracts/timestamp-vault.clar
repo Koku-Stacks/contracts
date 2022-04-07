@@ -82,7 +82,7 @@
           (timestamp-limit (+ (get last-deposit-timestamp sender-deposit)
                               (cooldown-to-seconds (get cooldown sender-deposit)))))
       (asserts! (>= (get balance sender-deposit) amount) ERR_NOT_ENOUGH_BALANCE)
-      (asserts! (> (get-timestamp) timestamp-limit) ERR_TOO_SOON_TO_WITHDRAW)
+      (asserts! (>= (get-timestamp) timestamp-limit) ERR_TOO_SOON_TO_WITHDRAW)
       (try! (as-contract (contract-call? .token transfer amount this-contract sender memo)))
       (try! (contract-call? .lp-token burn amount))
       (if (is-eq amount (get balance sender-deposit))
