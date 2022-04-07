@@ -9,7 +9,6 @@ jobs:
 
       - name: "Execute tests"
         run: |
-          npm install
           cd integration
           npm install
           npm test

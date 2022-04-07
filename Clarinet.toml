@@ -6,10 +6,6 @@ costs_version = 1
 path = "contracts/amm.clar"
 depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
 
-[contracts.current-price]
-path = "contracts/current-price.clar"
-depends_on = []
-
 [contracts.mint-trait]
 path = "contracts/traits/mint-trait.clar"
 depends_on = []
