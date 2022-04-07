@@ -267,7 +267,7 @@ export class StacksChain {
   static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
     const addressVersion = AddressVersion.TestnetMultiSig;
 
-    const hashMode = AddressHashMode.;
+    const hashMode = AddressHashMode.SerializeP2SH;
 
     return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
   }
