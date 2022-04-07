@@ -1,4 +1,4 @@
-import { stringUtf8CV, uintCV } from "@stacks/transactions";
+import { noneCV, stringUtf8CV, uintCV } from "@stacks/transactions";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
 import { expect } from "chai";
 import * as fs from "fs";
@@ -13,8 +13,6 @@ const chain = new StacksChain(STACKS_API_URL, {
 let contractAddress: string;
 const contractName = "token";
 const sipContractName = "sip-010-trait-ft-standard";
-const burnTrait = "burn-trait";
-const mintTrait = "mint-trait";
 
 describe("token contract", () => {
   before(async () => {
@@ -27,16 +25,6 @@ describe("token contract", () => {
       { encoding: "utf8" }
     );
 
-    const burnTraitCode = fs.readFileSync(
-      path.join(TRAITS_FOLDER, `${burnTrait}.clar`),
-      { encoding: "utf8" }
-    );
-
-    const mintTraitCode = fs.readFileSync(
-      path.join(TRAITS_FOLDER, `${mintTrait}.clar`),
-      { encoding: "utf8" }
-    );
-
     const contractCode = fs.readFileSync(
       path.join(CONTRACT_FOLDER, `${contractName}.clar`),
       { encoding: "utf8" }
@@ -46,18 +34,6 @@ describe("token contract", () => {
     await chain.deployContract(
       sipContractName,
       sipContractCode,
-      deployer.secretKey
-    );
-
-    await chain.deployContract(
-      burnTrait,
-      burnTraitCode,
-      deployer.secretKey
-    );
-
-    await chain.deployContract(
-      mintTrait,
-      mintTraitCode,
       deployer.secretKey
     );
 
@@ -97,8 +73,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    expect(updateResult).to.be.ok;
-    expect(updateResult.success).to.be.true;
+    const updateResultResponse = await chain.getTransactionResponse(updateResult.txid);
+    expect(updateResultResponse).to.be.ok;
+    expect(updateResultResponse.success).to.be.true;
 
     // read the value again
     const checkResult = await chain.callReadOnlyFn(
@@ -122,9 +99,10 @@ describe("token contract", () => {
       wallet1.secretKey
     );
 
-    expect(wrongUpdateResult).to.be.ok;
-    expect(wrongUpdateResult.success).to.be.false;
-    expect(wrongUpdateResult.value.value).to.be.eq("103");
+    const wrongUpdateResultResponse = await chain.getTransactionResponse(wrongUpdateResult.txid);
+    expect(wrongUpdateResultResponse).to.be.ok;
+    expect(wrongUpdateResultResponse.success).to.be.false;
+    expect(wrongUpdateResultResponse.value.value).to.be.eq("103");
 
     // double check that value wasn't changed
     const doubleCheckResult = await chain.callReadOnlyFn(
@@ -180,7 +158,7 @@ describe("token contract", () => {
     expect(name.value.value).to.be.eq("dYrivaNative");
   });
 
-  it("Ensure mint and burn functions work as expected", async () => {
+  it("Ensure mint, burn and transfer functions work as expected", async () => {
     const deployer = chain.accounts.get("deployer")!;
     const wallet1 = chain.accounts.get("wallet_1")!;
 
@@ -236,8 +214,9 @@ describe("token contract", () => {
         deployer.secretKey
       );
   
-      expect(authorizeContract).to.be.ok;
-      expect(authorizeContract.success).to.be.true;
+      const authorizeContractResponse = await chain.getTransactionResponse(authorizeContract.txid);
+      expect(authorizeContractResponse).to.be.ok;
+      expect(authorizeContractResponse.success).to.be.true;
       console.log("NOT AUTHORIZED");
     } else {
       console.log("AUTHORIZED");
@@ -252,8 +231,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    expect(goodMintCall).to.be.ok;
-    expect(goodMintCall.success).to.be.true;
+    const goodMintCallResponse = await chain.getTransactionResponse(goodMintCall.txid);
+    expect(goodMintCallResponse).to.be.ok;
+    expect(goodMintCallResponse.success).to.be.true;
 
     const badMintCall = await chain.callContract(
       contractAddress,
@@ -263,8 +243,9 @@ describe("token contract", () => {
       wallet1.secretKey
     );
 
-    expect(badMintCall).to.be.ok;
-    expect(badMintCall.success).to.be.false;
+    const badMintCallResponse = await chain.getTransactionResponse(badMintCall.txid);
+    expect(badMintCallResponse).to.be.ok;
+    expect(badMintCallResponse.success).to.be.false;
 
     const mintCallToOtherWallet = await chain.callContract(
       contractAddress,
@@ -274,8 +255,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    expect(mintCallToOtherWallet).to.be.ok;
-    expect(mintCallToOtherWallet.success).to.be.true;
+    const mintCallToOtherWalletResponse = await chain.getTransactionResponse(mintCallToOtherWallet.txid);
+    expect(mintCallToOtherWalletResponse).to.be.ok;
+    expect(mintCallToOtherWalletResponse.success).to.be.true;
 
     const supply = await chain.callReadOnlyFn(
       contractAddress,
@@ -317,6 +299,33 @@ describe("token contract", () => {
       +initialwallet1Balance.value.value + 50
     );
 
+    // transfer
+    const deployerTransfer = await chain.callContract(
+      contractAddress,
+      contractName,
+      "transfer",
+      [uintCV(50), principalCV(deployer.address), principalCV(wallet1.address), noneCV()],
+      deployer.secretKey
+    );
+
+    const deployerTransferResponse = await chain.getTransactionResponse(deployerTransfer.txid);
+    expect(deployerTransferResponse).to.be.ok;
+    expect(deployerTransferResponse.success).to.be.true;
+
+    const wallet1NewBalance = await chain.callReadOnlyFn(
+      contractAddress,
+      contractName,
+      "get-balance",
+      [principalCV(wallet1.address)],
+      wallet1.address
+    );
+
+    expect(wallet1NewBalance).to.be.ok;
+    expect(wallet1NewBalance.success).to.be.true;
+    expect(+wallet1NewBalance.value.value).to.be.equal(
+      +wallet1Balance.value.value + 50
+    );
+
     // burn
     const goodBurnCall = await chain.callContract(
       contractAddress,
@@ -326,8 +335,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    expect(goodBurnCall).to.be.ok;
-    expect(goodBurnCall.success).to.be.true;
+    const goodBurnCallResponse = await chain.getTransactionResponse(goodBurnCall.txid);
+    expect(goodBurnCallResponse).to.be.ok;
+    expect(goodBurnCallResponse.success).to.be.true;
 
     const zeroBurnCall = await chain.callContract(
       contractAddress,
@@ -337,9 +347,10 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    expect(zeroBurnCall).to.be.ok;
-    expect(zeroBurnCall.success).to.be.false;
-    expect(zeroBurnCall.value.value).to.be.equal("1");
+    const zeroBurnCallResponse = await chain.getTransactionResponse(zeroBurnCall.txid);
+    expect(zeroBurnCallResponse).to.be.ok;
+    expect(zeroBurnCallResponse.success).to.be.false;
+    expect(zeroBurnCallResponse.value.value).to.be.equal("1");
 
     // goodBurnCall.result.expectOk().expectBool(true);
     // zeroBurnCall.result.expectErr().expectUint(1);
@@ -355,7 +366,7 @@ describe("token contract", () => {
     expect(updatedDeployerBalance).to.be.ok;
     expect(updatedDeployerBalance.success).to.be.true;
     expect(+updatedDeployerBalance.value.value).to.be.equal(
-      +initialDeployerBalance.value.value + 90
+      +initialDeployerBalance.value.value + 90 - 50
     );
 
     const updatedwallet1Balance = await chain.callReadOnlyFn(
@@ -369,7 +380,7 @@ describe("token contract", () => {
     expect(updatedwallet1Balance).to.be.ok;
     expect(updatedwallet1Balance.success).to.be.true;
     expect(+updatedwallet1Balance.value.value).to.be.equal(
-      +initialwallet1Balance.value.value + 50
+      +initialwallet1Balance.value.value + 50 + 50
     );
   });
 });
