@@ -46,7 +46,3 @@ depends_on = ["sip013-trait-sft-standard", "sip-010-trait-ft-standard"]
 [contracts.vault]
 path = "contracts/vault.clar"
 depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token", "token"]
-
-[contracts.timestamp-vault-accessor]
-path = "contracts/timestamp-vault-accessor.clar"
-depends_on = ["vault"]
