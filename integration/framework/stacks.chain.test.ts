@@ -1,56 +1,46 @@
-import { intCV } from "@stacks/transactions";
 import { expect } from "chai";
 import { StacksChain } from "./stacks.chain";
+import * as fs from "fs";
+import * as path from "path";
+import { CONTRACT_FOLDER, STACKS_API_URL } from "../config";
 
-const chain = new StacksChain("http://localhost:3999");
+const chain = new StacksChain(STACKS_API_URL, {
+  defaultFee: 100000,
+});
+
+const contractName = "hello";
+let contractAddress: string;
 
 describe("stacks.chain", () => {
-  it("should deploy and next call the contract functions", async () => {
+  before(async () => {
+    await chain.loadAccounts();
+
     const deployer = chain.accounts.get("deployer")!;
-
-    const contractName = "hello" + Date.now().toString();
-
-    // create contract
-    const smartContractId = await chain.deployContract(
+    const contractCode = fs.readFileSync(
+      path.join(CONTRACT_FOLDER, `${contractName}.clar`),
+      { encoding: "utf8" }
+    );
+    const contractId = await chain.deployContract(
       contractName,
-      ` (define-public (say-hi)
-          (ok u"hello world"))
-
-        (define-read-only (echo-number (val int))
-          (ok val))
-      `,
+      contractCode,
       deployer.secretKey
     );
 
-    expect(smartContractId).to.be.ok;
+    contractAddress = contractId.split(".")[0];
+  });
 
-    // call the contract
-    const [contractPrincipal] = smartContractId.split(".");
+  it("should deploy and next call the contract functions", async () => {
+    const deployer = chain.accounts.get("deployer")!
 
     const callResult = await chain.callContract(
-      contractPrincipal,
+      contractAddress,
       contractName,
-      "say-hi",
+      "say-hello-world",
       [],
-      "753b7cc01a1a2e86221266a154af739463fce51219d97e4f856cd7200c3bd2a601"
+      deployer.secretKey
     );
-
-    expect(callResult).to.be.ok;
-    expect(callResult.success).to.be.true;
-    expect(callResult.value.value).to.be.equal("hello world");
-
-    // call readOnly function
-    const readResult = await chain.callReadOnlyFn(
-      contractPrincipal,
-      contractName,
-      "echo-number",
-      [intCV(11)],
-      deployer.address
-    );
-
-    expect(readResult).to.be.ok;
-    expect(readResult.success).to.be.true;
-    expect(readResult.value.type).to.be.equal("int");
-    expect(readResult.value.value).to.be.equal("11");
+    const updateResultResponse = await chain.getTransactionResponse(callResult.txid);
+    expect(updateResultResponse).to.be.ok;
+    expect(updateResultResponse.success).to.be.true;
   });
 });
