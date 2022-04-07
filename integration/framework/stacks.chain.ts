@@ -6,6 +6,7 @@ import {
   ClarityType,
   cvToJSON,
   getAddressFromPrivateKey,
+  getNonce,
   hexToCV,
   makeContractCall,
   makeContractDeploy,
@@ -283,6 +284,10 @@ export class StacksChain {
     }
 
     return transactionInfo;
+  }
+
+  private async getNonce(address: string): Promise<bigint> {
+    return await getNonce(address, this.network);;
   }
 }
 
