@@ -13,6 +13,8 @@ const chain = new StacksChain(STACKS_API_URL, {
 let contractAddress: string;
 const contractName = "token";
 const sipContractName = "sip-010-trait-ft-standard";
+const burnTrait = "burn-trait";
+const mintTrait = "mint-trait";
 
 describe("token contract", () => {
   before(async () => {
@@ -25,6 +27,16 @@ describe("token contract", () => {
       { encoding: "utf8" }
     );
 
+    const burnTraitCode = fs.readFileSync(
+      path.join(TRAITS_FOLDER, `${burnTrait}.clar`),
+      { encoding: "utf8" }
+    );
+
+    const mintTraitCode = fs.readFileSync(
+      path.join(TRAITS_FOLDER, `${mintTrait}.clar`),
+      { encoding: "utf8" }
+    );
+
     const contractCode = fs.readFileSync(
       path.join(CONTRACT_FOLDER, `${contractName}.clar`),
       { encoding: "utf8" }
@@ -34,6 +46,18 @@ describe("token contract", () => {
     await chain.deployContract(
       sipContractName,
       sipContractCode,
+      deployer.secretKey
+    );
+
+    await chain.deployContract(
+      burnTrait,
+      burnTraitCode,
+      deployer.secretKey
+    );
+
+    await chain.deployContract(
+      mintTrait,
+      mintTraitCode,
       deployer.secretKey
     );
 
