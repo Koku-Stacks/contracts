@@ -67,6 +67,6 @@
   (let ((cooldown-sender-info (get-cooldown-info tx-sender))
         (timestamp-limit (+ (get last-deposit-timestamp cooldown-sender-info)
                             (cooldown-to-seconds (get cooldown cooldown-sender-info)))))
-    (asserts! (>= (get-timestamp) timestamp-limit) ERR_TOO_SOON_TO_WITHDRAW)
+    (asserts! (> (get-timestamp) timestamp-limit) ERR_TOO_SOON_TO_WITHDRAW)
     (try! (contract-call? .vault withdraw amount memo))
     (ok true)))
