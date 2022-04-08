@@ -49,24 +49,24 @@ export class StacksChain {
   }
 
   async loadAccounts() {
-      const items: RemoteAccount[] = await fetch(
-          this.url.replace(":3999", ":5000") + "/accounts"
-      ).then((x) => x.json());
+    const items: RemoteAccount[] = await fetch(
+      this.url.replace(":3999", ":5000") + "/accounts"
+    ).then((x) => x.json());
 
       this.accounts.clear();
       items.reduce(
-          (r, x) =>
-              r.set(x.name, {
-                  secretKey: x.secretKey,
-                  address: getAddressFromPrivateKey(
-                      x.secretKey,
-                      this.options.isMainnet
-                          ? TransactionVersion.Mainnet
-                          : TransactionVersion.Testnet
-                  ),
-                  btcAddress: x.btcAddress ?? "",
-              }),
-          this.accounts
+        (r, x) =>
+          r.set(x.name, {
+            secretKey: x.secretKey,
+            address: getAddressFromPrivateKey(
+              x.secretKey,
+              this.options.isMainnet
+                ? TransactionVersion.Mainnet
+                : TransactionVersion.Testnet
+            ),
+            btcAddress: x.btcAddress ?? "",
+          }),
+        this.accounts
       );
   }
 
