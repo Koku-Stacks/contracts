@@ -71,32 +71,32 @@ export class StacksChain {
   }
 
   async transferSTX(
-      amount: number,
-      recipient: string,
-      senderKey: string,
-      options?: {
-          memo?: string;
-          fee?: number;
-      }
+    amount: number,
+    recipient: string,
+    senderKey: string,
+    options?: {
+      memo?: string;
+      fee?: number;
+    }
   ) {
-      const { memo = "", fee } = options ?? {};
-      const transaction = await makeSTXTokenTransfer({
-          network: this.network,
-          recipient,
-          amount,
-          senderKey,
-          memo,
-          fee: fee ?? this.options.defaultFee, // set a tx fee if you don't want the builder to estimate
-          anchorMode: AnchorMode.Any,
-      });
-      if (this.options.logLevel >= LogLevel.INFO) {
-          console.log(
-              "Stacks: transferSTX",
-              `recipient: ${recipient}`,
-              `amount: ${amount}`
-          );
-      }
-      return transaction;
+    const { memo = "", fee } = options ?? {};
+    const transaction = await makeSTXTokenTransfer({
+      network: this.network,
+      recipient,
+      amount,
+      senderKey,
+      memo,
+      fee: fee ?? this.options.defaultFee, // set a tx fee if you don't want the builder to estimate
+      anchorMode: AnchorMode.Any,
+    });
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: transferSTX",
+        `recipient: ${recipient}`,
+        `amount: ${amount}`
+      );
+    }
+    return transaction;
   }
 
   async callReadOnlyFn(
