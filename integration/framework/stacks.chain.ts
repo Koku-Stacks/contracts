@@ -319,24 +319,29 @@ export class StacksChain {
   }
 
   public async waitTransaction(txId: string) {
-      let transactionInfo;
-      do {
-          await delay(500);
-          transactionInfo = await fetch(`${this.url}/extended/v1/tx/${txId}`).then(
-              (x) => x.json()
-          );
-          if (this.options.logLevel >= LogLevel.DEBUG) {
-              console.log("Stacks: check transaction", transactionInfo);
-          }
-      } while (transactionInfo.tx_status === "pending");
-      if (this.options.logLevel >= LogLevel.INFO) {
-          console.log(
-              "Stacks: transaction mined",
-              `tx_status: ${transactionInfo.tx_status}`,
-              `txId: ${txId}`
-          );
+    let transactionInfo;
+
+    do {
+      await delay(500);
+
+      transactionInfo = await fetch(`${this.url}/extended/v1/tx/${txId}`).then(
+        (x) => x.json()
+      );
+
+      if (this.options.logLevel >= LogLevel.DEBUG) {
+        console.log("Stacks: check transaction", transactionInfo);
       }
-      return transactionInfo;
+    } while (transactionInfo.tx_status === "pending");
+
+    if (this.options.logLevel >= LogLevel.INFO) {
+      console.log(
+        "Stacks: transaction mined",
+        `tx_status: ${transactionInfo.tx_status}`,
+        `txId: ${txId}`
+      );
+    }
+
+    return transactionInfo;
   }
   private async getNonce(address: string): Promise<bigint> {
       return await getNonce(address, this.network);;
