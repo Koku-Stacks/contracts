@@ -285,12 +285,12 @@ export class StacksChain {
     let blockTxnEvents = [];
     const length = blockInfo.result.metadata.txs.length;
     let threads = Array(length);
-    for (let i = 0; i < length; i++) {
+    for(let i = 0; i < length; i++){
       threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
-    }
+    } 
     const allThreads = await Promise.all(threads);
     blockTxnEvents = allThreads.filter((thread) => {
-      if (thread.length > 0) {
+      if(thread.length > 0){
         return thread;
       }
     })
