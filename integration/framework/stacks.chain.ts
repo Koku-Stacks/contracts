@@ -169,6 +169,7 @@ export class StacksChain {
           ? TransactionVersion.Mainnet
           : TransactionVersion.Testnet
       );
+
       console.log(
         "Stacks: callContract",
         `senderAddress: ${senderAddress}`,
@@ -179,6 +180,7 @@ export class StacksChain {
 
     return broadcast_response;
   }
+
   async deployContract(
       contractName: string,
       code: string,
