@@ -21,15 +21,15 @@ import fetch from "node-fetch";
 import { delay } from "./helpers";
 
 interface Options {
-    defaultFee?: number;
-    logLevel: LogLevel;
-    isMainnet: boolean;
+  defaultFee?: number;
+  logLevel: LogLevel;
+  isMainnet: boolean;
 }
 
 export enum LogLevel {
-    NONE = 0,
-    INFO = 1,
-    DEBUG = 2,
+  NONE = 0,
+  INFO = 1,
+  DEBUG = 2,
 }
 
 export class StacksChain {
