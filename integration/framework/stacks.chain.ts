@@ -299,6 +299,7 @@ export class StacksChain {
 
   public async searchByBlockHash(blockHash: string) {
     let blockInfo;
+
     try {
       blockInfo = await fetch(
         `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
