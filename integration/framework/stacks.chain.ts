@@ -272,13 +272,13 @@ export class StacksChain {
   }
 
   public async getTransactionEvents(txid: string, event_type: string) {
-      const transactionInfo = await this.waitTransaction(txid);
-      const filteredEvents = transactionInfo.events.filter((event: any) => {
-          if (event.event_type == event_type) {
-              return event;
-          }
-      });
-      return filteredEvents;
+    const transactionInfo = await this.waitTransaction(txid);
+    const filteredEvents = transactionInfo.events.filter((event: any) => {
+      if (event.event_type == event_type) {
+        return event;
+      }
+    });
+    return filteredEvents;
   }
   public async getTxnsByBlockInfo(blockInfo: any, event_type: string) {
       let blockTxnEvents = [];
