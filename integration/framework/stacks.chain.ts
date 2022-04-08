@@ -103,28 +103,30 @@ export class StacksChain {
   }
 
   async callReadOnlyFn(
-      contractAddress: string,
-      contractName: string,
-      method: string,
-      args: Array<any>,
-      senderAddress: string
+    contractAddress: string,
+    contractName: string,
+    method: string,
+    args: Array<any>,
+    senderAddress: string
   ) {
       let readResult = await callReadOnlyFunction({
-          network: this.network,
-          contractAddress,
-          contractName,
-          functionName: method,
-          functionArgs: args,
-          senderAddress,
+        network: this.network,
+        contractAddress,
+        contractName,
+        functionName: method,
+        functionArgs: args,
+        senderAddress,
       });
+
       if (this.options.logLevel >= LogLevel.DEBUG) {
-          console.log(
-              "Stacks: transferSTX",
-              `${contractAddress}.${contractName}.${method}`,
-              `senderAddress: ${senderAddress}`,
-              cvToJSON(readResult)
-          );
+        console.log(
+          "Stacks: transferSTX",
+          `${contractAddress}.${contractName}.${method}`,
+          `senderAddress: ${senderAddress}`,
+          cvToJSON(readResult)
+        );
       }
+
       return cvToJSON(readResult);
   }
   async callContract(
