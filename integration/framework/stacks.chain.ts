@@ -267,9 +267,10 @@ export class StacksChain {
       return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
   }
   public async getTransactionResponse(txid: string) {
-      const transactionInfo = await this.waitTransaction(txid);
-      return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
+    const transactionInfo = await this.waitTransaction(txid);
+    return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
+
   public async getTransactionEvents(txid: string, event_type: string) {
       const transactionInfo = await this.waitTransaction(txid);
       const filteredEvents = transactionInfo.events.filter((event: any) => {
