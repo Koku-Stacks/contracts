@@ -349,15 +349,15 @@ export class StacksChain {
 }
 
 export interface Account {
-    address: string;
-    btcAddress: string;
-    secretKey: string;
+  address: string;
+  btcAddress: string;
+  secretKey: string;
 }
 
 interface RemoteAccount {
-    name: string;
-    initialBalance: number;
-    mnemonic: string;
-    secretKey: string;
-    btcAddress?: string;
+  name: string;
+  initialBalance: number;
+  mnemonic: string;
+  secretKey: string;
+  btcAddress?: string;
 }
