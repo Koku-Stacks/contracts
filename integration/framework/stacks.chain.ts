@@ -215,6 +215,7 @@ export class StacksChain {
             ? TransactionVersion.Mainnet
             : TransactionVersion.Testnet
         );
+
         console.log(
           "Stacks: deployContract",
           `senderAddress: ${senderAddress}`,
@@ -255,6 +256,7 @@ export class StacksChain {
 
         return contractId;
       }
+
       throw err;
     }
   }
