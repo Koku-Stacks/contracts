@@ -129,50 +129,55 @@ export class StacksChain {
 
     return cvToJSON(readResult);
   }
+
   async callContract(
-      contractAddress: string,
-      contractName: string,
-      method: string,
-      args: Array<any>,
-      senderSecretKey: string,
-      options?: {
-          fee?: number;
-      }
+    contractAddress: string,
+    contractName: string,
+    method: string,
+    args: Array<any>,
+    senderSecretKey: string,
+    options?: {
+      fee?: number;
+    }
   ) {
-      const transaction = await makeContractCall({
-          network: this.network,
-          contractAddress,
-          contractName,
-          functionName: method,
-          functionArgs: args,
-          senderKey: senderSecretKey,
-          anchorMode: AnchorMode.Any,
-          postConditionMode: PostConditionMode.Allow,
-          fee: options?.fee ?? this.options.defaultFee,
-      });
-      const broadcast_response = await broadcastTransaction(
-          transaction,
-          this.network
+    const transaction = await makeContractCall({
+      network: this.network,
+      contractAddress,
+      contractName,
+      functionName: method,
+      functionArgs: args,
+      senderKey: senderSecretKey,
+      anchorMode: AnchorMode.Any,
+      postConditionMode: PostConditionMode.Allow,
+      fee: options?.fee ?? this.options.defaultFee,
+    });
+
+    const broadcast_response = await broadcastTransaction(
+      transaction,
+      this.network
+    );
+
+    if (broadcast_response.error) {
+      console.error(broadcast_response);
+      throw new Error(broadcast_response.reason);
+    }
+
+    if (this.options.logLevel >= LogLevel.INFO) {
+      const senderAddress = getAddressFromPrivateKey(
+        senderSecretKey,
+        this.options.isMainnet
+          ? TransactionVersion.Mainnet
+          : TransactionVersion.Testnet
       );
-      if (broadcast_response.error) {
-          console.error(broadcast_response);
-          throw new Error(broadcast_response.reason);
-      }
-      if (this.options.logLevel >= LogLevel.INFO) {
-          const senderAddress = getAddressFromPrivateKey(
-              senderSecretKey,
-              this.options.isMainnet
-                  ? TransactionVersion.Mainnet
-                  : TransactionVersion.Testnet
-          );
-          console.log(
-              "Stacks: callContract",
-              `senderAddress: ${senderAddress}`,
-              `${contractAddress}.${contractName}.${method}`,
-              `txId: ${broadcast_response.txid}`
-          );
-      }
-      return broadcast_response;
+      console.log(
+        "Stacks: callContract",
+        `senderAddress: ${senderAddress}`,
+        `${contractAddress}.${contractName}.${method}`,
+        `txId: ${broadcast_response.txid}`
+      );
+    }
+
+    return broadcast_response;
   }
   async deployContract(
       contractName: string,
