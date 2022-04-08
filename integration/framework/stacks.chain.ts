@@ -182,73 +182,83 @@ export class StacksChain {
   }
 
   async deployContract(
-      contractName: string,
-      code: string,
-      senderSecretKey: string,
-      options?: {
-          fee?: number;
-      }
+    contractName: string,
+    code: string,
+    senderSecretKey: string,
+    options?: {
+      fee?: number;
+    }
   ): Promise<string> {
-      try {
-          const transaction = await makeContractDeploy({
-              network: this.network,
-              contractName,
-              codeBody: code,
-              senderKey: senderSecretKey,
-              anchorMode: AnchorMode.Any,
-              fee: options?.fee ?? this.options.defaultFee,
-          });
-          const broadcast_response = await broadcastTransaction(
-              transaction,
-              this.network
-          );
-          if (broadcast_response.error) {
-              throw new Error(broadcast_response.reason);
-          }
-          if (this.options.logLevel >= LogLevel.INFO) {
-              const senderAddress = getAddressFromPrivateKey(
-                  senderSecretKey,
-                  this.options.isMainnet
-                      ? TransactionVersion.Mainnet
-                      : TransactionVersion.Testnet
-              );
-              console.log(
-                  "Stacks: deployContract",
-                  `senderAddress: ${senderAddress}`,
-                  `${contractName}`,
-                  `txId: ${broadcast_response.txid}`
-              );
-          }
-          const transactionInfo = await this.waitTransaction(
-              broadcast_response.txid
-          );
-          if (this.options.logLevel >= LogLevel.INFO) {
-              console.log(
-                  "Stacks: deployContract completed",
-                  `contractId: ${transactionInfo?.smart_contract?.contract_id}`
-              );
-          }
-          return transactionInfo?.smart_contract?.contract_id;
-      } catch (err) {
-          if (err instanceof Error && err.message === "ContractAlreadyExists") {
-              const address = getAddressFromPrivateKey(
-                  senderSecretKey,
-                  this.options.isMainnet
-                      ? TransactionVersion.Mainnet
-                      : TransactionVersion.Testnet
-              );
-              const contractId = `${address}.${contractName}`;
-              if (this.options.logLevel >= LogLevel.INFO) {
-                  console.log(
-                      "Stacks: Skipped Deployment, Contract Already Exists",
-                      `contractId: ${contractId}`
-                  );
-              }
-              return contractId;
-          }
-          throw err;
+    try {
+      const transaction = await makeContractDeploy({
+        network: this.network,
+        contractName,
+        codeBody: code,
+        senderKey: senderSecretKey,
+        anchorMode: AnchorMode.Any,
+        fee: options?.fee ?? this.options.defaultFee,
+      });
+
+      const broadcast_response = await broadcastTransaction(
+        transaction,
+        this.network
+      );
+
+      if (broadcast_response.error) {
+        throw new Error(broadcast_response.reason);
       }
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        const senderAddress = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+        console.log(
+          "Stacks: deployContract",
+          `senderAddress: ${senderAddress}`,
+          `${contractName}`,
+          `txId: ${broadcast_response.txid}`
+        );
+      }
+
+      const transactionInfo = await this.waitTransaction(
+        broadcast_response.txid
+      );
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log(
+          "Stacks: deployContract completed",
+          `contractId: ${transactionInfo?.smart_contract?.contract_id}`
+        );
+      }
+
+      return transactionInfo?.smart_contract?.contract_id;
+    } catch (err) {
+      if (err instanceof Error && err.message === "ContractAlreadyExists") {
+        const address = getAddressFromPrivateKey(
+          senderSecretKey,
+          this.options.isMainnet
+            ? TransactionVersion.Mainnet
+            : TransactionVersion.Testnet
+        );
+
+        const contractId = `${address}.${contractName}`;
+
+        if (this.options.logLevel >= LogLevel.INFO) {
+          console.log(
+            "Stacks: Skipped Deployment, Contract Already Exists",
+            `contractId: ${contractId}`
+          );
+        }
+
+        return contractId;
+      }
+      throw err;
+    }
   }
+
   static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
       const addressVersion = AddressVersion.TestnetMultiSig;
       const hashMode = AddressHashMode.SerializeP2SH;
