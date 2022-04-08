@@ -80,6 +80,7 @@ export class StacksChain {
     }
   ) {
     const { memo = "", fee } = options ?? {};
+
     const transaction = await makeSTXTokenTransfer({
       network: this.network,
       recipient,
@@ -89,6 +90,7 @@ export class StacksChain {
       fee: fee ?? this.options.defaultFee, // set a tx fee if you don't want the builder to estimate
       anchorMode: AnchorMode.Any,
     });
+
     if (this.options.logLevel >= LogLevel.INFO) {
       console.log(
         "Stacks: transferSTX",
@@ -96,6 +98,7 @@ export class StacksChain {
         `amount: ${amount}`
       );
     }
+
     return transaction;
   }
 
