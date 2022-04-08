@@ -11,6 +11,11 @@ import {
   makeSTXTokenTransfer,
   PostConditionMode,
   TransactionVersion,
+  addressFromPublicKeys,
+  AddressHashMode,
+  AddressVersion,
+  getNonce,
+  StacksPublicKey,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
@@ -256,6 +261,11 @@ export class StacksChain {
     }
   }
 
+  static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
+      const addressVersion = AddressVersion.TestnetMultiSig;
+      const hashMode = AddressHashMode.SerializeP2SH;
+      return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
+  }
   public async getTransactionResponse(txid: string) {
     const transactionInfo = await this.waitTransaction(txid);
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
@@ -332,6 +342,9 @@ export class StacksChain {
     }
 
     return transactionInfo;
+  }
+  private async getNonce(address: string): Promise<bigint> {
+      return await getNonce(address, this.network);;
   }
 }
 
