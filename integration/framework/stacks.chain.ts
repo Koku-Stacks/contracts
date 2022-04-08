@@ -280,21 +280,23 @@ export class StacksChain {
     });
     return filteredEvents;
   }
+
   public async getTxnsByBlockInfo(blockInfo: any, event_type: string) {
-      let blockTxnEvents = [];
-      const length = blockInfo.result.metadata.txs.length;
-      let threads = Array(length);
-      for (let i = 0; i < length; i++) {
-          threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
+    let blockTxnEvents = [];
+    const length = blockInfo.result.metadata.txs.length;
+    let threads = Array(length);
+    for (let i = 0; i < length; i++) {
+      threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
+    }
+    const allThreads = await Promise.all(threads);
+    blockTxnEvents = allThreads.filter((thread) => {
+      if (thread.length > 0) {
+        return thread;
       }
-      const allThreads = await Promise.all(threads);
-      blockTxnEvents = allThreads.filter((thread) => {
-          if (thread.length > 0) {
-              return thread;
-          }
-      })
-      return blockTxnEvents;
+    })
+    return blockTxnEvents;
   }
+
   public async searchByBlockHash(blockHash: string) {
       let blockInfo;
       try {
