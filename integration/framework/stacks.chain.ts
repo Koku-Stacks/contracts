@@ -306,12 +306,14 @@ export class StacksChain {
       if (this.options.logLevel >= LogLevel.DEBUG) {
         console.log("Stacks: checking block hash", blockInfo);
       }
+
       if (this.options.logLevel >= LogLevel.INFO) {
-        console.log("Stacks: block hash " + (blockInfo.found ? "Found" : "NotFound"));
+        console.log("Stacks: block hash " + (blockInfo.found? "Found" : "NotFound"));
       }
     } catch (err) {
       console.log(err);
     }
+
     return blockInfo;
   }
 
