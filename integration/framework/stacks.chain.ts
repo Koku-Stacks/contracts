@@ -298,22 +298,23 @@ export class StacksChain {
   }
 
   public async searchByBlockHash(blockHash: string) {
-      let blockInfo;
-      try {
-          blockInfo = await fetch(
-              `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
-          ).then((x) => x.json());
-          if (this.options.logLevel >= LogLevel.DEBUG) {
-              console.log("Stacks: checking block hash", blockInfo);
-          }
-          if (this.options.logLevel >= LogLevel.INFO) {
-              console.log("Stacks: block hash " + (blockInfo.found ? "Found" : "NotFound"));
-          }
-      } catch (err) {
-          console.log(err);
+    let blockInfo;
+    try {
+      blockInfo = await fetch(
+        `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
+      ).then((x) => x.json());
+      if (this.options.logLevel >= LogLevel.DEBUG) {
+        console.log("Stacks: checking block hash", blockInfo);
       }
-      return blockInfo;
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log("Stacks: block hash " + (blockInfo.found ? "Found" : "NotFound"));
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    return blockInfo;
   }
+
   public async waitTransaction(txId: string) {
       let transactionInfo;
       do {
