@@ -39,13 +39,13 @@ export class StacksChain {
   private options: Options;
 
   constructor(private url: string, options?: Partial<Options>) {
-      this.network = new StacksTestnet({ url });
+    this.network = new StacksTestnet({ url });
 
-      this.options = {
-          defaultFee: options?.defaultFee,
-          logLevel: options?.logLevel ?? LogLevel.INFO,
-          isMainnet: options?.isMainnet ?? false,
-      };
+    this.options = {
+      defaultFee: options?.defaultFee,
+      logLevel: options?.logLevel ?? LogLevel.INFO,
+      isMainnet: options?.isMainnet ?? false,
+    };
   }
 
   async loadAccounts() {
