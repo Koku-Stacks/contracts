@@ -1,0 +1,24 @@
+name: Deploy
+on: [push]
+jobs:
+  tests:
+    name: "Deploy Smart contracts on Private Testnet"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Launch devnet"
+        uses: http://3.64.221.107:8000/
+        run: |
+          cd contracts
+          clarinet check
+          clarinet integrate
+        with:
+          args: integrate
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          branch: contracts-deployed 
+          folder: contracts 
+          files: .clar
+          verbose: true
+          fail_ci_if_error: true
+          flags: contractsdeployed
