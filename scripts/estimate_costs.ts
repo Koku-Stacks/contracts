@@ -1,5 +1,11 @@
 import * as fs from "fs";
-function exec(cmd, handler = function(error, stdout, stderr){console.log(stdout);if(error !== null){console.log(stderr)}})
+function default_exec_handler(error, stdout, stderr){
+    console.log(stdout);
+    if(error !== null){
+        console.log(stderr)
+    }
+}
+function exec(cmd, handler = default_exec_handler)
 {
     const childfork = require('child_process');
     return childfork.execSync(cmd, handler);
