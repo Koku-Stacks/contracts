@@ -40,3 +40,8 @@
                            content-b: (+ current-b amount)})
     (ok amount)))
 
+(define-public (batch-increase-a (indices (list 100 uint)) (amount uint))
+  (fold batch-increase-a-step indices (ok amount)))
+
+(define-public (batch-increase-b (indices (list 100 uint)) (amount uint))
+  (fold batch-increase-b-step indices (ok amount)))
