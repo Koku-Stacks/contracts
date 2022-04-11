@@ -22,3 +22,21 @@
 (define-read-only (get-b (index uint) (default uint))
   (get content-b (get-data index u0 default)))
 
+(define-public (batch-increase-a-step (index uint) (amount-resp (response uint uint)))
+  (let ((content (get-data index u0 u0))
+        (current-a (get content-a content))
+        (amount (try! amount-resp)))
+    (map-set indexed-data {index: index}
+                          {content-a: (+ current-a amount),
+                           content-b: (get content-b content)})
+    (ok amount)))
+
+(define-public (batch-increase-b-step (index uint) (amount-resp (response uint uint)))
+  (let ((content (get-data index u0 u0))
+        (current-b (get content-b content))
+        (amount (try! amount-resp)))
+    (map-set indexed-data {index: index}
+                          {content-a: (get content-a content),
+                           content-b: (+ current-b amount)})
+    (ok amount)))
+
