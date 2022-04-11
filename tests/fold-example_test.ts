@@ -11,7 +11,7 @@ Clarinet.test({
         const data_inserter_call = (data: number) => Tx.contractCall(
             'fold-example',
             'insert-data',
-            [types.uint(data)],
+            [types.uint(data), types.uint(data * 10)],
             userA.address
         );
 
@@ -22,66 +22,56 @@ Clarinet.test({
         let call = chain.mineBlock(data.map(data_inserter_call));
         call.receipts.map(receipt => receipt.result.expectOk().expectBool(true));
 
-        const data_verification_calls = data_indices.map(idx => chain.callReadOnlyFn(
+        let data_verification_calls = data_indices.map(idx => chain.callReadOnlyFn(
             'fold-example',
-            'get-data',
+            'get-a',
             [types.uint(idx), types.uint(0)],
             userA.address
         ));
         data_indices.map(idx => data_verification_calls[idx - 1].result.expectUint(data[idx - 1]));
 
-        // sum of the first element: 1(idx 1) == 1
-        let sum = chain.callReadOnlyFn(
+        data_verification_calls = data_indices.map(idx => chain.callReadOnlyFn(
             'fold-example',
-            'sum',
-            [prepare_indices([1])],
+            'get-b',
+            [types.uint(idx), types.uint(0)],
             userA.address
-        );
-        sum.result.expectUint(1); // passing, returns 1
+        ));
+        data_indices.map(idx => data_verification_calls[idx - 1].result.expectUint(data[idx - 1] * 10));
 
-        // sum of the first two elements: 1(idx 1) + 2(idx 2) == 3
-        sum = chain.callReadOnlyFn(
-            'fold-example',
-            'sum',
-            [prepare_indices([1, 2])],
-            userA.address
-        );
-        sum.result.expectUint(3); // passing, returns 3
+        const amount_to_increase = 10;
 
-        // sum of the first three elements: 1(idx 1) + 2(idx 2) + 3(idx 3) == 6
-        sum = chain.callReadOnlyFn(
-            'fold-example',
-            'sum',
-            [prepare_indices([1, 2, 3])],
-            userA.address
-        );
-        sum.result.expectUint(6); // passing, returns 6
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'fold-example',
+                'batch-increase-a',
+                [prepare_indices(data_indices), types.uint(amount_to_increase)],
+                userA.address
+            )
+        ]);
 
-        // sum of the first four elements: 1(idx 1) + 2(idx 2) + 3(idx 3) + 4(idx 4) == 10
-        sum = chain.callReadOnlyFn(
+        data_verification_calls = data_indices.map(idx => chain.callReadOnlyFn(
             'fold-example',
-            'sum',
-            [prepare_indices([1, 2, 3, 4])],
+            'get-a',
+            [types.uint(idx), types.uint(0)],
             userA.address
-        );
-        sum.result.expectUint(10); // passing, returns 10
+        ));
+        data_indices.map(idx => data_verification_calls[idx - 1].result.expectUint(data[idx - 1] + amount_to_increase));
 
-        // sum of the elements
-        sum = chain.callReadOnlyFn(
-            'fold-example',
-            'sum',
-            [prepare_indices(data_indices)],
-            userA.address
-        );
-        sum.result.expectUint(15); // passing, returns 15
+        call = chain.mineBlock([
+            Tx.contractCall(
+                'fold-example',
+                'batch-increase-b',
+                [prepare_indices(data_indices), types.uint(amount_to_increase)],
+                userA.address
+            )
+        ]);
 
-        // product of the elements
-        const product = chain.callReadOnlyFn(
+        data_verification_calls = data_indices.map(idx => chain.callReadOnlyFn(
             'fold-example',
-            'product',
-            [prepare_indices(data_indices)],
+            'get-b',
+            [types.uint(idx), types.uint(0)],
             userA.address
-        )
-        product.result.expectUint(120);
+        ));
+        data_indices.map(idx => data_verification_calls[idx - 1].result.expectUint(data[idx - 1] * 10 + amount_to_increase));
     }
 });
