@@ -1,6 +1,7 @@
 ;; illustration of fold/reduce usage
 
-(define-map indexed-data {index: uint} {content: uint})
+(define-map indexed-data {index: uint} {content-a: uint,
+                                        content-b: uint})
 
 (define-data-var least-unused-index uint u1)
 
