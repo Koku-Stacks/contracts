@@ -2,9 +2,6 @@
 name = "dy.finance"
 requirements = []
 costs_version = 1
-[contracts.amm]
-path = "contracts/amm.clar"
-depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
 
 [contracts.current-price]
 path = "contracts/current-price.clar"
