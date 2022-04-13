@@ -11,4 +11,4 @@ jobs:
         run: |
           cd integration
           npm install
-          npm test
+          ./run_tests
