@@ -11,4 +11,8 @@ jobs:
         run: |
           cd integration
           npm install
-          npm test
+          ./run_test current-price
+          sleep 40
+          ./run_test events
+          sleep 40
+          ./run_test token
