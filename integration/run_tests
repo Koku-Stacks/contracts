@@ -7,6 +7,7 @@ for test in test_pool/*.test.ts; do
     if [ "$?" -eq 0 ]
         then
             echo "test ${test_name} has run successfully"
+            printf "${log_output}"
         else
             echo "test ${test_name} has failed"
             echo "### log output ###"
