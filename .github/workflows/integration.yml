@@ -11,4 +11,4 @@ jobs:
         run: |
           cd integration
           npm install
-          ./run_tests
+          ./run_test current-price
