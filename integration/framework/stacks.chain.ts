@@ -3,7 +3,6 @@ import {
   AnchorMode,
   broadcastTransaction,
   callReadOnlyFunction,
-  ClarityType,
   cvToJSON,
   getAddressFromPrivateKey,
   hexToCV,
@@ -12,6 +11,11 @@ import {
   makeSTXTokenTransfer,
   PostConditionMode,
   TransactionVersion,
+  addressFromPublicKeys,
+  AddressHashMode,
+  AddressVersion,
+  getNonce,
+  StacksPublicKey,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
@@ -174,9 +178,7 @@ export class StacksChain {
       );
     }
 
-    const transactionInfo = await this.waitTransaction(broadcast_response.txid);
-
-    return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
+    return broadcast_response;
   }
 
   async deployContract(
@@ -259,7 +261,64 @@ export class StacksChain {
     }
   }
 
-  private async waitTransaction(txId: string) {
+  static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
+      const addressVersion = AddressVersion.TestnetMultiSig;
+      const hashMode = AddressHashMode.SerializeP2SH;
+      return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
+  }
+  public async getTransactionResponse(txid: string) {
+    const transactionInfo = await this.waitTransaction(txid);
+    return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
+  }
+
+  public async getTransactionEvents(txid: string, event_type: string) {
+    const transactionInfo = await this.waitTransaction(txid);
+    const filteredEvents = transactionInfo.events.filter((event: any) => {
+      if (event.event_type == event_type) {
+        return event;
+      }
+    });
+    return filteredEvents;
+  }
+
+  public async getTxnsByBlockInfo(blockInfo: any, event_type: string) {
+    let blockTxnEvents = [];
+    const length = blockInfo.result.metadata.txs.length;
+    let threads = Array(length);
+    for(let i = 0; i < length; i++){
+      threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
+    } 
+    const allThreads = await Promise.all(threads);
+    blockTxnEvents = allThreads.filter((thread) => {
+      if(thread.length > 0){
+        return thread;
+      }
+    })
+    return blockTxnEvents;
+  }
+
+  public async searchByBlockHash(blockHash: string) {
+    let blockInfo;
+
+    try {
+      blockInfo = await fetch(
+        `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
+      ).then((x) => x.json());
+      if (this.options.logLevel >= LogLevel.DEBUG) {
+        console.log("Stacks: checking block hash", blockInfo);
+      }
+
+      if (this.options.logLevel >= LogLevel.INFO) {
+        console.log("Stacks: block hash " + (blockInfo.found? "Found" : "NotFound"));
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
+    return blockInfo;
+  }
+
+  public async waitTransaction(txId: string) {
     let transactionInfo;
 
     do {
@@ -283,6 +342,9 @@ export class StacksChain {
     }
 
     return transactionInfo;
+  }
+  private async getNonce(address: string): Promise<bigint> {
+      return await getNonce(address, this.network);;
   }
 }
 

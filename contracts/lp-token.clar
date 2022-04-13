@@ -90,4 +90,5 @@
 (begin 
   (map-set approved-contracts .amm true)
   (map-set approved-contracts .vault true)
+  (map-set approved-contracts .timestamp-vault true)
 )
