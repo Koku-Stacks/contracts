@@ -14,5 +14,5 @@ for test in test_pool/*.test.ts; do
             echo ""
             exit 1
     fi
-    sleep 20
+    sleep 30
 done
