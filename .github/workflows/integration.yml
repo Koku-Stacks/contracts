@@ -12,3 +12,4 @@ jobs:
           cd integration
           npm install
           ./run_test current-price
+          ./run_test events
