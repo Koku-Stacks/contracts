@@ -58,5 +58,16 @@ Here follows some usage examples
     npm run deploy -- --contract vault
     # deploy a contract called vault into the mainnet
     npm run deploy -- --contract vault --network mainnet
-    # to measure the total gas cost of all the contracts (A seperate file will be made, named `cost_report.txt` in which last column will define the gas cost in microSTX for all the contracts, where 1 STX = 1000000 microSTX or 1 microSTX = 1 / 1000000)
+
+### gas-cost estimation
+
+This section describes how to measure the gas cost of all the contracts. When run `npm run gas-cost` a seperate file will be made named `cost_report.txt`.
+
+The last column in `cost_report.txt` defines the gas cost fee in microSTX for all the contracts.
+
+Whereas 1 STX = 1000000 microSTX or 1 microSTX = 1 / 1000000
+
+Follow the usage example
+
+    # general usage to measure gas cost
     npm run gas-cost
