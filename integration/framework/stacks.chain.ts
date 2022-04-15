@@ -19,7 +19,8 @@ import {
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
-
+import * as fs from "fs";
+const https = require("http");
 interface Options {
   defaultFee?: number;
   logLevel: LogLevel;
@@ -30,6 +31,14 @@ export enum LogLevel {
   NONE = 0,
   INFO = 1,
   DEBUG = 2,
+}
+
+export enum Event {
+  smart_contract_log = "smart_contract_log",
+  non_fungible_token_asset = "non_fungible_token_asset",
+  fungible_token_asset = "fungible_token_asset",
+  stx_lock = "stx_lock",
+  stx_asset = "stx_asset",
 }
 
 export class StacksChain {
@@ -262,9 +271,14 @@ export class StacksChain {
   }
 
   static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
-      const addressVersion = AddressVersion.TestnetMultiSig;
-      const hashMode = AddressHashMode.SerializeP2SH;
-      return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
+    const addressVersion = AddressVersion.TestnetMultiSig;
+    const hashMode = AddressHashMode.SerializeP2SH;
+    return addressFromPublicKeys(
+      addressVersion,
+      hashMode,
+      publicKeys.length,
+      publicKeys
+    );
   }
   public async getTransactionResponse(txid: string) {
     const transactionInfo = await this.waitTransaction(txid);
@@ -285,15 +299,18 @@ export class StacksChain {
     let blockTxnEvents = [];
     const length = blockInfo.result.metadata.txs.length;
     let threads = Array(length);
-    for(let i = 0; i < length; i++){
-      threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
-    } 
+    for (let i = 0; i < length; i++) {
+      threads[i] = this.getTransactionEvents(
+        blockInfo.result.metadata.txs[i],
+        event_type
+      );
+    }
     const allThreads = await Promise.all(threads);
     blockTxnEvents = allThreads.filter((thread) => {
-      if(thread.length > 0){
+      if (thread.length > 0) {
         return thread;
       }
-    })
+    });
     return blockTxnEvents;
   }
 
@@ -309,7 +326,9 @@ export class StacksChain {
       }
 
       if (this.options.logLevel >= LogLevel.INFO) {
-        console.log("Stacks: block hash " + (blockInfo.found? "Found" : "NotFound"));
+        console.log(
+          "Stacks: block hash " + (blockInfo.found ? "Found" : "NotFound")
+        );
       }
     } catch (err) {
       console.log(err);
@@ -343,8 +362,62 @@ export class StacksChain {
 
     return transactionInfo;
   }
+
+  public async createEventStreamFiles(contract_id: string) {
+    const limit = 50; // max limit should <= 50 as per API call
+    let offset = 0;
+    // const fungible_token_stream = fs.createWriteStream("ft_streams.txt", { flags: "a" });
+    const block_hash_stream = fs.createWriteStream("block-hashes_streams.txt", { flags: "a" });
+
+    const url = `http://3.64.221.107:3999/extended/v1/address/${contract_id}/transactions?limit=${limit}&offset=${offset}`;
+    
+    const fetchTransaction = async (): Promise<number> => {
+      return new Promise<number>((resolve) => {
+        https.get(url, (res: any) => {
+          res.setEncoding("utf8");
+          let body = "";
+          res.on("data", (data: string) => {
+            body += data;
+          });
+          res.on("end", async () => {
+            let api_res = JSON.parse(body);
+            const total = 50; //api_res["total"]; // for testing one can hardcode upto 10 - 50 for all transactions otherwise it will take more time
+            let FetchedTransactions = api_res["results"];
+
+            for (let i = 0; i < FetchedTransactions.length; i++) {
+              const block_hash = FetchedTransactions[i].block_hash;
+              const blockInfo = await this.searchByBlockHash(block_hash);
+              
+              block_hash_stream.write(JSON.stringify(blockInfo) + "\n");
+              // const ft_blockTxns = await this.getTxnsByBlockInfo(
+              //   blockInfo,
+              //   Event.fungible_token_asset
+              // );
+              // if (ft_blockTxns.length > 0) {
+              //   fungible_token_stream.write(JSON.stringify(ft_blockTxns[0]) + "\n")
+              // }
+            }
+
+            resolve(total);
+          });
+        });
+      });
+    };
+
+    const total: number = await fetchTransaction();
+
+    if (total > limit) {
+      offset += limit;
+
+      while (offset < total) {
+        await fetchTransaction();
+        offset += limit;
+      }
+    }
+  }
+
   private async getNonce(address: string): Promise<bigint> {
-      return await getNonce(address, this.network);;
+    return await getNonce(address, this.network);
   }
 }
 

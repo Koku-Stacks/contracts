@@ -57,24 +57,27 @@ describe("events contract", () => {
   it("Ensures print is working", async () => {
     const deployer = chain.accounts.get("deployer")!;
 
-    // read the value
-    const printCall = await chain.callContract(
-      contractAddress,
-      contractName,
-      "mint",
-      [uintCV(50), principalCV(deployer.address)],
-      deployer.secretKey
-    );
-    const printCallResponse = await chain.getTransactionResponse(printCall.txid);
-    expect(printCallResponse).to.be.ok;
-    expect(printCallResponse.success).to.be.true;
+    // // read the value
+    // const printCall = await chain.callContract(
+    //   contractAddress,
+    //   contractName,
+    //   "mint",
+    //   [uintCV(50), principalCV(deployer.address)],
+    //   deployer.secretKey
+    // );
+    // const printCallResponse = await chain.getTransactionResponse(printCall.txid);
+    // expect(printCallResponse).to.be.ok;
+    // expect(printCallResponse.success).to.be.true;
 
-    const transactionInfo = await chain.waitTransaction(printCall.txid);
-    const blockInfo = await chain.searchByBlockHash(transactionInfo.block_hash);
-    expect(blockInfo.found).to.be.equal(true);
+    // const transactionInfo = await chain.waitTransaction(printCall.txid);
+    // const blockInfo = await chain.searchByBlockHash(transactionInfo.block_hash);
+    // expect(blockInfo.found).to.be.equal(true);
 
-    const blockTxns = await chain.getTxnsByBlockInfo(blockInfo, Event.fungible_token_asset);
-    expect(blockTxns.length).to.be.greaterThan(0);
-    console.log(blockTxns);
+    // const blockTxns = await chain.getTxnsByBlockInfo(blockInfo, Event.fungible_token_asset);
+    // expect(blockTxns.length).to.be.greaterThan(0);
+    // console.log(blockTxns);
+
+    const transactions = await chain.createEventStreamFiles(contractAddress+"."+contractName);
+    console.log(transactions);
   });
 });
