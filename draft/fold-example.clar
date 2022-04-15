@@ -1,8 +1,28 @@
+(define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
+
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
 
-(define-map indexed-data {index: uint} {content-a: uint,
-                                        content-b: uint})
+(define-constant ORDER_TYPE_LONG u1)
+(define-constant ORDER_TYPE_SHORT u2)
+
+(define-constant STATUS_LIQUIDATED u1)
+(define-constant STATUS_ACTIVE u2)
+(define-constant STATUS_CLOSED u3)
+
+(define-constant POSITION_IN_LOSS -1)
+(define-constant POSITION_NEUTRAL 0)
+(define-constant POSITION_IN_PROFIT 1)
+
+(define-constant this-contract (as-contract tx-sender))
+
+(define-map indexed-positions {index: uint} {sender: principal,
+                                             size: uint,
+                                             timestamp: uint,
+                                             order-type: uint,
+                                             current-pnl: uint,
+                                             updated-on-block: uint,
+                                             status: uint})
 
 (define-data-var least-unused-index uint u1)
 
@@ -22,6 +42,15 @@
     u81 u82 u83 u84 u85 u86 u87 u88 u89  u90
     u91 u92 u93 u94 u95 u96 u97 u98 u99 u100))
 
+(define-data-var liquidation-fee uint u0) ;; in USDA
+(define-data-var trading-fee uint u0) ;; in USDA
+(define-data-var collateral uint u0) ;; in USDA
+(define-data-var gas-fee uint u0) ;; in STX
+(define-data-var executor-tip uint u0) ;; in STX
+
+(define-read-only (get-current-timestamp)
+  (default-to u0 (get-block-info? time (- block-height u1))))
+
 (define-read-only (increase-indices-by-chunk-size-step (index-value uint))
   (+ index-value INDEX_CHUNK_SIZE))
 
@@ -36,52 +65,93 @@
     (var-set last-updated-index
              (+ (var-get last-updated-index) INDEX_CHUNK_SIZE))))
 
-(define-public (insert-data (content-a uint) (content-b uint))
+;; FIXME I suppose this function should instead interact with vault, right?
+(define-private (transfer-usda (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
+  ;; FIXME commented for now as we are waiting for a PR on clarinet side
+  ;; (contract-call? 'SP2C2YFP12AJZB4MABJBAJ55XECVS7E4PMMZ89YZR.usda-token
+  ;;                 transfer
+  ;;                 amount
+  ;;                 from to memo)
+  ;; FIXME the following mocked up code is just complex enough to satisfy type checker
+  (if (is-eq amount u0)
+      (ok true)
+      (err u1)))
+
+(define-public (insert-position (size uint)
+                                (order-type uint))
   (begin
-    (map-insert indexed-data {index: (var-get least-unused-index)} {content-a: content-a, content-b: content-b})
+    (map-insert indexed-positions {index: (var-get least-unused-index)}
+                                  {sender: tx-sender,
+                                   size: size,
+                                   timestamp: (get-current-timestamp),
+                                   order-type: order-type,
+                                   current-pnl: u0,
+                                   updated-on-block: u0,
+                                   status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
+    (try! (transfer-usda (+ (var-get liquidation-fee)
+                            (var-get trading-fee)
+                            (var-get collateral))
+                         tx-sender this-contract none))
+    (try! (stx-transfer? (var-get gas-fee) tx-sender this-contract))
     (ok true)))
 
-(define-read-only (get-data (index uint) (default-a uint) (default-b uint))
-  (default-to {content-a: default-a,
-               content-b: default-b}
-              (map-get? indexed-data {index: index})))
+(define-read-only (get-position (index uint))
+  (map-get? indexed-positions {index: index}))
 
-(define-read-only (get-a (index uint) (default uint))
-  (get content-a (get-data index default u0)))
+(define-read-only (get-sender (index uint) (default principal))
+  (get sender (unwrap! (get-position index) default)))
 
-(define-read-only (get-b (index uint) (default uint))
-  (get content-b (get-data index u0 default)))
+(define-read-only (get-size (index uint) (default uint))
+  (get size (unwrap! (get-position index) default)))
 
-(define-public (batch-increase-a-step (index uint) (amount-resp (response uint uint)))
-  (let ((content (get-data index u0 u0))
-        (current-a (get content-a content))
-        (amount (try! amount-resp)))
-    (map-set indexed-data {index: index}
-                          {content-a: (+ current-a amount),
-                           content-b: (get content-b content)})
-    (ok amount)))
+(define-read-only (get-timestamp (index uint) (default uint))
+  (get timestamp (unwrap! (get-position index) default)))
 
-(define-public (batch-increase-b-step (index uint) (amount-resp (response uint uint)))
-  (let ((content (get-data index u0 u0))
-        (current-b (get content-b content))
-        (amount (try! amount-resp)))
-    (map-set indexed-data {index: index}
-                          {content-a: (get content-a content),
-                           content-b: (+ current-b amount)})
-    (ok amount)))
+(define-read-only (get-order-type (index uint) (default uint))
+  (get order-type (unwrap! (get-position index) default)))
 
-;; FIXME this should be private, right? Only for internal usage once it describes serious business logic
-(define-public (batch-increase-a (indices (list 100 uint)) (amount uint))
-  (fold batch-increase-a-step indices (ok amount)))
+(define-read-only (get-pnl (index uint) (default uint))
+  (get current-pnl (unwrap! (get-position index) default)))
 
-;; FIXME this should be private, right? Only for internal usage once it describes serious business logic
-(define-public (batch-increase-b (indices (list 100 uint)) (amount uint))
-  (fold batch-increase-b-step indices (ok amount)))
+(define-read-only (get-block-id-update (index uint) (default uint))
+  (get updated-on-block (unwrap! (get-position index) default)))
 
-(define-public (update-next-index-chunk (amount uint))
+(define-read-only (get-status (index uint) (default uint))
+  (get status (unwrap! (get-position index) default)))
+
+(define-read-only (calculate-funding-fee (index uint))
+  ;; FIXME mockup for now, but it should interact with current-price.clar and position volume/size
   (begin
-    (try! (batch-increase-a (var-get next-indices-to-update) amount)) ;; mocking business logic
-    (try! (batch-increase-b (var-get next-indices-to-update) amount)) ;; mocking business logic
-    (prepare-for-next-chunk-update)
-    (ok true)))
+    u0))
+
+(define-read-only (position-profit-status (index uint))
+  ;; FIXME mockup for now, but it probably should interact with current-price.clar in order to verify this
+  (begin
+    POSITION_NEUTRAL))
+
+(define-public (position-maintenance (index uint))
+  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
+        (position-sender (get sender position))
+        (profit-status (position-profit-status index)))
+    ;; reward position holder when in profit
+    (if (is-eq profit-status POSITION_IN_PROFIT)
+        (try! (transfer-usda (var-get trading-fee) this-contract position-sender none))
+        true)
+    ;; punish position holder when in loss
+    (if (is-eq profit-status POSITION_IN_LOSS)
+        (try! (transfer-usda (var-get trading-fee) position-sender this-contract none))
+        true)
+    ;; executor reward
+    (try! (stx-transfer? (+ (var-get gas-fee)
+                            (var-get executor-tip))
+                         this-contract tx-sender))
+    (map-set indexed-positions {index: index}
+                               {sender: (get sender position),
+                                size: (get size position),
+                                timestamp: (get-current-timestamp),
+                                order-type: (get order-type position),
+                                current-pnl: (get current-pnl position),
+                                updated-on-block: block-height,
+                                status: (get status position)})
+      (ok true)))

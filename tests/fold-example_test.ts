@@ -10,7 +10,7 @@ Clarinet.test({
 
         const data_inserter_call = (data: number) => Tx.contractCall(
             'fold-example',
-            'insert-data',
+            'insert-position',
             [types.uint(data), types.uint(data * 10)],
             userA.address
         );
@@ -91,7 +91,7 @@ Clarinet.test({
 
         const data_inserter_call = (data: number) => Tx.contractCall(
             'fold-example',
-            'insert-data',
+            'insert-position',
             [types.uint(data), types.uint(data * 10)],
             userA.address
         );
