@@ -19,10 +19,6 @@ depends_on = []
 path = "contracts/hello.clar"
 depends_on = []
 
-[contracts.lp-token]
-path = "contracts/lp-token.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
-
 [contracts.minting]
 path = "contracts/minting.clar"
 depends_on = ["token"]
@@ -49,8 +45,8 @@ depends_on = ["sip013-trait-sft-standard", "sip-010-trait-ft-standard"]
 
 [contracts.vault]
 path = "contracts/vault.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token", "token"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "token"]
 
 [contracts.timestamp-vault]
 path = "contracts/timestamp-vault.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token", "token"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "token"]
