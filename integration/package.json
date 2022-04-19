@@ -12,13 +12,14 @@
   },
   "scripts": {
     "test": "mocha --timeout 500000 ",
-    "deploy": "ts-node scripts/script_deploy.ts"
+    "deploy": "ts-node scripts/script_deploy.ts",
+    "gas-cost": "ts-node scripts/estimate_costs.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.7",
     "@types/node": "^10",
-    "@types/node-fetch": "^2.0.0",
+    "@types/node-fetch": "^2.6.1",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "ts-node": "^8.10.2",

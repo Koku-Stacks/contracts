@@ -2,9 +2,10 @@
 name = "dy.finance"
 requirements = []
 costs_version = 1
-[contracts.amm]
-path = "contracts/amm.clar"
-depends_on = ["lp-token", "token", "sip013-trait-sft-standard"]
+
+[contracts.current-price]
+path = "contracts/current-price.clar"
+depends_on = []
 
 [contracts.mint-trait]
 path = "contracts/traits/mint-trait.clar"
@@ -18,13 +19,9 @@ depends_on = []
 path = "contracts/hello.clar"
 depends_on = []
 
-[contracts.lp-token]
-path = "contracts/lp-token.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
-
 [contracts.minting]
 path = "contracts/minting.clar"
-depends_on = ["token"]
+depends_on = ["token", "owner-trait"]
 
 [contracts.owner-trait]
 path = "contracts/traits/owner-trait.clar"
@@ -48,8 +45,8 @@ depends_on = ["sip013-trait-sft-standard", "sip-010-trait-ft-standard"]
 
 [contracts.vault]
 path = "contracts/vault.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token", "token"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "token"]
 
 [contracts.timestamp-vault]
 path = "contracts/timestamp-vault.clar"
-depends_on = ["owner-trait", "sip-010-trait-ft-standard", "lp-token", "token"]
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "token"]
