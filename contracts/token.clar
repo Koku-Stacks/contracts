@@ -62,17 +62,17 @@
 (impl-trait .burn-trait.burn-trait)
 
 ;; Error codes
-(define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u100))
-(define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u101))
-(define-constant ERR_NOT_AUTHORIZED (err u102))
-(define-constant ERR_TOKEN_HOLDER_ONLY (err u4))
-(define-constant ERR_CONTRACT_OWNER_ONLY (err u103))
-(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u104))
-(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u105))
-(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u106))
-(define-constant ERR_NOT_NEW_OWNER (err u107))
-(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u108))
-(define-constant ERR_CONTRACT_LOCKED (err u109))
+(define-constant ERR_CONTRACT_ALREADY_AUTHORIZED (err u1002))
+(define-constant ERR_CONTRACT_IS_NOT_AUTHORIZED (err u1003))
+(define-constant ERR_NOT_AUTHORIZED (err u3000))
+(define-constant ERR_TOKEN_HOLDER_ONLY (err u3001))
+(define-constant ERR_CONTRACT_OWNER_ONLY (err u1001))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2000))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2001))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2002))
+(define-constant ERR_NOT_NEW_OWNER (err u2003))
+(define-constant ERR_INSUFFICIENT_TOKENS_TO_MINT (err u3008))
+(define-constant ERR_CONTRACT_LOCKED (err u1004))
 
 ;; this considers a max supply of 21_000_000 tokens with six decimal places
 (define-fungible-token token u21000000000000)
