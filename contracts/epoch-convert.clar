@@ -1,5 +1,5 @@
 ;; defined a list of months
-(define-constant months (list "Januray" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"))
+(define-constant months (list "January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"))
 
 ;; defined a list of weekdays
 (define-constant week-days (list "Thursday" "Friday" "Saturday" "Sunday" "Monday" "Tuesday" "Wednesday"))
@@ -130,12 +130,15 @@
 )
 
 (define-read-only (human-readable (time-stamp uint)) 
-    (ok {year: (get-year time-stamp),
+    {   
+        year: (get-year time-stamp),
         month: (get-month time-stamp),
+        week_day: (get-week-days time-stamp),
         day: (get-day time-stamp),
         hour: (get-hours time-stamp),
         minute: (get-minutes time-stamp),
-        second: (get-seconds time-stamp)})
+        second: (get-seconds time-stamp) 
+    }
 )
 
 ;; implemented this link http://howardhinnant.github.io/date_algorithms.html#civil_from_days
