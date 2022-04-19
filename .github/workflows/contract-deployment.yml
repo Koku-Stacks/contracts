@@ -11,7 +11,6 @@ jobs:
         run: |
           cd contracts
           clarinet check
-          clarinet integrate
         with:
           args: integrate
           github_token: ${{ secrets.GITHUB_TOKEN }}
