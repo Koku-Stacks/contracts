@@ -49,7 +49,6 @@
         ((sender tx-sender))
         (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (contract-call? .token transfer amount sender (as-contract tx-sender) memo))
-        (try! (contract-call? .lp-token mint amount sender))
         (map-set ledger sender (+ (get-balance sender) amount))
         (ok true)))
 
@@ -58,7 +57,6 @@
         ((recipient tx-sender))
         (asserts! (is-eq token (var-get approved-token)) ERR_NOT_APPROVED_TOKEN)
         (try! (as-contract (contract-call? .token transfer amount tx-sender recipient memo)))
-        (try! (contract-call? .lp-token burn amount))
         (asserts! (>= (get-balance recipient) amount) ERR_NOT_ENOUGH_BALANCE)
         (map-set ledger recipient (- (get-balance recipient) amount))
         (ok true)))
