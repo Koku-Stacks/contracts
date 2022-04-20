@@ -2,7 +2,6 @@ import { readFileSync } from "fs";
 import * as path from "path";
 import { CONTRACT_FOLDER, STACKS_API_URL } from "../config";
 import { StacksChain } from "../framework/stacks.chain";
-import * as btc_price_service from "../../scripts/btc_price_service";
 import { expect } from "chai";
 import { uintCV } from "@stacks/transactions";
 

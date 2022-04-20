@@ -3,7 +3,18 @@ import { readFileSync } from "fs";
 import { StacksChain } from "../integration/framework/stacks.chain";
 import * as config from "../config";
 
-const contract_name = 'current-price';
+const yargs = require('yargs/yargs');
+
+const argv = yargs(process.argv).argv;
+
+const contract_relative_path: string = argv.contract;
+
+let contract_name = contract_relative_path;
+
+const slash_index = contract_relative_path.indexOf('/');
+if (slash_index !== -1) {
+    contract_name = contract_relative_path.substring(slash_index + 1);
+}
 
 const networkEndPoint = config.node_url;
 const secretKey = config.seed_phrase;
@@ -13,7 +24,7 @@ const chain = new StacksChain(networkEndPoint, {
   });
 const password = "testing_password";
 
-const contract_path = `contracts/${contract_name}.clar`;
+const contract_path = `contracts/${contract_relative_path}.clar`;
 const contract_code = readFileSync(contract_path).toString();
 
 const transaction_version = config.get_transaction_version(config.network_type);

@@ -67,7 +67,6 @@
 (define-public (deposit (amount uint) (memo (optional (buff 34))))
     (let ((sender-deposit (get-deposit tx-sender)))
       (try! (contract-call? .token transfer amount tx-sender this-contract memo))
-      (try! (contract-call? .lp-token mint amount tx-sender))
       (map-set ledger {principal: tx-sender}
                       {balance: (+ (get balance sender-deposit) amount),
                        last-deposit-timestamp: (get-timestamp),
@@ -84,7 +83,6 @@
       (asserts! (>= (get balance sender-deposit) amount) ERR_NOT_ENOUGH_BALANCE)
       (asserts! (>= (get-timestamp) timestamp-limit) ERR_TOO_SOON_TO_WITHDRAW)
       (try! (as-contract (contract-call? .token transfer amount this-contract sender memo)))
-      (try! (contract-call? .lp-token burn amount))
       (if (is-eq amount (get balance sender-deposit))
           (map-delete ledger {principal: tx-sender})
           (map-set ledger {principal: tx-sender}
