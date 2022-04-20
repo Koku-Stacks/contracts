@@ -1,4 +1,6 @@
+import { resolve } from "dns";
 import * as fs from "fs";
+import { ReadStream } from "fs";
 import * as path from "path";
 import { CONTRACT_FOLDER, STACKS_API_URL, TRAITS_FOLDER } from "../config";
 import { StacksChain } from "../framework/stacks.chain";
@@ -13,7 +15,7 @@ const enum Event {
   non_fungible_token_asset = "non_fungible_token_asset",
   fungible_token_asset = "fungible_token_asset",
   stx_lock = "stx_lock",
-  stx_asset = "stx_asset"
+  stx_asset = "stx_asset",
 }
 describe("events contract", () => {
   before(async () => {
@@ -45,6 +47,32 @@ describe("events contract", () => {
     const fungible_token_stream = fs.createWriteStream("ft_streams.txt", {
       flags: "a",
     });
-    const txns = await chain.writeEventIntoStream("ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token", fungible_token_stream, Event.fungible_token_asset);
+    const txns = await chain.writeEventIntoStream(
+      "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token",
+      fungible_token_stream,
+      Event.fungible_token_asset
+    );
+    const streamReader = async () => {
+      return new Promise((resolve) => {
+        let readStream: ReadStream = fs.createReadStream("ft_streams.txt");
+        let data = "";
+        readStream.on("data", (chunk) => {
+          console.log("---------------------------------");
+          console.log(chunk);
+          data += chunk;
+          console.log("---------------------------------");
+        });
+
+        readStream.on("open", () => {
+          console.log("Stream opened...");
+        });
+
+        readStream.on("end", () => {
+          console.log("Stream Closed...");
+          resolve(data);
+        });
+      });
+    };
+    const data = await streamReader();
   });
 });
