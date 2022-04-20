@@ -42,6 +42,9 @@ describe("events contract", () => {
   });
 
   it("Ensures print is working", async () => {
-    const txns = await chain.createEventStreamFiles("ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token");
+    const fungible_token_stream = fs.createWriteStream("ft_streams.txt", {
+      flags: "a",
+    });
+    const txns = await chain.writeEventIntoStream("ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.token", fungible_token_stream, Event.fungible_token_asset);
   });
 });

@@ -11,16 +11,23 @@ import {
   makeSTXTokenTransfer,
   PostConditionMode,
   TransactionVersion,
+  addressFromPublicKeys,
+  AddressHashMode,
+  AddressVersion,
+  getNonce,
+  StacksPublicKey,
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
 import * as fs from "fs";
+
 const https = require("http");
 interface Options {
   defaultFee?: number;
   logLevel: LogLevel;
   isMainnet: boolean;
 }
+
 export enum LogLevel {
   NONE = 0,
   INFO = 1,
@@ -48,6 +55,7 @@ export class StacksChain {
       isMainnet: options?.isMainnet ?? false,
     };
   }
+
   async loadAccounts() {
     const items: RemoteAccount[] = await fetch(
       this.url.replace(":3999", ":5000") + "/accounts"
@@ -68,6 +76,7 @@ export class StacksChain {
       this.accounts
     );
   }
+
   async transferSTX(
     amount: number,
     recipient: string,
@@ -96,6 +105,7 @@ export class StacksChain {
     }
     return transaction;
   }
+
   async callReadOnlyFn(
     contractAddress: string,
     contractName: string,
@@ -121,6 +131,7 @@ export class StacksChain {
     }
     return cvToJSON(readResult);
   }
+
   async callContract(
     contractAddress: string,
     contractName: string,
@@ -142,10 +153,12 @@ export class StacksChain {
       postConditionMode: PostConditionMode.Allow,
       fee: options?.fee ?? this.options.defaultFee,
     });
+
     const broadcast_response = await broadcastTransaction(
       transaction,
       this.network
     );
+
     if (broadcast_response.error) {
       console.error(broadcast_response);
       throw new Error(broadcast_response.reason);
@@ -164,8 +177,10 @@ export class StacksChain {
         `txId: ${broadcast_response.txid}`
       );
     }
+
     return broadcast_response;
   }
+
   async deployContract(
     contractName: string,
     code: string,
@@ -234,10 +249,23 @@ export class StacksChain {
       throw err;
     }
   }
+
+  static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
+    const addressVersion = AddressVersion.TestnetMultiSig;
+    const hashMode = AddressHashMode.SerializeP2SH;
+    return addressFromPublicKeys(
+      addressVersion,
+      hashMode,
+      publicKeys.length,
+      publicKeys
+    );
+  }
+
   public async getTransactionResponse(txid: string) {
     const transactionInfo = await this.waitTransaction(txid);
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
   }
+
   public async getTransactionEvents(txid: string, event_type: string) {
     const transactionInfo = await this.waitTransaction(txid);
     const filteredEvents = transactionInfo.events.filter((event: any) => {
@@ -253,7 +281,7 @@ export class StacksChain {
       `${this.url}/extended/v1/tx/${txid}`
     ).then((x) => x.json());
     const filteredEvents = transactionInfo.events.filter((event: any) => {
-      if (event.event_type == event_type) {
+      if (event.event_type === event_type) {
         return event;
       }
     });
@@ -299,6 +327,7 @@ export class StacksChain {
     }
     return blockInfo;
   }
+
   public async waitTransaction(txId: string) {
     let transactionInfo;
     do {
@@ -321,19 +350,18 @@ export class StacksChain {
     return transactionInfo;
   }
 
-  public async createEventStreamFiles(contract_id: string) {
-    const limit = 50; // max limit should <= 50 as per API call
-    let offset = 0;
+  private async getNonce(address: string): Promise<bigint> {
+    return await getNonce(address, this.network);
+  }
+
+  public async writeEventIntoStream(contract_id: string, stream: fs.WriteStream, event: string, options?: {limit: number, offset: number}) {
+    const limit = options?.limit ?? 50; // max limit should <= 50 as per API call
+    let offset = options?.offset ?? 0;
     // we can also store all the other events in sperate files
-    const fungible_token_stream = fs.createWriteStream("ft_streams.txt", {
-      flags: "a",
-    });
-    const block_hash_stream = fs.createWriteStream("block-hashes_streams.txt", {
-      flags: "a",
-    });
+    
 
     const fetchTransaction = async (): Promise<number> => {
-      const url = `http://3.64.221.107:3999/extended/v1/address/${contract_id}/transactions?limit=${limit}&offset=${offset}`;
+      const url = `${this.url}/extended/v1/address/${contract_id}/transactions?limit=${limit}&offset=${offset}`;
       return new Promise<number>((resolve) => {
         https.get(url, (res: any) => {
           res.setEncoding("utf8");
@@ -350,14 +378,14 @@ export class StacksChain {
               const block_hash = fetchedTransactions[i].block_hash;
               blocks[i] = this.searchByBlockHash(block_hash).then(
                 (blockInfo) => {
-                  block_hash_stream.write(JSON.stringify(blockInfo) + "\n");
+                  
                   // logic for storing by event type
                   this.getTxnsByBlockInfo(
                     blockInfo,
-                    Event.fungible_token_asset
+                    event
                   ).then((ft_blockTxns) => {
                     if (ft_blockTxns.length > 0) {
-                      fungible_token_stream.write(
+                      stream.write(
                         JSON.stringify(ft_blockTxns[0]) + "\n"
                       );
                     }
