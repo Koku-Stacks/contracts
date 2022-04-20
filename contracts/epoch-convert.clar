@@ -137,7 +137,7 @@
         day: (get-day time-stamp),
         hour: (get-hours time-stamp),
         minute: (get-minutes time-stamp),
-        ;; second: (get-seconds time-stamp) If I don't comment this out it will give error in test
+        second: (get-seconds time-stamp)
     }
 )
 

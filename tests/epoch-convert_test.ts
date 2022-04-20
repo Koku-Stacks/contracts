@@ -6,8 +6,6 @@ import {
   types,
 } from "https://deno.land/x/clarinet@v0.14.0/index.ts";
 import { assertEquals } from "https://deno.land/std@0.90.0/testing/asserts.ts";
-// import * as ClarityType from '@stacks/transactions';
-// import { intCV, tupleCV, uintCV, stringAsciiCV } from '@stacks/transactions/dist/clarity/types';
 
 const months = [
   "January",
@@ -32,7 +30,7 @@ const weekDays = [
   "Friday",
   "Saturday",
 ];
-const utcTimeStamp = Date.parse(new Date().toString()) / 1000;
+const utcTimeStamp = 1650469238; // Wednesday, April 20, 2022 3:40:38 PM
 
 Clarinet.test({
   name: "Ensure that leap years are identified correctly!",
@@ -83,14 +81,13 @@ Clarinet.test({
   name: "Ensure that current year is identified correctly!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
-    const time_stamp = Math.floor(Date.now() / 1000);
     let getYears = chain.callReadOnlyFn(
       "epoch-convert",
       "get-year",
       [types.uint(utcTimeStamp)],
       deployer.address
     );
-    getYears.result.expectUint(new Date().getUTCFullYear());
+    getYears.result.expectUint(2022);
   },
 });
 
@@ -98,14 +95,13 @@ Clarinet.test({
   name: "Ensure that current month is identified correctly!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
-    const time_stamp = Math.floor(Date.now() / 1000);
     let getMonths = chain.callReadOnlyFn(
       "epoch-convert",
       "get-month",
       [types.uint(utcTimeStamp)],
       deployer.address
     );
-    let correctMonth = months[new Date().getUTCMonth()];
+    let correctMonth = months[3];
     getMonths.result.expectAscii(correctMonth);
   },
 });
@@ -114,14 +110,13 @@ Clarinet.test({
   name: "Ensure that current weekday is identified correctly!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
-    const time_stamp = Math.floor(Date.now() / 1000);
     let getWeekDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-week-days",
       [types.uint(utcTimeStamp)],
       deployer.address
     );
-    let correctWeekDay = weekDays[new Date().getUTCDay()];
+    let correctWeekDay = weekDays[3];
     getWeekDays.result.expectAscii(correctWeekDay);
   },
 });
@@ -130,15 +125,13 @@ Clarinet.test({
   name: "Ensure that current day is identified correctly!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
-    const time_stamp = Math.floor(Date.now() / 1000);
     let getDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-day",
       [types.uint(utcTimeStamp)],
       deployer.address
     );
-    let day = new Date().getUTCDate();
-    getDays.result.expectUint(day);
+    getDays.result.expectUint(20);
   },
 });
 
@@ -152,8 +145,7 @@ Clarinet.test({
       [types.uint(utcTimeStamp)],
       deployer.address
     );
-    let hours = new Date().getUTCHours(); // those who are in GMT time zone please remove 5
-    getHours.result.expectUint(hours);
+    getHours.result.expectUint(15);
   },
 });
 
@@ -161,29 +153,29 @@ Clarinet.test({
   name: "Ensure that current minutes is identified correctly!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
-    const time_stamp = Math.floor(Date.now() / 1000);
     let getMinutes = chain.callReadOnlyFn(
       "epoch-convert",
       "get-minutes",
       [types.uint(utcTimeStamp)],
       deployer.address
     );
-    let minutes = new Date().getUTCMinutes();
-    getMinutes.result.expectUint(minutes);
+    getMinutes.result.expectUint(40);
   },
 });
 
-// If I try to run this test it gives 1 second difference error due to execution time
-// Clarinet.test({
-//     name: "Ensure that current seconds is identified correctly!",
-//     async fn(chain: Chain, accounts: Map<string, Account>) {
-//         const deployer = accounts.get('deployer')!;
-//         const time_stamp = Math.floor(Date.now() / 1000);
-//         let seconds = new Date().getUTCSeconds();
-//         let getSeconds = chain.callReadOnlyFn('epoch-convert', 'get-seconds', [types.uint(utcTimeStamp)], deployer.address);
-//         getSeconds.result.expectUint(seconds);
-//     },
-// });
+Clarinet.test({
+  name: "Ensure that current seconds is identified correctly!",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    let getSeconds = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-seconds",
+      [types.uint(utcTimeStamp)],
+      deployer.address
+    );
+    getSeconds.result.expectUint(38);
+  },
+});
 
 Clarinet.test({
   name: "Ensure that time-stamp values like 28th and 29th feb land on leap years!",
@@ -209,7 +201,6 @@ Clarinet.test({
       deployer.address
     );
     getWeekDays.result.expectAscii("Monday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("February");
     getDays.result.expectUint(28);
 
@@ -233,7 +224,6 @@ Clarinet.test({
       deployer.address
     );
     getWeekDays.result.expectAscii("Tuesday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("February");
     getDays.result.expectUint(29);
 
@@ -257,7 +247,6 @@ Clarinet.test({
       deployer.address
     );
     getWeekDays.result.expectAscii("Wednesday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("March");
     getDays.result.expectUint(1);
   },
@@ -287,7 +276,6 @@ Clarinet.test({
       deployer.address
     );
     getWeekDays.result.expectAscii("Wednesday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("February");
     getDays.result.expectUint(28);
     time_stamp++;
@@ -311,7 +299,6 @@ Clarinet.test({
       deployer.address
     );
     getWeekDays.result.expectAscii("Thursday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("March");
     getDays.result.expectUint(1);
   },
@@ -340,10 +327,16 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    let getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     getWeekDays.result.expectAscii("Sunday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("December");
     getDays.result.expectUint(31);
+    getYears.result.expectUint(1972);
     time_stamp++;
 
     getMonths = chain.callReadOnlyFn(
@@ -364,9 +357,15 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     getWeekDays.result.expectAscii("Monday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("January");
+    getYears.result.expectUint(1973);
     getDays.result.expectUint(1);
   },
 });
@@ -394,10 +393,16 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    let getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     getWeekDays.result.expectAscii("Monday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("December");
     getDays.result.expectUint(31);
+    getYears.result.expectUint(1973);
     time_stamp++;
 
     getMonths = chain.callReadOnlyFn(
@@ -418,14 +423,19 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     getWeekDays.result.expectAscii("Tuesday");
-    // let minutes = new Date().getUTCMinutes();
     getMonths.result.expectAscii("January");
     getDays.result.expectUint(1);
+    getYears.result.expectUint(1974);
   },
 });
 
-// this test might fail sometime due to a split difference in seconds
 Clarinet.test({
   name: "Ensure that human-readable time-stamp is correct!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
@@ -438,17 +448,17 @@ Clarinet.test({
     );
     humanReadable.result.expectTuple();
     let readable = types.tuple({
-      day: types.uint(new Date().getUTCDate()),
-      hour: types.uint(new Date().getUTCHours()),
-      minute: types.uint(new Date().getUTCMinutes()),
-      month: types.ascii(months[new Date().getUTCMonth()]),
-      // second: types.uint(new Date().getUTCSeconds()), I'm commenting this line as it fails with a split second difference during execution
-      week_day: types.ascii(weekDays[new Date().getUTCDay()]),
-      year: types.uint(new Date().getUTCFullYear()),
+      day: types.uint(20),
+      hour: types.uint(15),
+      minute: types.uint(40),
+      month: types.ascii(months[3]), // it is the month of April according to the zero based indexing
+      second: types.uint(38), 
+      week_day: types.ascii(weekDays[3]), // it is wednesday according to the index of the list provided on top
+      year: types.uint(2022),
     });
     // this removes spaces between the tuple
-    let a = readable.replace(/\s+/g, '');
-    let b = humanReadable.result.replace(/\s+/g, '');
+    let a = readable.replace(/\s+/g, "");
+    let b = humanReadable.result.replace(/\s+/g, "");
     assertEquals(a, b);
   },
 });
