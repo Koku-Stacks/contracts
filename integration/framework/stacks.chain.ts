@@ -178,6 +178,10 @@ export class StacksChain {
       );
     }
 
+    const transactionInfo = await this.waitTransaction(
+      broadcast_response.txid
+    );
+
     return broadcast_response;
   }
 
