@@ -1,5 +1,5 @@
-name: Unit Test Workflow
-on: workflow_dispatch
+name: CI
+on: [push]
 jobs:
   tests:
     name: "Test contracts using Clarinet"

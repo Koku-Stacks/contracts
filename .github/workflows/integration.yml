@@ -1,5 +1,5 @@
-name: Integration Test Wokflow
-on: workflow_dispatch
+name: Integration
+on: [push]
 jobs:
   test:
     name: "Integration tests on private testnet"

@@ -1,5 +1,5 @@
-name: Contracts Deployment Workflow
-on: workflow_dispatch
+name: Integration
+on: [push]
 jobs:
   test:
     name: "Contracts deployment on private testnet"
