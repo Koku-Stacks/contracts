@@ -1,9 +1,5 @@
-name: Integration Test Workflow
-on:
-  workflow_run:
-    workflows: ["Unit Test Workflow"]
-    types:
-      - completed
+name: Integration
+on: [push]
 jobs:
   test:
     name: "Integration tests on private testnet"

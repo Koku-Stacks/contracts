@@ -1,9 +1,5 @@
-name: Contracts Deployment Workflow
-on:
-  workflow_run:
-    workflows: ["Integration Test Workflow"]
-    types:
-      - completed
+name: Integration
+on: [push]
 jobs:
   test:
     name: "Contracts deployment on private testnet"
