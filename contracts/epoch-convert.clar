@@ -34,7 +34,7 @@
 
 ;; without leap days adjustment
 (define-private (get-days-without-leap-years (time-stamp uint)) 
-    (/ time-stamp u86400)
+    (/ time-stamp seconds-in-a-day)
 )
 
 ;; for reference of implementation of leap years which is a generic approach according to following references
@@ -69,25 +69,25 @@
 ;; so according the official doc; https://www.jotform.com/help/443-mastering-date-and-time-calculation/ & https://www.epochconverter.com/
 ;; an hour is equal to 3600 seconds. So first I get the remainder of years then I get the remainder of months then the days and lastly hours
 (define-read-only (get-hours (time-stamp uint))
-    (/ (mod time-stamp u86400) u3600)
+    (/ (mod time-stamp seconds-in-a-day) u3600)
 )
 
 ;; so according the official doc; https://www.jotform.com/help/443-mastering-date-and-time-calculation/ & https://www.epochconverter.com/
 ;; an minute is equal to 60 seconds. So first I get the remainder of years then I get the remainder of months then the days and then hours and then minutes
 (define-read-only (get-minutes (time-stamp uint))
-    (/ (mod (mod time-stamp u86400) u3600) u60)
+    (/ (mod (mod time-stamp seconds-in-a-day) u3600) u60)
 )
 
 ;; so according the official doc; https://www.jotform.com/help/443-mastering-date-and-time-calculation/ & https://www.epochconverter.com/
 ;; So first I get the remainder of years then I get the remainder of months then the days and then hours and so on....
 (define-read-only (get-seconds (time-stamp uint))
-    (mod (mod (mod time-stamp u86400) u3600) u60)
+    (mod (mod (mod time-stamp seconds-in-a-day) u3600) u60)
 )
 
 (define-read-only (get-day (time-stamp uint))
     (let 
         (
-            (z (+ (/ time-stamp u86400) u719468))
+            (z (+ (/ time-stamp seconds-in-a-day) u719468))
             (era (get-era z))
             (doe (- z (* era u146097)))
             (yoe (/ (- (+ (- doe (/ doe u1460)) (/ doe u36524)) (/ doe u146096)) u365))
@@ -102,7 +102,7 @@
 (define-read-only (get-month (time-stamp uint))
     (let 
         (
-            (z (+ (/ time-stamp u86400) u719468))
+            (z (+ (/ time-stamp seconds-in-a-day) u719468))
             (era (get-era z))
             (doe (- z (* era u146097)))
             (yoe (/ (- (+ (- doe (/ doe u1460)) (/ doe u36524)) (/ doe u146096)) u365))
@@ -117,7 +117,7 @@
 (define-read-only (get-year (time-stamp uint))
     (let 
         (
-            (z (+ (/ time-stamp u86400) u719468))
+            (z (+ (/ time-stamp seconds-in-a-day) u719468))
             (era (get-era z))
             (doe (- z (* era u146097)))
             (yoe (/ (- (+ (- doe (/ doe u1460)) (/ doe u36524)) (/ doe u146096)) u365))
