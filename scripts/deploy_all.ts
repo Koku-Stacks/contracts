@@ -1,7 +1,9 @@
-import { readFileSync } from "fs"
+import { readFileSync, writeFileSync } from "fs"
 
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
 import { chain, deploy_contract } from "./deploy_utils";
+
+import * as config from "../config";
 
 function read_deployment_order(filename?: string): string[] {
     filename = filename ?? "contracts/deployment_order.txt"
@@ -14,11 +16,17 @@ function read_deployment_order(filename?: string): string[] {
 }
 
 async function deploy_all_contracts() {
+    let contracts_id_registry: Map<string, string> = new Map();
+
     for (const contract_name of read_deployment_order()) {
         const contract_id = await deploy_contract(contract_name);
 
         console.log(`${contract_id} successfully deployed`);
+
+        contracts_id_registry[contract_name] = contract_id;
     }
+
+    return contracts_id_registry;
 }
 
 async function post_deployment_transactions() {
@@ -35,9 +43,16 @@ async function post_deployment_transactions() {
     );
 }
 
+function register_contracts_id(contracts_id_registry: Map<string, string>, filename?: string) {
+    filename = filename ?? config.contract_id_info_filename;
+
+    writeFileSync(filename, JSON.stringify(contracts_id_registry, null, '\t'));
+}
+
 async function service() {
-    await deploy_all_contracts();
+    const contracts_id_registry =  await deploy_all_contracts();
     await post_deployment_transactions();
+    register_contracts_id(contracts_id_registry);
 }
 
 service();
