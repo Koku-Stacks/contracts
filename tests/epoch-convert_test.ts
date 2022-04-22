@@ -200,18 +200,6 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     let getSeconds = chain.callReadOnlyFn(
       "epoch-convert",
       "get-seconds",
@@ -228,8 +216,6 @@ Clarinet.test({
     getMonths.result.expectAscii("February");
     getYears.result.expectUint(1972);
     getDays.result.expectUint(28);
-    getHours.result.expectUint(0);
-    getMinutes.result.expectUint(0);
     getSeconds.result.expectUint(0);
 
     time_stamp = 68169600; // Tuesday, February 29, 1972 12:00:00 AM
@@ -251,18 +237,6 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     getSeconds = chain.callReadOnlyFn(
       "epoch-convert",
       "get-seconds",
@@ -279,8 +253,6 @@ Clarinet.test({
     getMonths.result.expectAscii("February");
     getYears.result.expectUint(1972);
     getDays.result.expectUint(29);
-    getHours.result.expectUint(0);
-    getMinutes.result.expectUint(0);
     getSeconds.result.expectUint(0);
 
     time_stamp = 68256000; // Wednesday, March 1, 1972 12:00:00 AM
@@ -302,18 +274,6 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     getSeconds = chain.callReadOnlyFn(
       "epoch-convert",
       "get-seconds",
@@ -330,8 +290,6 @@ Clarinet.test({
     getMonths.result.expectAscii("March");
     getYears.result.expectUint(1972);
     getDays.result.expectUint(1);
-    getHours.result.expectUint(0);
-    getMinutes.result.expectUint(0);
     getSeconds.result.expectUint(0);
   },
 });
@@ -359,37 +317,9 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     getWeekDays.result.expectAscii("Wednesday");
-    getYears.result.expectUint(1973);
     getMonths.result.expectAscii("February");
     getDays.result.expectUint(28);
-    getHours.expectUint(23);
-    getMinutes.expectUint(59);
-    getSeconds.expectUint(59);
     time_stamp++;
 
     getMonths = chain.callReadOnlyFn(
@@ -410,37 +340,9 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     getWeekDays.result.expectAscii("Thursday");
-    getYears.result.expectUint(1973);
     getMonths.result.expectAscii("March");
     getDays.result.expectUint(1);
-    getHours.expectUint(0);
-    getMinutes.expectUint(0);
-    getSeconds.expectUint(0);
   },
 });
 
@@ -473,30 +375,9 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     getWeekDays.result.expectAscii("Sunday");
     getMonths.result.expectAscii("December");
     getDays.result.expectUint(31);
-    getHours.result.expectUint(23);
-    getMinutes.result.expectUint(59);
-    getSeconds.result.expectUint(59);
     getYears.result.expectUint(1972);
     time_stamp++;
 
@@ -524,31 +405,10 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     getWeekDays.result.expectAscii("Monday");
     getMonths.result.expectAscii("January");
     getYears.result.expectUint(1973);
     getDays.result.expectUint(1);
-    getHours.result.expectUint(0);
-    getMinutes.result.expectUint(0);
-    getSeconds.result.expectUint(0);
   },
 });
 
@@ -569,24 +429,6 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
     let getWeekDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-week-days",
@@ -602,9 +444,6 @@ Clarinet.test({
     getWeekDays.result.expectAscii("Monday");
     getMonths.result.expectAscii("December");
     getDays.result.expectUint(31);
-    getHours.expectUint(23);
-    getMinutes.expectUint(59);
-    getSeconds.expectUint(59);
     getYears.result.expectUint(1973);
     time_stamp++;
 
@@ -617,24 +456,6 @@ Clarinet.test({
     getDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getHours = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-hours",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getMinutes = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-minutes",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
       [types.uint(time_stamp)],
       deployer.address
     );
@@ -653,9 +474,6 @@ Clarinet.test({
     getWeekDays.result.expectAscii("Tuesday");
     getMonths.result.expectAscii("January");
     getDays.result.expectUint(1);
-    getHours.expectUint(0);
-    getMinutes.expectUint(0);
-    getSeconds.expectUint(0);
     getYears.result.expectUint(1974);
   },
 });
