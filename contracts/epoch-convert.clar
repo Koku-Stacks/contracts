@@ -4,6 +4,8 @@
 ;; defined a list of weekdays
 (define-constant week-days (list "Thursday" "Friday" "Saturday" "Sunday" "Monday" "Tuesday" "Wednesday"))
 
+(define-constant seconds-in-a-day u86400)
+
 (define-private (get-era (z uint))
     (if (>= z u0)
         (/ z u146097)
@@ -61,7 +63,7 @@
 
 ;; As per Luiz's approach
 (define-read-only (get-week-days (time-stamp uint)) 
-    (unwrap-panic (element-at week-days (mod (/ time-stamp u86400) u7)))
+    (unwrap-panic (element-at week-days (mod (/ time-stamp seconds-in-a-day) u7)))
 )
 
 ;; so according the official doc; https://www.jotform.com/help/443-mastering-date-and-time-calculation/ & https://www.epochconverter.com/

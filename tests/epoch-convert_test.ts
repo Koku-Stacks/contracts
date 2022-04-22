@@ -188,9 +188,21 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    let getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     let getDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-day",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
+    let getSeconds = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-seconds",
       [types.uint(time_stamp)],
       deployer.address
     );
@@ -202,7 +214,9 @@ Clarinet.test({
     );
     getWeekDays.result.expectAscii("Monday");
     getMonths.result.expectAscii("February");
+    getYears.result.expectUint(1972);
     getDays.result.expectUint(28);
+    getSeconds.result.expectUint(0);
 
     time_stamp = 68169600; // Tuesday, February 29, 1972 12:00:00 AM
     getMonths = chain.callReadOnlyFn(
@@ -211,9 +225,21 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     getDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-day",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
+    getSeconds = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-seconds",
       [types.uint(time_stamp)],
       deployer.address
     );
@@ -225,7 +251,9 @@ Clarinet.test({
     );
     getWeekDays.result.expectAscii("Tuesday");
     getMonths.result.expectAscii("February");
+    getYears.result.expectUint(1972);
     getDays.result.expectUint(29);
+    getSeconds.result.expectUint(0);
 
     time_stamp = 68256000; // Wednesday, March 1, 1972 12:00:00 AM
     getMonths = chain.callReadOnlyFn(
@@ -234,9 +262,21 @@ Clarinet.test({
       [types.uint(time_stamp)],
       deployer.address
     );
+    getYears = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-year",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
     getDays = chain.callReadOnlyFn(
       "epoch-convert",
       "get-day",
+      [types.uint(time_stamp)],
+      deployer.address
+    );
+    getSeconds = chain.callReadOnlyFn(
+      "epoch-convert",
+      "get-seconds",
       [types.uint(time_stamp)],
       deployer.address
     );
@@ -248,7 +288,9 @@ Clarinet.test({
     );
     getWeekDays.result.expectAscii("Wednesday");
     getMonths.result.expectAscii("March");
+    getYears.result.expectUint(1972);
     getDays.result.expectUint(1);
+    getSeconds.result.expectUint(0);
   },
 });
 
@@ -452,7 +494,7 @@ Clarinet.test({
       hour: types.uint(15),
       minute: types.uint(40),
       month: types.ascii(months[3]), // it is the month of April according to the zero based indexing
-      second: types.uint(38), 
+      second: types.uint(38),
       week_day: types.ascii(weekDays[3]), // it is wednesday according to the index of the list provided on top
       year: types.uint(2022),
     });
