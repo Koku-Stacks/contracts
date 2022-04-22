@@ -1,7 +1,7 @@
 import { StacksChain } from "../integration/framework/stacks.chain"
 import {STACKS_API_URL} from "../integration/config"
 
-import * as tx from "root/packages/transactions";
+import * as tx from "@stacks/transactions";
 
 import * as fs from "fs"
 import * as path from "path"
