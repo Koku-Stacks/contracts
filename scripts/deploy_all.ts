@@ -1,9 +1,7 @@
-import { execSync } from "child_process";
 import { readFileSync } from "fs"
 
-import { StacksChain } from "../integration/framework/stacks.chain"
-import { STACKS_API_URL } from "../integration/config";
 import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
+import { chain, deploy_contract } from "./deploy_utils";
 
 function read_deployment_order(filename?: string): string[] {
     filename = filename ?? "contracts/deployment_order.txt"
@@ -15,21 +13,13 @@ function read_deployment_order(filename?: string): string[] {
     return deployment_order;
 }
 
-function deploy_contract(contract_name: string) {
-    const output = execSync(`npm run deploy -- --contract ${contract_name}`);
+async function deploy_all_contracts() {
+    for (const contract_name of read_deployment_order()) {
+        const contract_id = await deploy_contract(contract_name);
 
-    console.log(output.toString());
+        console.log(`${contract_id} successfully deployed`);
+    }
 }
-
-function deploy_all_contracts() {
-    read_deployment_order().forEach((contract_name) => {
-        deploy_contract(contract_name);
-    })
-}
-
-const chain = new StacksChain(STACKS_API_URL, {
-    defaultFee: 100000
-});
 
 async function post_deployment_transactions() {
     await chain.loadAccounts();
@@ -46,7 +36,7 @@ async function post_deployment_transactions() {
 }
 
 async function service() {
-    deploy_all_contracts();
+    await deploy_all_contracts();
     await post_deployment_transactions();
 }
 

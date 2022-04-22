@@ -1,7 +1,4 @@
-import { generateWallet, getStxAddress } from '@stacks/wallet-sdk';
-import { readFileSync } from "fs";
-import { StacksChain } from "../integration/framework/stacks.chain";
-import * as config from "../config";
+import { deploy_contract } from "./deploy_utils";
 
 const yargs = require('yargs/yargs');
 
@@ -9,54 +6,13 @@ const argv = yargs(process.argv).argv;
 
 const contract_relative_path: string = argv.contract;
 
-let contract_name = contract_relative_path;
-
-const slash_index = contract_relative_path.indexOf('/');
-if (slash_index !== -1) {
-    contract_name = contract_relative_path.substring(slash_index + 1);
-}
-
-const networkEndPoint = config.node_url;
-const secretKey = config.seed_phrase;
-
-const chain = new StacksChain(networkEndPoint, {
-    defaultFee: config.default_fee,
-  });
-const password = "testing_password";
-
-const contract_path = `contracts/${contract_relative_path}.clar`;
-const contract_code = readFileSync(contract_path).toString();
-
-const transaction_version = config.get_transaction_version(config.network_type);
-
-console.log(`Deploy contract: ${contract_path}`);
-console.log('Parameters:');
-console.log(`-- node url: ${config.node_url}`);
-console.log(`-- network type: ${config.network_type}`);
-console.log(`-- default fee: ${config.default_fee}`);
+console.log(`Deploy contract: ${contract_relative_path}`);
 console.log('------');
 
-(async () => {
-    try {
-        const wallet = await generateWallet({
-            secretKey,
-            password,
-          });
-        const account = wallet.accounts[0];
-        const deployerAddress = getStxAddress({ account, transactionVersion: transaction_version });
-        console.log("Deployer address:", deployerAddress);
-        console.log("Deployer private key:", wallet.accounts[0].stxPrivateKey);
+async function service() {
+    const contract_id = await deploy_contract(contract_relative_path);
 
-        // create contract
-        const smartContractId = await chain.deployContract(
-            contract_name,
-            contract_code,
-            wallet.accounts[0].stxPrivateKey
-        );
+    console.log(`${contract_id} successfully deployed`);
+}
 
-        console.log(`Contract successfully deployed: ${smartContractId}`)
-    } catch (e) {
-        // Deal with the fact the chain failed
-        console.log(e);
-    }
-})();
+service();
