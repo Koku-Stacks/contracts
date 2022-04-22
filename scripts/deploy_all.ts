@@ -44,6 +44,17 @@ async function post_deployment_transactions() {
             waitForTransactionConfirmation: true
         }
     );
+
+    await chain.callContract(
+        deployer.address,
+        "token",
+        "add-authorized-contract",
+        [principalCV(deployer.address)],
+        deployer.secretKey,
+        {
+            waitForTransactionConfirmation: true
+        }
+    );
 }
 
 function register_contracts_id(contracts_id_registry: Map<string, string>, filename?: string) {
