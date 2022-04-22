@@ -39,7 +39,10 @@ async function post_deployment_transactions() {
         "token",
         "add-authorized-contract",
         [principalCV(`${deployer.address}.minting`)],
-        deployer.secretKey
+        deployer.secretKey,
+        {
+            waitForTransactionConfirmation: true
+        }
     );
 }
 
