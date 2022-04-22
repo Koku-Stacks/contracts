@@ -87,4 +87,64 @@ When the optional parameter `--service` is passed, one price update is performed
 Its base invocation command is `npm run generate-key`. It does not accept any parameters.
 
 When the base command is invoked, it generates output containing a newly created random secret key as well as the corresponding private payload for usage in Stacks ecosystem.
-Additionaly, the corresponding testnet and mainnet public addresses are provided. 
+Additionaly, the corresponding testnet and mainnet public addresses are provided.
+
+## Token contract
+[Our token](contracts/token.clar) is [sip-010 interface](contracts/traits/sip-010-trait-ft-standard.clar) compatible contract.
+
+it is designed with an upgdatability support through splitting storage and interfaces interacting with it.
+Hard cap for the token minting supply is 21 million with 6 decimals.
+
+### Ownership interface
+```
+(define-read-only (get-owner)
+(define-public (submit-ownership-transfer (new-owner principal))
+(define-public (cancel-ownership-transfer)
+(define-public (confirm-ownership-transfer)
+```
+These are for controlling ownership and transferring owhership of the contract.
+Here is the approach of 2-transactional ownership transfer when the second one transaction is in fact confirmation by the new **owner**.
+Such approach has been chosen to protect transferring ownership to nowhere by mistake.
+
+**Owner** is allowed to:
+* authorize minter roles.
+* lock the contract by emergency.
+
+### Token title control interface
+```
+(define-public (set-token-uri (new-token-uri (string-utf8 256)))
+(define-public (set-token-name (new-token-name (string-ascii 32)))
+(define-public (set-token-symbol (new-token-symbol (string-ascii 32)))
+```
+Can ba called only by **owner**.
+Changing storage by these functions is automatically reflected in appropriate read only functions from [sip-010 interface](contracts/traits/sip-010-trait-ft-standard.clar).
+
+### Minting authorization interface
+```
+(define-public (add-authorized-contract (new-contract principal))
+(define-public (revoke-authorized-contract (contract principal))
+(define-read-only (is-authorized (contract principal))
+```
+These are called by **owner** and dedicated for authorization of other contracts or principals for minting.
+This way the upgradability support for the future evolution in the ecosystem has reached.
+
+### Emergency lock interface
+```
+(define-public (set-contract-lock (lock bool))
+(define-read-only (get-contract-lock)
+```
+This lock will block all token flow between principal through disabling funtions as **transfer**, **burn**, **mint**
+
+### Minting interface
+```
+(define-read-only (get-remaining-tokens-to-mint)
+(define-public (mint (amount uint) (recipient principal))
+```
+Only the principals previously authorized **by owner** are allowed to call mint function.
+Mint is allowed only within **remaining-tokens-to-mint** limit.
+
+### Burning interface
+```
+(define-public (burn (amount uint))
+```
+Everyone is allowed to burn his own token but not tokens of others.
