@@ -181,116 +181,93 @@ Clarinet.test({
   name: "Ensure that time-stamp values like 28th and 29th feb land on leap years!",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
-    let time_stamp = 68083200; // Monday, February 28, 1972 12:00:00 AM
-    let getMonths = chain.callReadOnlyFn(
+    let time_stamp = 68169599; // Monday, February 28, 1972 11:59:59 PM
+    let humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Monday");
-    getMonths.result.expectAscii("February");
-    getYears.result.expectUint(1972);
-    getDays.result.expectUint(28);
-    getSeconds.result.expectUint(0);
+    humanReadable.result.expectTuple();
+    let readable = types.tuple({
+      day: types.uint(28),
+      hour: types.uint(23),
+      minute: types.uint(59),
+      month: types.ascii(months[1]),
+      second: types.uint(59),
+      week_day: types.ascii(weekDays[1]),
+      year: types.uint(1972),
+    });
+    // this removes spaces between the tuple
+    let a = readable.replace(/\s+/g, "");
+    let b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
 
-    time_stamp = 68169600; // Tuesday, February 29, 1972 12:00:00 AM
-    getMonths = chain.callReadOnlyFn(
+    time_stamp++; // Tuesday, February 29, 1972 12:00:00 AM
+    humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Tuesday");
-    getMonths.result.expectAscii("February");
-    getYears.result.expectUint(1972);
-    getDays.result.expectUint(29);
-    getSeconds.result.expectUint(0);
+    humanReadable.result.expectTuple();
+    readable = types.tuple({
+      day: types.uint(29),
+      hour: types.uint(0),
+      minute: types.uint(0),
+      month: types.ascii(months[1]),
+      second: types.uint(0),
+      week_day: types.ascii(weekDays[2]),
+      year: types.uint(1972),
+    });
+    // this removes spaces between the tuple
+    a = readable.replace(/\s+/g, "");
+    b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
 
-    time_stamp = 68256000; // Wednesday, March 1, 1972 12:00:00 AM
-    getMonths = chain.callReadOnlyFn(
+    time_stamp = 68255999; // Tuesday, February 29, 1972 11:59:59 PM
+    humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    getYears = chain.callReadOnlyFn(
+    humanReadable.result.expectTuple();
+    readable = types.tuple({
+      day: types.uint(29),
+      hour: types.uint(23),
+      minute: types.uint(59),
+      month: types.ascii(months[1]),
+      second: types.uint(59),
+      week_day: types.ascii(weekDays[2]),
+      year: types.uint(1972),
+    });
+    // this removes spaces between the tuple
+    a = readable.replace(/\s+/g, "");
+    b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
+
+    time_stamp++; // Wednesday, March 1, 1972 12:00:00 AM
+    humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-year",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getSeconds = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-seconds",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Wednesday");
-    getMonths.result.expectAscii("March");
-    getYears.result.expectUint(1972);
-    getDays.result.expectUint(1);
-    getSeconds.result.expectUint(0);
+    humanReadable.result.expectTuple();
+    readable = types.tuple({
+      day: types.uint(1),
+      hour: types.uint(0),
+      minute: types.uint(0),
+      month: types.ascii(months[2]),
+      second: types.uint(0),
+      week_day: types.ascii(weekDays[3]),
+      year: types.uint(1972),
+    });
+    // this removes spaces between the tuple
+    a = readable.replace(/\s+/g, "");
+    b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
   },
 });
 
@@ -299,50 +276,48 @@ Clarinet.test({
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
     let time_stamp = 99791999; // Wednesday, February 28, 1973 11:59:59 PM
-    let getMonths = chain.callReadOnlyFn(
+    let humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Wednesday");
-    getMonths.result.expectAscii("February");
-    getDays.result.expectUint(28);
-    time_stamp++;
+    humanReadable.result.expectTuple();
+    let readable = types.tuple({
+      day: types.uint(28),
+      hour: types.uint(23),
+      minute: types.uint(59),
+      month: types.ascii(months[1]),
+      second: types.uint(59),
+      week_day: types.ascii(weekDays[3]),
+      year: types.uint(1973),
+    });
+    // this removes spaces between the tuple
+    let a = readable.replace(/\s+/g, "");
+    let b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
 
-    getMonths = chain.callReadOnlyFn(
+    time_stamp++; // Thursday, March 1, 1973 12:00:00 AM
+    humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Thursday");
-    getMonths.result.expectAscii("March");
-    getDays.result.expectUint(1);
+    humanReadable.result.expectTuple();
+    readable = types.tuple({
+      day: types.uint(1),
+      hour: types.uint(0),
+      minute: types.uint(0),
+      month: types.ascii(months[2]),
+      second: types.uint(0),
+      week_day: types.ascii(weekDays[4]),
+      year: types.uint(1973),
+    });
+    // this removes spaces between the tuple
+    a = readable.replace(/\s+/g, "");
+    b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
   },
 });
 
@@ -351,64 +326,48 @@ Clarinet.test({
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
     let time_stamp = 94694399; // Sunday, December 31, 1972 11:59:59 PM
-    let getMonths = chain.callReadOnlyFn(
+    let humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Sunday");
-    getMonths.result.expectAscii("December");
-    getDays.result.expectUint(31);
-    getYears.result.expectUint(1972);
-    time_stamp++;
+    humanReadable.result.expectTuple();
+    let readable = types.tuple({
+      day: types.uint(31),
+      hour: types.uint(23),
+      minute: types.uint(59),
+      month: types.ascii(months[11]),
+      second: types.uint(59),
+      week_day: types.ascii(weekDays[0]),
+      year: types.uint(1972),
+    });
+    // this removes spaces between the tuple
+    let a = readable.replace(/\s+/g, "");
+    let b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
 
-    getMonths = chain.callReadOnlyFn(
+    time_stamp++; // Monday, January 1, 1973 12:00:00 AM
+    humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Monday");
-    getMonths.result.expectAscii("January");
-    getYears.result.expectUint(1973);
-    getDays.result.expectUint(1);
+    humanReadable.result.expectTuple();
+    readable = types.tuple({
+      day: types.uint(1),
+      hour: types.uint(0),
+      minute: types.uint(0),
+      month: types.ascii(months[0]),
+      second: types.uint(0),
+      week_day: types.ascii(weekDays[1]),
+      year: types.uint(1973),
+    });
+    // this removes spaces between the tuple
+    a = readable.replace(/\s+/g, "");
+    b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
   },
 });
 
@@ -417,64 +376,48 @@ Clarinet.test({
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
     let time_stamp = 126230399; // Monday, December 31, 1973 11:59:59 PM
-    let getMonths = chain.callReadOnlyFn(
+    let humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    let getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    let getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Monday");
-    getMonths.result.expectAscii("December");
-    getDays.result.expectUint(31);
-    getYears.result.expectUint(1973);
-    time_stamp++;
+    humanReadable.result.expectTuple();
+    let readable = types.tuple({
+      day: types.uint(31),
+      hour: types.uint(23),
+      minute: types.uint(59),
+      month: types.ascii(months[11]),
+      second: types.uint(59),
+      week_day: types.ascii(weekDays[1]),
+      year: types.uint(1973),
+    });
+    // this removes spaces between the tuple
+    let a = readable.replace(/\s+/g, "");
+    let b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
 
-    getMonths = chain.callReadOnlyFn(
+    time_stamp++; // Tuesday, January 1, 1974 12:00:00 AM
+    humanReadable = chain.callReadOnlyFn(
       "epoch-convert",
-      "get-month",
+      "human-readable",
       [types.uint(time_stamp)],
       deployer.address
     );
-    getDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-day",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-week-days",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getYears = chain.callReadOnlyFn(
-      "epoch-convert",
-      "get-year",
-      [types.uint(time_stamp)],
-      deployer.address
-    );
-    getWeekDays.result.expectAscii("Tuesday");
-    getMonths.result.expectAscii("January");
-    getDays.result.expectUint(1);
-    getYears.result.expectUint(1974);
+    humanReadable.result.expectTuple();
+    readable = types.tuple({
+      day: types.uint(1),
+      hour: types.uint(0),
+      minute: types.uint(0),
+      month: types.ascii(months[0]),
+      second: types.uint(0),
+      week_day: types.ascii(weekDays[2]),
+      year: types.uint(1974),
+    });
+    // this removes spaces between the tuple
+    a = readable.replace(/\s+/g, "");
+    b = humanReadable.result.replace(/\s+/g, "");
+    assertEquals(a, b);
   },
 });
 
