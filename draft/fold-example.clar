@@ -154,6 +154,14 @@
     ;; FIXME this should not return u1 always only when position is indeed updated. Waiting for update business logic  
     (ok u1)))
 
+(define-public (update-position (index uint))
+  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
+        (position-owner (get sender position)))
+    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
+    (try! (position-maintenance index))
+    (ok true)))
+
+(define-public (batch-position-maintenance)
   (let ((chunk-indices (calculate-current-chunk-indices))
         (update-status-responses (map position-maintenance chunk-indices))
         (unwrapped-update-statuses (map unwrap-helper update-status-responses))
