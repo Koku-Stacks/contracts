@@ -1,4 +1,5 @@
 (define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_POSITION_OWNER_ONLY (err u1001)) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
