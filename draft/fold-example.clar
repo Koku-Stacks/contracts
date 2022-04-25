@@ -140,15 +140,6 @@
   (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
-    ;; reward position holder when in profit
-    (if (is-eq profit-status POSITION_IN_PROFIT)
-        (try! (transfer-usda (var-get trading-fee) this-contract position-sender none))
-        true)
-    ;; punish position holder when in loss
-    (if (is-eq profit-status POSITION_IN_LOSS)
-        (try! (transfer-usda (var-get trading-fee) position-sender this-contract none))
-        true)
-    ;; executor reward
     (try! (stx-transfer? (+ (var-get gas-fee)
                             (var-get executor-tip))
                          this-contract tx-sender))
