@@ -15,6 +15,10 @@ depends_on = []
 path = "contracts/traits/burn-trait.clar"
 depends_on = []
 
+[contracts.epoch-convert]
+path = "contracts/epoch-convert.clar"
+depends_on = []
+
 [contracts.hello]
 path = "contracts/hello.clar"
 depends_on = []
