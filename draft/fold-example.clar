@@ -142,6 +142,7 @@
   (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
+    ;; FIXME insert business logic to determine whether such a position can be updated. Has something to do with business days and opening/closing hours
     (map-set indexed-positions {index: index}
                                {sender: (get sender position),
                                 size: (get size position),
@@ -150,7 +151,9 @@
                                 current-pnl: (get current-pnl position),
                                 updated-on-block: block-height,
                                 status: (get status position)})
-      (ok true)))(define-public (batch-position-maintenance)
+    ;; FIXME this should not return u1 always only when position is indeed updated. Waiting for update business logic  
+    (ok u1)))
+
   (let ((chunk-indices (calculate-current-chunk-indices))
         (update-status-responses (map position-maintenance chunk-indices))
         (unwrapped-update-statuses (map unwrap-helper update-status-responses))
