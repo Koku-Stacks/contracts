@@ -140,9 +140,6 @@
   (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
-    (try! (stx-transfer? (+ (var-get gas-fee)
-                            (var-get executor-tip))
-                         this-contract tx-sender))
     (map-set indexed-positions {index: index}
                                {sender: (get sender position),
                                 size: (get size position),
