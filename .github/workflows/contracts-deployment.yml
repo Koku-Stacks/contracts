@@ -1,0 +1,16 @@
+name: Contracts Deployment Workflow
+on: workflow_dispatch
+jobs:
+  test:
+    name: "Contracts deployment on private testnet"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Execute tests"
+        run: |
+          cd integration
+          npm install
+          cd ..
+          npm install
+          npm rum deploy-all
