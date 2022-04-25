@@ -73,18 +73,6 @@
     (var-set last-updated-index
              (+ (var-get last-updated-index) INDEX_CHUNK_SIZE))))
 
-;; FIXME I suppose this function should instead interact with vault, right?
-(define-private (transfer-usda (amount uint) (from principal) (to principal) (memo (optional (buff 34))))
-  ;; FIXME commented for now as we are waiting for a PR on clarinet side
-  ;; (contract-call? 'SP2C2YFP12AJZB4MABJBAJ55XECVS7E4PMMZ89YZR.usda-token
-  ;;                 transfer
-  ;;                 amount
-  ;;                 from to memo)
-  ;; FIXME the following mocked up code is just complex enough to satisfy type checker
-  (if (is-eq amount u0)
-      (ok true)
-      (err u1)))
-
 (define-public (insert-position (size uint)
                                 (order-type uint))
   (begin
@@ -97,10 +85,11 @@
                                    updated-on-block: block-height,
                                    status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
-    (try! (transfer-usda (+ (var-get liquidation-fee)
-                            (var-get trading-fee)
-                            (var-get collateral))
-                         tx-sender this-contract none))
+    ;; FIXME provisory call
+    (try! (contract-call? .token transfer (+ (var-get liquidation-fee)
+                                             (var-get trading-fee)
+                                             (var-get collateral))
+                                 tx-sender this-contract none))
     (try! (stx-transfer? (var-get gas-fee) tx-sender this-contract))
     (ok true)))
 
