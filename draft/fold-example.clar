@@ -136,7 +136,7 @@
   (begin
     POSITION_NEUTRAL))
 
-(define-public (position-maintenance (index uint))
+(define-private (position-maintenance (index uint))
   (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
