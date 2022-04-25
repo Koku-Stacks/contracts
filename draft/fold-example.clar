@@ -59,6 +59,8 @@
 (define-read-only (calculate-current-chunk-indices)
   (map calculate-current-chunk-indices-step BASE_INDICES_SHIFT_LIST))
 
+(define-read-only (unwrap-helper (ok-uint (response uint uint)))
+  (unwrap-panic ok-uint))
 
 (define-private (increase-last-updated-chunk)
   (var-set last-updated-chunk
