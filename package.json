@@ -12,8 +12,8 @@
   },
   "scripts": {
     "test": "clarinet test",
-    "deploy": "ts-node scripts/script_deploy.ts",
-    "btc-price-service": "ts-node scripts/btc_price_service.ts",
+    "deploy": "ts-node scripts/deploy_contract.ts",
+    "btc-price": "ts-node scripts/btc_price.ts",
     "gas-cost": "ts-node scripts/estimate_costs.ts"
   },
   "devDependencies": {
