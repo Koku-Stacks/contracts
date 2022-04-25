@@ -33,7 +33,6 @@
 
 (define-map indexed-positions {index: uint} {sender: principal,
                                              size: uint,
-                                             timestamp: uint,
                                              order-type: uint,
                                              current-pnl: uint,
                                              updated-on-block: uint,
@@ -49,9 +48,6 @@
 (define-data-var collateral uint u0) ;; in USDA
 (define-data-var gas-fee uint u0) ;; in STX
 (define-data-var executor-tip uint u0) ;; in STX
-
-(define-read-only (get-current-timestamp)
-  (default-to u0 (get-block-info? time (- block-height u1))))
 
 (define-read-only (calculate-current-chunk-indices-step (base-index-shift uint))
   (+ base-index-shift (* INDEX_CHUNK_SIZE (var-get last-updated-chunk))))
@@ -79,7 +75,6 @@
     (map-insert indexed-positions {index: (var-get least-unused-index)}
                                   {sender: tx-sender,
                                    size: size,
-                                   timestamp: (get-current-timestamp),
                                    order-type: order-type,
                                    current-pnl: u0,
                                    updated-on-block: block-height,
@@ -102,8 +97,9 @@
 (define-read-only (get-size (index uint) (default uint))
   (get size (unwrap! (get-position index) default)))
 
-(define-read-only (get-timestamp (index uint) (default uint))
-  (get timestamp (unwrap! (get-position index) default)))
+(define-read-only (get-updated-timestamp (index uint) (default uint))
+  (let ((block (get updated-on-block (unwrap! (get-position index) default))))
+    (unwrap! (get-block-info? time block) default)))
 
 (define-read-only (get-order-type (index uint) (default uint))
   (get order-type (unwrap! (get-position index) default)))
@@ -135,7 +131,6 @@
     (map-set indexed-positions {index: index}
                                {sender: (get sender position),
                                 size: (get size position),
-                                timestamp: (get-current-timestamp),
                                 order-type: (get order-type position),
                                 current-pnl: (get current-pnl position),
                                 updated-on-block: block-height,
