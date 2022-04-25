@@ -53,13 +53,13 @@
 (define-read-only (get-current-timestamp)
   (default-to u0 (get-block-info? time (- block-height u1))))
 
-(define-read-only (increase-indices-by-chunk-size-step (index-value uint))
-  (+ index-value INDEX_CHUNK_SIZE))
+(define-read-only (calculate-current-chunk-indices-step (base-index-shift uint))
+  (+ base-index-shift (* INDEX_CHUNK_SIZE (var-get last-updated-chunk))))
 
-(define-private (increase-indices-by-chunk-size)
-  (var-set next-indices-to-update
-           (map increase-indices-by-chunk-size-step
-                (var-get next-indices-to-update))))
+(define-read-only (calculate-current-chunk-indices)
+  (map calculate-current-chunk-indices-step BASE_INDICES_SHIFT_LIST))
+
+
 (define-private (increase-last-updated-chunk)
   (var-set last-updated-chunk
            (+ u1
