@@ -42,6 +42,8 @@
 (define-data-var least-unused-index uint u1)
 
 (define-data-var last-updated-index uint u0)
+(define-data-var last-updated-chunk uint u0)
+
 (define-data-var liquidation-fee uint u0) ;; in USDA
 (define-data-var trading-fee uint u0) ;; in USDA
 (define-data-var collateral uint u0) ;; in USDA
@@ -58,6 +60,10 @@
   (var-set next-indices-to-update
            (map increase-indices-by-chunk-size-step
                 (var-get next-indices-to-update))))
+(define-private (increase-last-updated-chunk)
+  (var-set last-updated-chunk
+           (+ u1
+              (var-get last-updated-chunk))))
 
 (define-private (prepare-for-next-chunk-update)
   (begin
