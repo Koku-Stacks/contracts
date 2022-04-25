@@ -16,18 +16,6 @@
 
 (define-constant this-contract (as-contract tx-sender))
 
-(define-map indexed-positions {index: uint} {sender: principal,
-                                             size: uint,
-                                             timestamp: uint,
-                                             order-type: uint,
-                                             current-pnl: uint,
-                                             updated-on-block: uint,
-                                             status: uint})
-
-(define-data-var least-unused-index uint u1)
-
-(define-data-var last-updated-index uint u0)
-
 ;; FIXME adapt to final chunk size
 (define-data-var next-indices-to-update (list 100 uint)
   (list
@@ -42,6 +30,17 @@
     u81 u82 u83 u84 u85 u86 u87 u88 u89  u90
     u91 u92 u93 u94 u95 u96 u97 u98 u99 u100))
 
+(define-map indexed-positions {index: uint} {sender: principal,
+                                             size: uint,
+                                             timestamp: uint,
+                                             order-type: uint,
+                                             current-pnl: uint,
+                                             updated-on-block: uint,
+                                             status: uint})
+
+(define-data-var least-unused-index uint u1)
+
+(define-data-var last-updated-index uint u0)
 (define-data-var liquidation-fee uint u0) ;; in USDA
 (define-data-var trading-fee uint u0) ;; in USDA
 (define-data-var collateral uint u0) ;; in USDA
