@@ -148,4 +148,13 @@
                                 current-pnl: (get current-pnl position),
                                 updated-on-block: block-height,
                                 status: (get status position)})
-      (ok true)))
+      (ok true)))(define-public (batch-position-maintenance)
+  (let ((chunk-indices (calculate-current-chunk-indices))
+        (update-status-responses (map position-maintenance chunk-indices))
+        (unwrapped-update-statuses (map unwrap-helper update-status-responses))
+        (updates-performed (fold + unwrapped-update-statuses u0)))
+    ;; executor reward
+    (try! (stx-transfer? (+ (var-get gas-fee)
+                            (* (var-get executor-tip) updates-performed))
+                         this-contract tx-sender))
+    (ok true)))
