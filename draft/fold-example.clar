@@ -92,7 +92,7 @@
                                    timestamp: (get-current-timestamp),
                                    order-type: order-type,
                                    current-pnl: u0,
-                                   updated-on-block: u0,
+                                   updated-on-block: block-height,
                                    status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
     (try! (transfer-usda (+ (var-get liquidation-fee)
