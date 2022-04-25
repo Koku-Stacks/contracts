@@ -67,7 +67,7 @@
 
 (define-private (prepare-for-next-chunk-update)
   (begin
-    (increase-indices-by-chunk-size)
+    (increase-last-updated-chunk)
     (var-set last-updated-index
              (+ (var-get last-updated-index) INDEX_CHUNK_SIZE))))
 
