@@ -19,7 +19,6 @@ import {
 } from "@stacks/transactions";
 import fetch from "node-fetch";
 import { delay } from "./helpers";
-import * as fs from "fs";
 
 const https = require("http");
 interface Options {
@@ -354,12 +353,12 @@ export class StacksChain {
     return await getNonce(address, this.network);
   }
 
-  public async writeEventIntoStream(contract_id: string, stream: fs.WriteStream, event: string, options?: {limit: number, offset: number}) {
+  public async getEventsByContract(contract_id: string, event: string, options?: {limit: number, offset: number}): Promise<string[]> {
     const limit = options?.limit ?? 50; // max limit should <= 50 as per API call
     let offset = options?.offset ?? 0;
     // we can also store all the other events in sperate files
     
-
+    let transactionEvents: string[] = [];
     const fetchTransaction = async (): Promise<number> => {
       const url = `${this.url}/extended/v1/address/${contract_id}/transactions?limit=${limit}&offset=${offset}`;
       return new Promise<number>((resolve) => {
@@ -385,9 +384,7 @@ export class StacksChain {
                     event
                   ).then((ft_blockTxns) => {
                     if (ft_blockTxns.length > 0) {
-                      stream.write(
-                        JSON.stringify(ft_blockTxns[0]) + "\n"
-                      );
+                      transactionEvents.push(ft_blockTxns[0][0].tx_id);
                     }
                   });
                 }
@@ -410,6 +407,7 @@ export class StacksChain {
         offset += limit;
       }
     }
+    return transactionEvents;
   }
 }
 
