@@ -1,14 +1,9 @@
 name: Integration Test Workflow
-on:
-  workflow_run:
-    workflows: [Unit Test Workflow]
-    types:
-      - completed
+on: [push]
 jobs:
   test:
     name: "Integration tests on private testnet"
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v2
 
