@@ -1,8 +1,12 @@
 (define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_POSITION_OWNER_ONLY (err u1001)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u1002)) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
+
+;; FIXME adjust to final update cooldown value
+(define-constant POSITION_UPDATE_COOLDOWN u86400) ;; seconds in a day
 
 (define-constant ORDER_TYPE_LONG u1)
 (define-constant ORDER_TYPE_SHORT u2)
@@ -57,6 +61,9 @@
 
 (define-read-only (unwrap-helper (ok-uint (response uint uint)))
   (unwrap-panic ok-uint))
+
+(define-read-only (get-current-timestamp)
+  (default-to u0 (get-block-info? time (- block-height u1))))
 
 (define-private (increase-last-updated-chunk)
   (var-set last-updated-chunk
@@ -124,26 +131,31 @@
     POSITION_NEUTRAL))
 
 (define-private (position-maintenance (index uint))
-  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
+  (let ((last-update-timestamp (get-updated-timestamp index u0))
+        (position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
-    ;; FIXME insert business logic to determine whether such a position can be updated. Has something to do with business days and opening/closing hours
-    (map-set indexed-positions {index: index}
-                               {sender: (get sender position),
-                                size: (get size position),
-                                order-type: (get order-type position),
-                                current-pnl: (get current-pnl position),
-                                updated-on-block: block-height,
-                                status: (get status position)})
-    ;; FIXME this should not return u1 always only when position is indeed updated. Waiting for update business logic  
-    (ok u1)))
+    (if (> (get-current-timestamp)
+           (+ last-update-timestamp POSITION_UPDATE_COOLDOWN))
+      (begin
+        (map-set indexed-positions {index: index}
+                                   {sender: (get sender position),
+                                    size: (get size position),
+                                    order-type: (get order-type position),
+                                    current-pnl: (get current-pnl position),
+                                    updated-on-block: block-height,
+                                    status: (get status position)})
+        (ok u1))
+      (ok u0))))
 
 (define-public (update-position (index uint))
   (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-owner (get sender position)))
     (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
-    (try! (position-maintenance index))
-    (ok true)))
+    (let ((update-result (try! (position-maintenance index))))
+      (if (is-eq update-result u1)
+          (ok true)
+          ERR_TOO_SOON_TO_UPDATE_POSITION))))
 
 (define-public (batch-position-maintenance)
   (let ((chunk-indices (calculate-current-chunk-indices))
