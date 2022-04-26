@@ -1,8 +1,8 @@
-name: Integration Test Workflow
-on: [push]
+name: Contracts Deployment Workflow
+on: workflow_dispatch
 jobs:
   test:
-    name: "Integration tests on private testnet"
+    name: "Contracts deployment on private testnet"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -11,4 +11,6 @@ jobs:
         run: |
           cd integration
           npm install
-          npm test
+          cd ..
+          npm install
+          npm rum deploy-all
