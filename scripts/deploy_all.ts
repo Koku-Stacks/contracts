@@ -75,7 +75,7 @@ async function post_deployment_transactions() {
     return chain.accounts.get(name);
   });
 
-  await Promise.all([accountDetails.map((account) => mint(account.address))]);
+  await Promise.all(accountDetails.map((account) => mint(account.address)));
 }
 
 function register_contracts_id(
