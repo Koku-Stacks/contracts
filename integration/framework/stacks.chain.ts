@@ -25,6 +25,7 @@ interface Options {
   defaultFee?: number;
   logLevel: LogLevel;
   isMainnet: boolean;
+  waitForTransactionConfirmation: boolean;
 }
 
 export enum LogLevel {
@@ -52,6 +53,7 @@ export class StacksChain {
       defaultFee: options?.defaultFee,
       logLevel: options?.logLevel ?? LogLevel.INFO,
       isMainnet: options?.isMainnet ?? false,
+      waitForTransactionConfirmation: options?.waitForTransactionConfirmation ?? false
     };
   }
 
@@ -139,6 +141,7 @@ export class StacksChain {
     senderSecretKey: string,
     options?: {
       fee?: number;
+      waitForTransactionConfirmation?: boolean;
     }
   ) {
     const transaction = await makeContractCall({
@@ -152,6 +155,8 @@ export class StacksChain {
       postConditionMode: PostConditionMode.Allow,
       fee: options?.fee ?? this.options.defaultFee,
     });
+
+    const wait_for_transaction = options?.waitForTransactionConfirmation ?? this.options.waitForTransactionConfirmation;
 
     const broadcast_response = await broadcastTransaction(
       transaction,
@@ -174,6 +179,12 @@ export class StacksChain {
         `senderAddress: ${senderAddress}`,
         `${contractAddress}.${contractName}.${method}`,
         `txId: ${broadcast_response.txid}`
+      );
+    }
+
+    if (wait_for_transaction) {
+      const transactionInfo = await this.waitTransaction(
+        broadcast_response.txid
       );
     }
 
