@@ -1,6 +1,10 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
 const ERR_NOT_AUTHORIZED = 1000;
+const ERR_NOT_NEW_OWNER = 2000;
+const ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED = 2001;
+const ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL = 2002;
+const ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM = 2003;
 const ERR_MINTER_ALREADY_AUTHORIZED = 3000;
 const ERR_MINTER_NOT_AUTHORIZED = 3001;
 const ERR_INSUFFICIENT_TOKENS_TO_MINT = 108;
@@ -19,7 +23,7 @@ Clarinet.test({
                 [types.principal(userB.address)],
                 userB.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(1000);
+        call.receipts[0].result.expectErr().expectUint(ERR_NOT_AUTHORIZED);
     }
 })
 
@@ -41,7 +45,7 @@ Clarinet.test({
                 [types.principal(userB.address)],
                 deployer.address)
             ]);
-        call.receipts[1].result.expectErr().expectUint(2001);
+        call.receipts[1].result.expectErr().expectUint(ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED);
     }
 })
 
@@ -59,7 +63,7 @@ Clarinet.test({
                 [],
                 userB.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(1000);
+        call.receipts[0].result.expectErr().expectUint(ERR_NOT_AUTHORIZED);
     }
 })
 
@@ -77,7 +81,7 @@ Clarinet.test({
                 [],
                 deployer.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(2002);
+        call.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL);
     }
 })
 
@@ -95,7 +99,7 @@ Clarinet.test({
                 [],
                 userA.address)
             ]);
-        call.receipts[0].result.expectErr().expectUint(2003);
+        call.receipts[0].result.expectErr().expectUint(ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM);
     }
 })
 
@@ -117,7 +121,7 @@ Clarinet.test({
                 [],
                 userA.address)
             ]);
-        call.receipts[1].result.expectErr().expectUint(2000);
+        call.receipts[1].result.expectErr().expectUint(ERR_NOT_NEW_OWNER);
     }
 })
 
