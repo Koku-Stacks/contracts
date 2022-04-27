@@ -81,3 +81,10 @@ When the optional parameter `--service` is passed, one price update is performed
     npm run btc-price
     # run as a service: performs one price update every minute
     npm run btc-price -- --service
+
+### keys generation
+
+Its base invocation command is `npm run generate-key`. It does not accept any parameters.
+
+When the base command is invoked, it generates output containing a newly created random secret key as well as the corresponding private payload for usage in Stacks ecosystem.
+Additionaly, the corresponding testnet and mainnet public addresses are provided. 
