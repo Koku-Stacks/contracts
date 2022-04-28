@@ -20,6 +20,7 @@ import {
 import fetch from "node-fetch";
 import { delay } from "./helpers";
 
+const https = require("http");
 interface Options {
   defaultFee?: number;
   logLevel: LogLevel;
@@ -33,15 +34,21 @@ export enum LogLevel {
   DEBUG = 2,
 }
 
+export enum Event {
+  smart_contract_log = "smart_contract_log",
+  non_fungible_token_asset = "non_fungible_token_asset",
+  fungible_token_asset = "fungible_token_asset",
+  stx_lock = "stx_lock",
+  stx_asset = "stx_asset",
+}
+
 export class StacksChain {
   accounts: Map<string, Account> = new Map();
 
   private network: StacksTestnet;
   private options: Options;
-
   constructor(private url: string, options?: Partial<Options>) {
     this.network = new StacksTestnet({ url });
-
     this.options = {
       defaultFee: options?.defaultFee,
       logLevel: options?.logLevel ?? LogLevel.INFO,
@@ -54,7 +61,6 @@ export class StacksChain {
     const items: RemoteAccount[] = await fetch(
       this.url.replace(":3999", ":5000") + "/accounts"
     ).then((x) => x.json());
-
     this.accounts.clear();
     items.reduce(
       (r, x) =>
@@ -82,7 +88,6 @@ export class StacksChain {
     }
   ) {
     const { memo = "", fee } = options ?? {};
-
     const transaction = await makeSTXTokenTransfer({
       network: this.network,
       recipient,
@@ -92,7 +97,6 @@ export class StacksChain {
       fee: fee ?? this.options.defaultFee, // set a tx fee if you don't want the builder to estimate
       anchorMode: AnchorMode.Any,
     });
-
     if (this.options.logLevel >= LogLevel.INFO) {
       console.log(
         "Stacks: transferSTX",
@@ -100,7 +104,6 @@ export class StacksChain {
         `amount: ${amount}`
       );
     }
-
     return transaction;
   }
 
@@ -119,7 +122,6 @@ export class StacksChain {
       functionArgs: args,
       senderAddress,
     });
-
     if (this.options.logLevel >= LogLevel.DEBUG) {
       console.log(
         "Stacks: transferSTX",
@@ -128,7 +130,6 @@ export class StacksChain {
         cvToJSON(readResult)
       );
     }
-
     return cvToJSON(readResult);
   }
 
@@ -166,7 +167,6 @@ export class StacksChain {
       console.error(broadcast_response);
       throw new Error(broadcast_response.reason);
     }
-
     if (this.options.logLevel >= LogLevel.INFO) {
       const senderAddress = getAddressFromPrivateKey(
         senderSecretKey,
@@ -174,7 +174,6 @@ export class StacksChain {
           ? TransactionVersion.Mainnet
           : TransactionVersion.Testnet
       );
-
       console.log(
         "Stacks: callContract",
         `senderAddress: ${senderAddress}`,
@@ -209,16 +208,13 @@ export class StacksChain {
         anchorMode: AnchorMode.Any,
         fee: options?.fee ?? this.options.defaultFee,
       });
-
       const broadcast_response = await broadcastTransaction(
         transaction,
         this.network
       );
-
       if (broadcast_response.error) {
         throw new Error(broadcast_response.reason);
       }
-
       if (this.options.logLevel >= LogLevel.INFO) {
         const senderAddress = getAddressFromPrivateKey(
           senderSecretKey,
@@ -226,7 +222,6 @@ export class StacksChain {
             ? TransactionVersion.Mainnet
             : TransactionVersion.Testnet
         );
-
         console.log(
           "Stacks: deployContract",
           `senderAddress: ${senderAddress}`,
@@ -234,18 +229,15 @@ export class StacksChain {
           `txId: ${broadcast_response.txid}`
         );
       }
-
       const transactionInfo = await this.waitTransaction(
         broadcast_response.txid
       );
-
       if (this.options.logLevel >= LogLevel.INFO) {
         console.log(
           "Stacks: deployContract completed",
           `contractId: ${transactionInfo?.smart_contract?.contract_id}`
         );
       }
-
       return transactionInfo?.smart_contract?.contract_id;
     } catch (err) {
       if (err instanceof Error && err.message === "ContractAlreadyExists") {
@@ -255,28 +247,30 @@ export class StacksChain {
             ? TransactionVersion.Mainnet
             : TransactionVersion.Testnet
         );
-
         const contractId = `${address}.${contractName}`;
-
         if (this.options.logLevel >= LogLevel.INFO) {
           console.log(
             "Stacks: Skipped Deployment, Contract Already Exists",
             `contractId: ${contractId}`
           );
         }
-
         return contractId;
       }
-
       throw err;
     }
   }
 
   static getMultiSigAddress(publicKeys: StacksPublicKey[]) {
-      const addressVersion = AddressVersion.TestnetMultiSig;
-      const hashMode = AddressHashMode.SerializeP2SH;
-      return addressFromPublicKeys(addressVersion, hashMode, publicKeys.length, publicKeys);
+    const addressVersion = AddressVersion.TestnetMultiSig;
+    const hashMode = AddressHashMode.SerializeP2SH;
+    return addressFromPublicKeys(
+      addressVersion,
+      hashMode,
+      publicKeys.length,
+      publicKeys
+    );
   }
+
   public async getTransactionResponse(txid: string) {
     const transactionInfo = await this.waitTransaction(txid);
     return cvToJSON(hexToCV(transactionInfo.tx_result.hex));
@@ -292,25 +286,39 @@ export class StacksChain {
     return filteredEvents;
   }
 
+  public async getTransactionEventsByTx(txid: string, event_type: string) {
+    let transactionInfo = await fetch(
+      `${this.url}/extended/v1/tx/${txid}`
+    ).then((x) => x.json());
+    const filteredEvents = transactionInfo.events.filter((event: any) => {
+      if (event.event_type === event_type) {
+        return event;
+      }
+    });
+    return filteredEvents;
+  }
+
   public async getTxnsByBlockInfo(blockInfo: any, event_type: string) {
     let blockTxnEvents = [];
     const length = blockInfo.result.metadata.txs.length;
     let threads = Array(length);
-    for(let i = 0; i < length; i++){
-      threads[i] = this.getTransactionEvents(blockInfo.result.metadata.txs[i], event_type);
-    } 
+    for (let i = 0; i < length; i++) {
+      threads[i] = this.getTransactionEventsByTx(
+        blockInfo.result.metadata.txs[i],
+        event_type
+      );
+    }
     const allThreads = await Promise.all(threads);
     blockTxnEvents = allThreads.filter((thread) => {
-      if(thread.length > 0){
+      if (thread.length > 0) {
         return thread;
       }
-    })
+    });
     return blockTxnEvents;
   }
 
   public async searchByBlockHash(blockHash: string) {
     let blockInfo;
-
     try {
       blockInfo = await fetch(
         `${this.url}/extended/v1/search/${blockHash}?include_metadata=true`
@@ -320,30 +328,27 @@ export class StacksChain {
       }
 
       if (this.options.logLevel >= LogLevel.INFO) {
-        console.log("Stacks: block hash " + (blockInfo.found? "Found" : "NotFound"));
+        console.log(
+          "Stacks: block hash " + (blockInfo.found ? "Found" : "NotFound")
+        );
       }
     } catch (err) {
       console.log(err);
     }
-
     return blockInfo;
   }
 
   public async waitTransaction(txId: string) {
     let transactionInfo;
-
     do {
       await delay(500);
-
       transactionInfo = await fetch(`${this.url}/extended/v1/tx/${txId}`).then(
         (x) => x.json()
       );
-
       if (this.options.logLevel >= LogLevel.DEBUG) {
         console.log("Stacks: check transaction", transactionInfo);
       }
     } while (transactionInfo.tx_status === "pending");
-
     if (this.options.logLevel >= LogLevel.INFO) {
       console.log(
         "Stacks: transaction mined",
@@ -354,8 +359,66 @@ export class StacksChain {
 
     return transactionInfo;
   }
+
   private async getNonce(address: string): Promise<bigint> {
-      return await getNonce(address, this.network);;
+    return await getNonce(address, this.network);
+  }
+
+  public async getEventsByContract(contract_id: string, event: string, options?: {limit: number, offset: number}): Promise<string[]> {
+    const limit = options?.limit ?? 50; // max limit should <= 50 as per API call
+    let offset = options?.offset ?? 0;
+    // we can also store all the other events in sperate files
+    
+    let transactionEvents: string[] = [];
+    const fetchTransaction = async (): Promise<number> => {
+      const url = `${this.url}/extended/v1/address/${contract_id}/transactions?limit=${limit}&offset=${offset}`;
+      return new Promise<number>((resolve) => {
+        https.get(url, (res: any) => {
+          res.setEncoding("utf8");
+          let body = "";
+          res.on("data", (data: string) => {
+            body += data;
+          });
+          res.on("end", async () => {
+            let api_res = JSON.parse(body);
+            const total = api_res["total"]; // for testing one can hardcode upto 10 - 50 for all transactions otherwise it will take more time
+            let fetchedTransactions = api_res["results"];
+            let blocks = Array(fetchedTransactions.length);
+            for (let i = 0; i < fetchedTransactions.length; i++) {
+              const block_hash = fetchedTransactions[i].block_hash;
+              blocks[i] = this.searchByBlockHash(block_hash).then(
+                (blockInfo) => {
+                  
+                  // logic for storing by event type
+                  this.getTxnsByBlockInfo(
+                    blockInfo,
+                    event
+                  ).then((ft_blockTxns) => {
+                    if (ft_blockTxns.length > 0) {
+                      transactionEvents.push(ft_blockTxns[0][0].tx_id);
+                    }
+                  });
+                }
+              );
+            }
+            await Promise.all(blocks);
+            resolve(total);
+          });
+        });
+      });
+    };
+
+    const total: number = await fetchTransaction();
+
+    if (total > limit) {
+      offset += limit;
+
+      while (offset < total) {
+        await fetchTransaction();
+        offset += limit;
+      }
+    }
+    return transactionEvents;
   }
 }
 
@@ -364,7 +427,6 @@ export interface Account {
   btcAddress: string;
   secretKey: string;
 }
-
 interface RemoteAccount {
   name: string;
   initialBalance: number;
