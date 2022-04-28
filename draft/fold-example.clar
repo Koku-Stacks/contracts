@@ -39,7 +39,7 @@
                                              size: uint,
                                              order-type: uint,
                                              current-pnl: uint,
-                                             updated-on-block: uint,
+                                             updated-on-timestamp: uint,
                                              status: uint})
 
 (define-data-var least-unused-index uint u1)
@@ -84,7 +84,7 @@
                                    size: size,
                                    order-type: order-type,
                                    current-pnl: u0,
-                                   updated-on-block: block-height,
+                                   updated-on-timestamp: (get-current-timestamp),
                                    status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
     ;; FIXME provisory call
@@ -104,18 +104,15 @@
 (define-read-only (get-size (index uint) (default uint))
   (get size (unwrap! (get-position index) default)))
 
-(define-read-only (get-updated-timestamp (index uint) (default uint))
-  (let ((block (get updated-on-block (unwrap! (get-position index) default))))
-    (unwrap! (get-block-info? time block) default)))
+(define-read-only (get-updated-on-timestamp (index uint))
+  (ok (get updated-on-timestamp
+           (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))))
 
 (define-read-only (get-order-type (index uint) (default uint))
   (get order-type (unwrap! (get-position index) default)))
 
 (define-read-only (get-pnl (index uint) (default uint))
   (get current-pnl (unwrap! (get-position index) default)))
-
-(define-read-only (get-block-id-update (index uint) (default uint))
-  (get updated-on-block (unwrap! (get-position index) default)))
 
 (define-read-only (get-status (index uint) (default uint))
   (get status (unwrap! (get-position index) default)))
@@ -131,7 +128,7 @@
     POSITION_NEUTRAL))
 
 (define-private (position-maintenance (index uint))
-  (let ((last-update-timestamp (get-updated-timestamp index u0))
+  (let ((last-update-timestamp (try! (get-updated-on-timestamp index)))
         (position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
@@ -143,7 +140,7 @@
                                     size: (get size position),
                                     order-type: (get order-type position),
                                     current-pnl: (get current-pnl position),
-                                    updated-on-block: block-height,
+                                    updated-on-timestamp: (get-current-timestamp),
                                     status: (get status position)})
         (ok u1))
       (ok u0))))
