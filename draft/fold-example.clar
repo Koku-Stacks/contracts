@@ -96,26 +96,26 @@
     (ok true)))
 
 (define-read-only (get-position (index uint))
-  (map-get? indexed-positions {index: index}))
+  (ok (unwrap! (map-get? indexed-positions {index: index})
+               ERR_POSITION_NOT_FOUND)))
 
-(define-read-only (get-sender (index uint) (default principal))
-  (get sender (unwrap! (get-position index) default)))
+(define-read-only (get-sender (index uint))
+  (ok (get sender (try! (get-position index)))))
 
-(define-read-only (get-size (index uint) (default uint))
-  (get size (unwrap! (get-position index) default)))
+(define-read-only (get-size (index uint))
+  (ok (get size (try! (get-position index)))))
 
 (define-read-only (get-updated-on-timestamp (index uint))
-  (ok (get updated-on-timestamp
-           (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))))
+  (ok (get updated-on-timestamp (try! (get-position index)))))
 
-(define-read-only (get-order-type (index uint) (default uint))
-  (get order-type (unwrap! (get-position index) default)))
+(define-read-only (get-order-type (index uint))
+  (ok (get order-type (try! (get-position index)))))
 
-(define-read-only (get-pnl (index uint) (default uint))
-  (get current-pnl (unwrap! (get-position index) default)))
+(define-read-only (get-pnl (index uint))
+  (ok (get current-pnl (try! (get-position index)))))
 
-(define-read-only (get-status (index uint) (default uint))
-  (get status (unwrap! (get-position index) default)))
+(define-read-only (get-status (index uint))
+  (ok (get status (try! (get-position index)))))
 
 (define-read-only (calculate-funding-fee (index uint))
   ;; FIXME mockup for now, but it should interact with current-price.clar and position volume/size
