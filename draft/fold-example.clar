@@ -149,7 +149,7 @@
       (ok u0))))
 
 (define-public (update-position (index uint))
-  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
+  (let ((position (try! (get-position index)))
         (position-owner (get sender position)))
     (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
     (let ((update-result (try! (position-maintenance index))))
