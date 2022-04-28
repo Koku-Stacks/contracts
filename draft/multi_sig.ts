@@ -1,7 +1,7 @@
 import { StacksChain } from "../integration/framework/stacks.chain"
 import {STACKS_API_URL} from "../integration/config"
 
-import * as tx from "@stacks/transactions"
+import * as tx from "@stacks/transactions";
 
 import * as fs from "fs"
 import * as path from "path"
@@ -68,12 +68,20 @@ async function test() {
 
     const unsigned_transaction = await tx.makeUnsignedContractCall(multisig_tx_options);
 
-    const signer = new tx.TransactionSigner(unsigned_transaction);
+    let signer = new tx.TransactionSigner(unsigned_transaction);
 
     // userA is signing the transaction
     signer.signOrigin(tx.createStacksPrivateKey(userA.secretKey));
 
+    const partially_signed_transaction = signer.transaction;
+
+    const serialized_partially_signed_transaction = partially_signed_transaction.serialize();
+
     // userB is signing the transaction
+    const deserialized_partially_signed_transaction = tx.deserializeTransaction(serialized_partially_signed_transaction);
+
+    signer = new tx.TransactionSigner(deserialized_partially_signed_transaction);
+
     signer.signOrigin(tx.createStacksPrivateKey(userB.secretKey));
 
     // // FIXME I am not testing this feature right now, as I am concerned with broadcasting a simple fully signed multi-sig tx.
@@ -100,6 +108,8 @@ async function test() {
 
     console.log(broadcast_response);
 }
+
+test();
 
 interface MultiSigContractCallManagerOptions {
     contract_address: string;
@@ -279,5 +289,3 @@ async function test_class() {
 
     // console.log(response);
 }
-
-test_class();
