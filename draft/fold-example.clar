@@ -127,13 +127,16 @@
   (begin
     POSITION_NEUTRAL))
 
+(define-read-only (position-is-eligible-for-update (index uint))
+  (let ((last-update-timestamp (try! (get-updated-on-timestamp index))))
+    (ok (> (get-current-timestamp)
+           (+ last-update-timestamp POSITION_UPDATE_COOLDOWN)))))
+
 (define-private (position-maintenance (index uint))
-  (let ((last-update-timestamp (try! (get-updated-on-timestamp index)))
-        (position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
+  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
         (position-sender (get sender position))
         (profit-status (position-profit-status index)))
-    (if (> (get-current-timestamp)
-           (+ last-update-timestamp POSITION_UPDATE_COOLDOWN))
+    (if (try! (position-is-eligible-for-update index))
       (begin
         (map-set indexed-positions {index: index}
                                    {sender: (get sender position),
