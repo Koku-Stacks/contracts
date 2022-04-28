@@ -12,10 +12,7 @@
   },
   "scripts": {
     "test": "clarinet test",
-    "deploy": "ts-node scripts/deploy_contract.ts",
-    "deploy-all": "ts-node scripts/deploy_all",
-    "btc-price": "ts-node scripts/btc_price.ts",
-    "gas-cost": "ts-node scripts/estimate_costs.ts"
+    "deploy": "ts-node scripts/script_deploy.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

@@ -12,8 +12,7 @@
   },
   "scripts": {
     "test": "mocha --timeout 500000 ",
-    "deploy": "ts-node scripts/script_deploy.ts",
-    "gas-cost": "ts-node scripts/estimate_costs.ts"
+    "deploy": "ts-node scripts/script_deploy.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

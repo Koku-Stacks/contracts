@@ -32,7 +32,7 @@ Tests are based on the `clarinet` unit test framework, which is powered by `deno
 
 ## Workflow
 
-It is adivisable to propose changes to this repository via Pull Requests. So, before starting to devise any changes, create a new branch from `master` with a descriptive name, usually referring to the task code (in JIRA) and to the author, e.g `luiz/KOKU-120`. Once approved, merge the corresponding PR with `squash and merge`. If your PR branch gets out of sync with `master`, you can bring it back in sync by `rebase` and `push --force` (provided you are the only contributor on your branch).
+It is adivisable to propose changes to this repository via Pull Requests. So, before starting to devise any changes, create a new branch from `master` with a descriptive name. Once approved, merge the corresponding PR with `squash and merge`.
 
 In order to create a new contract, go to the project root directory and issue the command `clarinet contract new <name>`, which creates a `<name>.clar` file in the `contracts` directory, as well as a `<name>_test.ts` file in the `tests` folder. Also, a new contract section regarding `<name>.clar` is added to `Clarinet.toml`. Be sure to provide a good test coverage to the newly created contract, otherwise move `<name>.clar` to the `draft` directory and edit its corresponding `Clarinet.toml` section accordingly. Once `<name>.clar` has good test coverage, move it back to `contracts` and perform the required changes in `Clarinet.toml`.
 
@@ -44,40 +44,17 @@ This section describes the appropriate usage of the scripts contained in `script
 
 ### deploy
 
-Its base invocation command is `npm run deploy`. One parameter is expected, namely `--contract`.
+Its base invocation command is `npm run deploy`. Some parameters are expected, namely `--contract` and `--network`.
 
 The `--contract` parameter is mandatory, and should refer to a contract name (without the `.clar` extension) inside `contracts` folder.
+
+When `--network` is not provided, the deployment is done into `testnet`. The accepted values for `--network` are `testnet` and `mainnet`.
 
 Here follows some usage examples
 
     # general usage
-    npm run deploy -- --contract <name>
+    npm run deploy -- --contract <name> --network <network>
     # deploy a contract called vault (contracts/vault.clar) into the testnet
     npm run deploy -- --contract vault
-    # deploy a trait contract
-    npm run deploy -- --contract traits/burn-trait
-
-### gas-cost estimation
-
-This section describes how to measure the gas cost of all the contracts. When run `npm run gas-cost` a seperate file `cost_report.txt` will be created.
-
-The last column in `cost_report.txt` defines the gas cost fee in microSTX for all the contracts.
-
-Whereas 1 STX = 1000000 microSTX or 1 microSTX = 1 / 1000000
-
-Follow the usage example
-
-    # general usage to measure gas cost
-    npm run gas-cost
-
-### btc price
-
-Its base invocation command is `npm run btc-price`. One optional parameter can be passed, namely `--service`.
-
-When the base command is invoked, exactly one price update is performed.
-When the optional parameter `--service` is passed, one price update is performed every minute until the command is exited with C-c.
-
-    # general usage: performs exactly one price update
-    npm run btc-price
-    # run as a service: performs one price update every minute
-    npm run btc-price -- --service
+    # deploy a contract called vault into the mainnet
+    npm run deploy -- --contract vault --network mainnet
