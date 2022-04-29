@@ -66,17 +66,6 @@
 (define-read-only (get-current-timestamp)
   (default-to u0 (get-block-info? time (- block-height u1))))
 
-(define-private (increase-last-updated-chunk)
-  (var-set last-updated-chunk
-           (+ u1
-              (var-get last-updated-chunk))))
-
-(define-private (prepare-for-next-chunk-update)
-  (begin
-    (increase-last-updated-chunk)
-    (var-set last-updated-index
-             (+ (var-get last-updated-index) INDEX_CHUNK_SIZE))))
-
 (define-public (insert-position (size uint)
                                 (order-type uint))
   (begin
@@ -167,4 +156,8 @@
     (try! (stx-transfer? (+ (var-get gas-fee)
                             (* (var-get executor-tip) updates-performed))
                          this-contract tx-sender))
+    (var-set last-updated-chunk
+             (+ u1 (var-get last-updated-chunk)))
+    (var-set last-updated-index
+             (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
     (ok true)))
