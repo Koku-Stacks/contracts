@@ -135,10 +135,10 @@
     (ok (> (get-current-timestamp)
            (+ last-update-timestamp POSITION_UPDATE_COOLDOWN)))))
 
-(define-private (position-maintenance (index uint))
-  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
-        (position-sender (get sender position))
-        (profit-status (position-profit-status index)))
+(define-public (update-position (index uint))
+  (let ((position (try! (get-position index)))
+        (position-owner (get sender position)))
+    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
     (if (try! (position-is-eligible-for-update index))
       (begin
         (map-set indexed-positions {index: index}
@@ -148,29 +148,41 @@
                                     current-pnl: (get current-pnl position),
                                     updated-on-timestamp: (get-current-timestamp),
                                     status: (get status position)})
-        (ok u1))
-      (ok u0))))
+        (ok true))
+      ERR_TOO_SOON_TO_UPDATE_POSITION)))
 
-(define-public (update-position (index uint))
+(define-private (position-maintenance (index uint))
   (let ((position (try! (get-position index)))
-        (position-owner (get sender position)))
-    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
-    (let ((update-result (try! (position-maintenance index))))
-      (if (is-eq update-result u1)
-          (ok true)
-          ERR_TOO_SOON_TO_UPDATE_POSITION))))
+        (position-sender (get sender position)))
+    (if (try! (position-is-eligible-for-update index))
+      (begin
+        (map-set indexed-positions {index: index}
+                                   {sender: (get sender position),
+                                    size: (get size position),
+                                    order-type: (get order-type position),
+                                    current-pnl: (get current-pnl position),
+                                    updated-on-timestamp: (get-current-timestamp),
+                                    status: (get status position)})
+        (if (is-eq position-sender tx-sender)
+            ;; no need to charge for his own position during bath update
+            (ok u0)
+            (begin
               (map-set stx-reserve {principal: position-sender}
                                    {stx-amount: (- (get-stx-reserve position-sender)
                                                    (var-get gas-fee))})
+              ;; charge for others' positions during batch update
+              (ok u1))))
+      ;; no need to charge for positions not eligible for update
+      (ok u0))))
 
 (define-public (batch-position-maintenance)
   (let ((chunk-indices (calculate-current-chunk-indices))
-        (update-status-responses (map position-maintenance chunk-indices))
-        (unwrapped-update-statuses (map unwrap-helper update-status-responses))
-        (updates-performed (fold + unwrapped-update-statuses u0)))
+        (charge-status-responses (map position-maintenance chunk-indices))
+        (charge-statuses (map unwrap-helper charge-status-responses))
+        (chargeable-updates-performed (fold + charge-statuses u0)))
     ;; executor reward
-    (try! (stx-transfer? (+ (var-get gas-fee)
-                            (* (var-get executor-tip) updates-performed))
+    (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
+                            chargeable-updates-performed))
                          this-contract tx-sender))
     (var-set last-updated-chunk
              (+ u1 (var-get last-updated-chunk)))
