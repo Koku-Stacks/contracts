@@ -9,6 +9,9 @@
 ;; FIXME adjust to final update cooldown value
 (define-constant POSITION_UPDATE_COOLDOWN u86400) ;; seconds in a day
 
+;; FIXME adjust to proper final value
+(define-constant POSITION_MAX_DURATION u10) ;; number of days a position can be held
+
 (define-constant ORDER_TYPE_LONG u1)
 (define-constant ORDER_TYPE_SHORT u2)
 
@@ -68,7 +71,7 @@
 
 (define-public (insert-position (size uint)
                                 (order-type uint))
-  (begin
+  (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
     (map-insert indexed-positions {index: (var-get least-unused-index)}
                                   {sender: tx-sender,
                                    size: size,
@@ -82,7 +85,7 @@
                                              (var-get trading-fee)
                                              (var-get collateral))
                                  tx-sender this-contract none))
-    (try! (stx-transfer? (var-get gas-fee) tx-sender this-contract))
+    (try! (stx-transfer? total-gas-fee tx-sender this-contract))
     (ok true)))
 
 (define-read-only (get-position (index uint))
