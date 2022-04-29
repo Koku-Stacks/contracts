@@ -1,6 +1,7 @@
 (define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_POSITION_OWNER_ONLY (err u1001)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u1002)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_UNREACHABLE u1003) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
@@ -60,7 +61,7 @@
   (map calculate-current-chunk-indices-step BASE_INDICES_SHIFT_LIST))
 
 (define-read-only (unwrap-helper (ok-uint (response uint uint)))
-  (unwrap-panic ok-uint))
+  (unwrap! ok-uint ERR_UNREACHABLE))
 
 (define-read-only (get-current-timestamp)
   (default-to u0 (get-block-info? time (- block-height u1))))
