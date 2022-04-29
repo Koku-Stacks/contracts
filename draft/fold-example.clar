@@ -46,6 +46,8 @@
                                              updated-on-timestamp: uint,
                                              status: uint})
 
+(define-map stx-reserve {principal: principal} {stx-amount: uint})
+
 (define-data-var least-unused-index uint u1)
 
 (define-data-var last-updated-index uint u0)
@@ -56,6 +58,11 @@
 (define-data-var collateral uint u0) ;; in USDA
 (define-data-var gas-fee uint u0) ;; in STX
 (define-data-var executor-tip uint u0) ;; in STX
+
+(define-read-only (get-stx-reserve (principal principal))
+  (get stx-amount
+       (default-to {stx-amount: u0}
+                   (map-get? stx-reserve {principal: principal}))))
 
 (define-read-only (calculate-current-chunk-indices-step (base-index-shift uint))
   (+ base-index-shift (* INDEX_CHUNK_SIZE (var-get last-updated-chunk))))
@@ -86,6 +93,9 @@
                                              (var-get collateral))
                                  tx-sender this-contract none))
     (try! (stx-transfer? total-gas-fee tx-sender this-contract))
+    (map-set stx-reserve {principal: tx-sender}
+                         {stx-amount: (+ (get-stx-reserve tx-sender)
+                                         total-gas-fee)})
     (ok true)))
 
 (define-read-only (get-position (index uint))
@@ -149,6 +159,9 @@
       (if (is-eq update-result u1)
           (ok true)
           ERR_TOO_SOON_TO_UPDATE_POSITION))))
+              (map-set stx-reserve {principal: position-sender}
+                                   {stx-amount: (- (get-stx-reserve position-sender)
+                                                   (var-get gas-fee))})
 
 (define-public (batch-position-maintenance)
   (let ((chunk-indices (calculate-current-chunk-indices))
