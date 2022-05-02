@@ -1,11 +1,11 @@
 {
-  "name": "koku",
-  "version": "0.0.0",
+  "name": "dy.finance",
+  "version": "0.1.0",
   "author": {
-    "name": "Luiz Alberto do Carmo Viana",
-    "email": "luizalbertocviana@gmail.com"
+    "name": "August Felix",
+    "email": "koku@daikoku.network"
   },
-  "repository": "https://github.com/koku-network/testnet.git",
+  "repository": "https://github.com/Koku-Stacks/contracts",
   "private": true,
   "engines": {
     "node": ">=10"
