@@ -6,7 +6,7 @@ import { chain, deploy_contract } from "./deploy_utils";
 import * as config from "../config";
 
 function read_deployment_order(filename?: string): string[] {
-    filename = filename ?? "contracts/deployment_order.txt"
+    filename = filename ?? config.deployment_order_filename;
 
     const content = readFileSync(filename);
     

@@ -29,7 +29,6 @@ export async function register_btc_price_on_chain(btc_price: number,
 async function service() {
     console.log("Parameters:");
     console.log(`-- node url: ${config.node_url}`);
-    console.log(`-- network type: ${config.network_type}`);
     console.log(`-- default fee: ${config.default_fee}`);
     console.log('------');
 
