@@ -97,8 +97,9 @@ async function post_deployment_transactions() {
     const authorizeContractResponse = await chain.getTransactionResponse(
       authorizeContract.txid
     );
-    if (!authorizeContractResponse.success === true)
+    if (authorizeContractResponse.success === true) {
       await Promise.all(accountDetails.map((account) => mint(account.address)));
+    }
   } else if (authorizeMint.value === true) {
     await Promise.all(accountDetails.map((account) => mint(account.address)));
   }
