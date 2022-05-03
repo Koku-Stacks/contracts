@@ -155,23 +155,37 @@
   (let ((position (try! (get-position index)))
         (position-sender (get sender position)))
     (if (try! (position-is-eligible-for-update index))
-      (begin
-        (map-set indexed-positions {index: index}
-                                   {sender: (get sender position),
-                                    size: (get size position),
-                                    order-type: (get order-type position),
-                                    current-pnl: (get current-pnl position),
-                                    updated-on-timestamp: (get-current-timestamp),
-                                    status: (get status position)})
-        (if (is-eq position-sender tx-sender)
-            ;; no need to charge for his own position during bath update
-            (ok u0)
-            (begin
-              (map-set stx-reserve {principal: position-sender}
-                                   {stx-amount: (- (get-stx-reserve position-sender)
-                                                   (var-get gas-fee))})
-              ;; charge for others' positions during batch update
-              (ok u1))))
+      ;; position might be updated
+      (if (is-eq position-sender tx-sender)
+        ;; no need to charge for his own position during batch update nor to verify funds for fees
+        (begin
+          (map-set indexed-positions {index: index}
+                                     {sender: (get sender position),
+                                      size: (get size position),
+                                      order-type: (get order-type position),
+                                      current-pnl: (get current-pnl position),
+                                      updated-on-timestamp: (get-current-timestamp),
+                                      status: (get status position)})
+          (ok u0))
+        ;; position-sender is not tx-sender: position is going to be updated only if position-sender has enough funds
+        (if (>= (get-stx-reserve position-sender)
+                (var-get gas-fee))
+          ;; position sender has enough funds: update position and charge for it
+          (begin
+            (map-set indexed-positions {index: index}
+                                       {sender: (get sender position),
+                                        size: (get size position),
+                                        order-type: (get order-type position),
+                                        current-pnl: (get current-pnl position),
+                                        updated-on-timestamp: (get-current-timestamp),
+                                        status: (get status position)})
+            (map-set stx-reserve {principal: position-sender}
+                                 {stx-amount: (- (get-stx-reserve position-sender)
+                                                 (var-get gas-fee))})
+            ;; charge for others' positions during batch update
+            (ok u1))
+          ;; position sender does not have enough funds: keep the position as it is
+          (ok u0)))
       ;; no need to charge for positions not eligible for update
       (ok u0))))
 
