@@ -1,6 +1,45 @@
-* Requests :verb:
+* Bitcoin Price Requests :verb:
 
-  template https://stacks-node-api.testnet.stacks.co/
+** coinmarketcap
+
+   get https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=1
+   X-CMC_PRO_API_KEY: 0acaf66d-e715-4d7b-bae2-f7648453f8e6
+
+
+** nomics
+
+   get https://api.nomics.com/v1/currencies/ticker?key=3bf7ef015adadeaa258ffca8145c56c7475e427d&ids=BTC&per-page=1&page=1
+
+
+** coinbase
+
+   get https://api.coinbase.com/v2/prices/spot?currency=USD
+
+
+** gemini
+
+   get https://api.gemini.com/v1/pricefeed
+
+
+** coindesk
+
+   get https://api.coindesk.com/v1/bpi/currentprice.json
+
+
+** messari
+
+   get https://data.messari.io/api/v1/assets/btc/metrics
+
+
+** coingecko
+
+   get https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin
+
+
+* Stacks API Requests :verb:
+
+  # template https://stacks-node-api.testnet.stacks.co/
+  template http://3.64.221.107:3999/
   # template http://localhost:20443
 
 ** v1 endpoints
@@ -49,7 +88,7 @@
 
 **** get transaction by id
 
-     get /8cdf9b99f4e3986eca6a2e152db5469aafb5b0abaee5814252a1d43e2b30c19c
+     get /f9a061bf0feb5b4f320ad3e3b15718ea8c7fb0e38a737a05455d4abb964fc73a
 
 *** contracts endpoint
 
@@ -57,7 +96,7 @@
 
 **** info by id
 
-     get /ST2MS242NQPHMPNQRJ5YZDZQZQDVBBC14J8XM3JT7.testing
+     get /ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.current-price
 
 *** address endpoint
 
@@ -98,3 +137,29 @@
 *** accounts endpoint
 
    get /accounts
+
+*** contracts endpoint
+
+    template /contracts
+
+**** call read only function endpoint
+
+     template /call-read
+
+***** current-price contract
+
+      template /ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM/current-price
+      Content-Type: application/json
+
+      {
+          "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+          "arguments": []
+      }
+
+****** get current price call
+
+       post /get-current-price
+       
+****** get current timestamp call
+
+       post /get-current-timestamp
