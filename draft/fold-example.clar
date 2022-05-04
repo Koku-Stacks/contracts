@@ -151,42 +151,63 @@
         (ok true))
       ERR_TOO_SOON_TO_UPDATE_POSITION)))
 
+;; We are keeping this for now to measure gas costs at some point in the future against a simpler implementation which is going to be used for now
+;; (define-private (position-maintenance (index uint))
+;;   (let ((position (try! (get-position index)))
+;;         (position-sender (get sender position)))
+;;     (if (try! (position-is-eligible-for-update index))
+;;       ;; position might be updated
+;;       (if (is-eq position-sender tx-sender)
+;;         ;; no need to charge for his own position during batch update nor to verify funds for fees
+;;         (begin
+;;           (map-set indexed-positions {index: index}
+;;                                      {sender: (get sender position),
+;;                                       size: (get size position),
+;;                                       order-type: (get order-type position),
+;;                                       current-pnl: (get current-pnl position),
+;;                                       updated-on-timestamp: (get-current-timestamp),
+;;                                       status: (get status position)})
+;;           (ok u0))
+;;         ;; position-sender is not tx-sender: position is going to be updated only if position-sender has enough funds
+;;         (if (>= (get-stx-reserve position-sender)
+;;                 (var-get gas-fee))
+;;           ;; position sender has enough funds: update position and charge for it
+;;           (begin
+;;             (map-set indexed-positions {index: index}
+;;                                        {sender: (get sender position),
+;;                                         size: (get size position),
+;;                                         order-type: (get order-type position),
+;;                                         current-pnl: (get current-pnl position),
+;;                                         updated-on-timestamp: (get-current-timestamp),
+;;                                         status: (get status position)})
+;;             (map-set stx-reserve {principal: position-sender}
+;;                                  {stx-amount: (- (get-stx-reserve position-sender)
+;;                                                  (var-get gas-fee))})
+;;             ;; charge for others' positions during batch update
+;;             (ok u1))
+;;           ;; position sender does not have enough funds: keep the position as it is
+;;           (ok u0)))
+;;       ;; no need to charge for positions not eligible for update
+;;       (ok u0))))
+
 (define-private (position-maintenance (index uint))
   (let ((position (try! (get-position index)))
         (position-sender (get sender position)))
-    (if (try! (position-is-eligible-for-update index))
-      ;; position might be updated
-      (if (is-eq position-sender tx-sender)
-        ;; no need to charge for his own position during batch update nor to verify funds for fees
-        (begin
-          (map-set indexed-positions {index: index}
-                                     {sender: (get sender position),
-                                      size: (get size position),
-                                      order-type: (get order-type position),
-                                      current-pnl: (get current-pnl position),
-                                      updated-on-timestamp: (get-current-timestamp),
-                                      status: (get status position)})
-          (ok u0))
-        ;; position-sender is not tx-sender: position is going to be updated only if position-sender has enough funds
-        (if (>= (get-stx-reserve position-sender)
-                (var-get gas-fee))
-          ;; position sender has enough funds: update position and charge for it
-          (begin
-            (map-set indexed-positions {index: index}
-                                       {sender: (get sender position),
-                                        size: (get size position),
-                                        order-type: (get order-type position),
-                                        current-pnl: (get current-pnl position),
-                                        updated-on-timestamp: (get-current-timestamp),
-                                        status: (get status position)})
-            (map-set stx-reserve {principal: position-sender}
-                                 {stx-amount: (- (get-stx-reserve position-sender)
-                                                 (var-get gas-fee))})
-            ;; charge for others' positions during batch update
-            (ok u1))
-          ;; position sender does not have enough funds: keep the position as it is
-          (ok u0)))
-      ;; no need to charge for positions not eligible for update
+    (if (and (try! (position-is-eligible-for-update index))
+             (>= (get-stx-reserve position-sender)
+                 (var-get gas-fee)))
+      (begin
+        (map-set indexed-positions {index: index}
+                                   {sender: (get sender position),
+                                    size: (get size position),
+                                    order-type: (get order-type position),
+                                    current-pnl: (get current-pnl position),
+                                    updated-on-timestamp: (get-current-timestamp),
+                                    status: (get status position)})
+        (map-set stx-reserve {principal: position-sender}
+                             {stx-amount: (- (get-stx-reserve position-sender)
+                                             (var-get gas-fee))})
+        (ok u1))
       (ok u0))))
 
 (define-public (batch-position-maintenance)
