@@ -1,12 +1,16 @@
 (define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_POSITION_OWNER_ONLY (err u1001)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u1002)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_UNREACHABLE u1003) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
 
 ;; FIXME adjust to final update cooldown value
 (define-constant POSITION_UPDATE_COOLDOWN u86400) ;; seconds in a day
+
+;; FIXME adjust to proper final value
+(define-constant POSITION_MAX_DURATION u10) ;; number of days a position can be held
 
 (define-constant ORDER_TYPE_LONG u1)
 (define-constant ORDER_TYPE_SHORT u2)
@@ -39,8 +43,10 @@
                                              size: uint,
                                              order-type: uint,
                                              current-pnl: uint,
-                                             updated-on-block: uint,
+                                             updated-on-timestamp: uint,
                                              status: uint})
+
+(define-map stx-reserve {principal: principal} {stx-amount: uint})
 
 (define-data-var least-unused-index uint u1)
 
@@ -53,6 +59,11 @@
 (define-data-var gas-fee uint u0) ;; in STX
 (define-data-var executor-tip uint u0) ;; in STX
 
+(define-read-only (get-stx-reserve (principal principal))
+  (get stx-amount
+       (default-to {stx-amount: u0}
+                   (map-get? stx-reserve {principal: principal}))))
+
 (define-read-only (calculate-current-chunk-indices-step (base-index-shift uint))
   (+ base-index-shift (* INDEX_CHUNK_SIZE (var-get last-updated-chunk))))
 
@@ -60,31 +71,20 @@
   (map calculate-current-chunk-indices-step BASE_INDICES_SHIFT_LIST))
 
 (define-read-only (unwrap-helper (ok-uint (response uint uint)))
-  (unwrap-panic ok-uint))
+  (unwrap! ok-uint ERR_UNREACHABLE))
 
 (define-read-only (get-current-timestamp)
   (default-to u0 (get-block-info? time (- block-height u1))))
 
-(define-private (increase-last-updated-chunk)
-  (var-set last-updated-chunk
-           (+ u1
-              (var-get last-updated-chunk))))
-
-(define-private (prepare-for-next-chunk-update)
-  (begin
-    (increase-last-updated-chunk)
-    (var-set last-updated-index
-             (+ (var-get last-updated-index) INDEX_CHUNK_SIZE))))
-
 (define-public (insert-position (size uint)
                                 (order-type uint))
-  (begin
+  (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
     (map-insert indexed-positions {index: (var-get least-unused-index)}
                                   {sender: tx-sender,
                                    size: size,
                                    order-type: order-type,
                                    current-pnl: u0,
-                                   updated-on-block: block-height,
+                                   updated-on-timestamp: (get-current-timestamp),
                                    status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
     ;; FIXME provisory call
@@ -92,33 +92,33 @@
                                              (var-get trading-fee)
                                              (var-get collateral))
                                  tx-sender this-contract none))
-    (try! (stx-transfer? (var-get gas-fee) tx-sender this-contract))
+    (try! (stx-transfer? total-gas-fee tx-sender this-contract))
+    (map-set stx-reserve {principal: tx-sender}
+                         {stx-amount: (+ (get-stx-reserve tx-sender)
+                                         total-gas-fee)})
     (ok true)))
 
 (define-read-only (get-position (index uint))
-  (map-get? indexed-positions {index: index}))
+  (ok (unwrap! (map-get? indexed-positions {index: index})
+               ERR_POSITION_NOT_FOUND)))
 
-(define-read-only (get-sender (index uint) (default principal))
-  (get sender (unwrap! (get-position index) default)))
+(define-read-only (get-sender (index uint))
+  (ok (get sender (try! (get-position index)))))
 
-(define-read-only (get-size (index uint) (default uint))
-  (get size (unwrap! (get-position index) default)))
+(define-read-only (get-size (index uint))
+  (ok (get size (try! (get-position index)))))
 
-(define-read-only (get-updated-timestamp (index uint) (default uint))
-  (let ((block (get updated-on-block (unwrap! (get-position index) default))))
-    (unwrap! (get-block-info? time block) default)))
+(define-read-only (get-updated-on-timestamp (index uint))
+  (ok (get updated-on-timestamp (try! (get-position index)))))
 
-(define-read-only (get-order-type (index uint) (default uint))
-  (get order-type (unwrap! (get-position index) default)))
+(define-read-only (get-order-type (index uint))
+  (ok (get order-type (try! (get-position index)))))
 
-(define-read-only (get-pnl (index uint) (default uint))
-  (get current-pnl (unwrap! (get-position index) default)))
+(define-read-only (get-pnl (index uint))
+  (ok (get current-pnl (try! (get-position index)))))
 
-(define-read-only (get-block-id-update (index uint) (default uint))
-  (get updated-on-block (unwrap! (get-position index) default)))
-
-(define-read-only (get-status (index uint) (default uint))
-  (get status (unwrap! (get-position index) default)))
+(define-read-only (get-status (index uint))
+  (ok (get status (try! (get-position index)))))
 
 (define-read-only (calculate-funding-fee (index uint))
   ;; FIXME mockup for now, but it should interact with current-price.clar and position volume/size
@@ -130,40 +130,97 @@
   (begin
     POSITION_NEUTRAL))
 
-(define-private (position-maintenance (index uint))
-  (let ((last-update-timestamp (get-updated-timestamp index u0))
-        (position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
-        (position-sender (get sender position))
-        (profit-status (position-profit-status index)))
-    (if (> (get-current-timestamp)
-           (+ last-update-timestamp POSITION_UPDATE_COOLDOWN))
+(define-read-only (position-is-eligible-for-update (index uint))
+  (let ((last-update-timestamp (try! (get-updated-on-timestamp index))))
+    (ok (> (get-current-timestamp)
+           (+ last-update-timestamp POSITION_UPDATE_COOLDOWN)))))
+
+(define-public (update-position (index uint))
+  (let ((position (try! (get-position index)))
+        (position-owner (get sender position)))
+    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
+    (if (try! (position-is-eligible-for-update index))
       (begin
         (map-set indexed-positions {index: index}
                                    {sender: (get sender position),
                                     size: (get size position),
                                     order-type: (get order-type position),
                                     current-pnl: (get current-pnl position),
-                                    updated-on-block: block-height,
+                                    updated-on-timestamp: (get-current-timestamp),
                                     status: (get status position)})
+        (ok true))
+      ERR_TOO_SOON_TO_UPDATE_POSITION)))
+
+;; We are keeping this for now to measure gas costs at some point in the future against a simpler implementation which is going to be used for now
+;; (define-private (position-maintenance (index uint))
+;;   (let ((position (try! (get-position index)))
+;;         (position-sender (get sender position)))
+;;     (if (try! (position-is-eligible-for-update index))
+;;       ;; position might be updated
+;;       (if (is-eq position-sender tx-sender)
+;;         ;; no need to charge for his own position during batch update nor to verify funds for fees
+;;         (begin
+;;           (map-set indexed-positions {index: index}
+;;                                      {sender: (get sender position),
+;;                                       size: (get size position),
+;;                                       order-type: (get order-type position),
+;;                                       current-pnl: (get current-pnl position),
+;;                                       updated-on-timestamp: (get-current-timestamp),
+;;                                       status: (get status position)})
+;;           (ok u0))
+;;         ;; position-sender is not tx-sender: position is going to be updated only if position-sender has enough funds
+;;         (if (>= (get-stx-reserve position-sender)
+;;                 (var-get gas-fee))
+;;           ;; position sender has enough funds: update position and charge for it
+;;           (begin
+;;             (map-set indexed-positions {index: index}
+;;                                        {sender: (get sender position),
+;;                                         size: (get size position),
+;;                                         order-type: (get order-type position),
+;;                                         current-pnl: (get current-pnl position),
+;;                                         updated-on-timestamp: (get-current-timestamp),
+;;                                         status: (get status position)})
+;;             (map-set stx-reserve {principal: position-sender}
+;;                                  {stx-amount: (- (get-stx-reserve position-sender)
+;;                                                  (var-get gas-fee))})
+;;             ;; charge for others' positions during batch update
+;;             (ok u1))
+;;           ;; position sender does not have enough funds: keep the position as it is
+;;           (ok u0)))
+;;       ;; no need to charge for positions not eligible for update
+;;       (ok u0))))
+
+(define-private (position-maintenance (index uint))
+  (let ((position (try! (get-position index)))
+        (position-sender (get sender position)))
+    (if (and (try! (position-is-eligible-for-update index))
+             (>= (get-stx-reserve position-sender)
+                 (var-get gas-fee)))
+      (begin
+        (map-set indexed-positions {index: index}
+                                   {sender: (get sender position),
+                                    size: (get size position),
+                                    order-type: (get order-type position),
+                                    current-pnl: (get current-pnl position),
+                                    updated-on-timestamp: (get-current-timestamp),
+                                    status: (get status position)})
+        (map-set stx-reserve {principal: position-sender}
+                             {stx-amount: (- (get-stx-reserve position-sender)
+                                             (var-get gas-fee))})
         (ok u1))
       (ok u0))))
 
-(define-public (update-position (index uint))
-  (let ((position (unwrap! (get-position index) ERR_POSITION_NOT_FOUND))
-        (position-owner (get sender position)))
-    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
-    (let ((update-result (try! (position-maintenance index))))
-      (if (is-eq update-result u1)
-          (ok true)
-          ERR_TOO_SOON_TO_UPDATE_POSITION))))
-
 (define-public (batch-position-maintenance)
   (let ((chunk-indices (calculate-current-chunk-indices))
-        (update-status-responses (map position-maintenance chunk-indices))
-        (unwrapped-update-statuses (map unwrap-helper update-status-responses))
-        (updates-performed (fold + unwrapped-update-statuses u0)))
+        (charge-status-responses (map position-maintenance chunk-indices))
+        (charge-statuses (map unwrap-helper charge-status-responses))
+        (chargeable-updates-performed (fold + charge-statuses u0)))
     ;; executor reward
-    (try! (stx-transfer? (+ (var-get gas-fee)
-                            (* (var-get executor-tip) updates-performed))
+    (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
+                            chargeable-updates-performed))
                          this-contract tx-sender))
+    (var-set last-updated-chunk
+             (+ u1 (var-get last-updated-chunk)))
+    (var-set last-updated-index
+             (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
     (ok true)))
