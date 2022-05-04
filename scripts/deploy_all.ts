@@ -31,32 +31,51 @@ async function deploy_all_contracts() {
   return contracts_id_registry;
 }
 
+async function checkContractAuthorization(
+  deployer: Account,
+  contractName: string
+) {
+  const authorized = await chain.callReadOnlyFn(
+    deployer.address,
+    contractName,
+    "is-authorized",
+    [principalCV(deployer.address)],
+    deployer.address
+  );
+  return authorized.value;
+}
 async function post_deployment_transactions() {
   await chain.loadAccounts();
 
   const deployer = chain.accounts.get("deployer")!;
 
-  await chain.callContract(
-    deployer.address,
-    "token",
-    "add-authorized-contract",
-    [principalCV(`${deployer.address}.minting`)],
-    deployer.secretKey,
-    {
-      waitForTransactionConfirmation: true,
-    }
-  );
+  const tokenAuthorized = await checkContractAuthorization(deployer, "token");
 
-  await chain.callContract(
-    deployer.address,
-    "token",
-    "add-authorized-contract",
-    [principalCV(deployer.address)],
-    deployer.secretKey,
-    {
-      waitForTransactionConfirmation: true,
-    }
-  );
+  if (tokenAuthorized === false) {
+    await chain.callContract(
+      deployer.address,
+      "token",
+      "add-authorized-contract",
+      [principalCV(`${deployer.address}.minting`)],
+      deployer.secretKey,
+      {
+        waitForTransactionConfirmation: true,
+      }
+    );
+
+    await chain.callContract(
+      deployer.address,
+      "token",
+      "add-authorized-contract",
+      [principalCV(deployer.address)],
+      deployer.secretKey,
+      {
+        waitForTransactionConfirmation: true,
+      }
+    );
+  }
+
+  const checkMintContract = await checkContractAuthorization(deployer, "usda");
 
   async function mint(wallet: string) {
     await chain.callContract(
@@ -71,37 +90,26 @@ async function post_deployment_transactions() {
     );
   }
 
+  if (checkMintContract === false) {
+    await chain.callContract(
+      deployer.address,
+      "usda",
+      "add-authorized-contract",
+      [principalCV(deployer.address)],
+      deployer.secretKey,
+      {
+        waitForTransactionConfirmation: true,
+      }
+    );
+  }
+
   const accountNames = Array.from(chain.accounts.keys());
   const accountDetails: Array<Account> = accountNames.map((name) => {
     return chain.accounts.get(name);
   });
 
-  ///Check if mint contract is authorized
-  const authorizeMint = await chain.callReadOnlyFn(
-    deployer.address,
-    "usda",
-    "is-authorized",
-    [principalCV(deployer.address)],
-    deployer.address
-  );
-
-  if (authorizeMint.value === false) {
-    const authorizeContract = await chain.callContract(
-      deployer.address,
-      "usda",
-      "add-authorized-contract",
-      [principalCV(deployer.address)],
-      deployer.secretKey
-    );
-
-    const authorizeContractResponse = await chain.getTransactionResponse(
-      authorizeContract.txid
-    );
-    if (authorizeContractResponse.success === true) {
-      await Promise.all(accountDetails.map((account) => mint(account.address)));
-    }
-  } else if (authorizeMint.value === true) {
-    await Promise.all(accountDetails.map((account) => mint(account.address)));
+  for (let i = 0; i < accountDetails.length; i++) {
+    await mint(accountDetails[i].address);
   }
 }
 
