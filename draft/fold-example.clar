@@ -71,6 +71,9 @@
 (define-data-var gas-fee uint u0) ;; in STX
 (define-data-var executor-tip uint u0) ;; in STX
 
+;; this is not related to an actual token before initialization
+(define-data-var authorized-sip-010-token principal tx-sender)
+
 (define-read-only (get-stx-reserve (principal principal))
   (get stx-amount
        (default-to {stx-amount: u0}
@@ -89,8 +92,11 @@
   (default-to u0 (get-block-info? time (- block-height u1))))
 
 (define-public (insert-position (size uint)
-                                (order-type uint))
+                                (order-type uint)
+                                (token <sip-010-token>))
   (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
+    (asserts! (is-eq (contract-of token)
+                     (var-get authorized-sip-010-token)) ERR_TOKEN_NOT_AUTHORIZED)
     (map-insert indexed-positions {index: (var-get least-unused-index)}
                                   {sender: tx-sender,
                                    size: size,
