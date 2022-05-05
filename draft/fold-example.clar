@@ -1,7 +1,19 @@
-(define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_POSITION_OWNER_ONLY (err u1001)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u1002)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_UNREACHABLE u1003) ;; FIXME adjust according to ERRORS.md and update it
+(impl-trait .owner-trait.owner-trait)
+
+(use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
+
+(define-constant ERR_NOT_AUTHORIZED (err u1000))
+(define-constant ERR_NOT_NEW_OWNER (err u2000))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
+(define-constant ERR_POSITION_NOT_FOUND (err u3000)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_POSITION_OWNER_ONLY (err u3001)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u3002)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_UNREACHABLE u3003) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_CONTRACT_ALREADY_INITIALIZED (err u3004)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_CONTRACT_NOT_INITIALIZED (err u3005)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_TOKEN_NOT_AUTHORIZED (err u3006)) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
