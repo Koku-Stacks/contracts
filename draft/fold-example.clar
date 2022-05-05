@@ -137,10 +137,10 @@
                                    status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
     ;; FIXME provisory call
-    (try! (contract-call? .token transfer (+ (var-get liquidation-fee)
-                                             (var-get trading-fee)
-                                             (var-get collateral))
-                                 tx-sender this-contract none))
+    (try! (contract-call? token transfer (+ (var-get liquidation-fee)
+                                            (var-get trading-fee)
+                                            (var-get collateral))
+                                tx-sender this-contract none))
     (try! (stx-transfer? total-gas-fee tx-sender this-contract))
     (map-set stx-reserve {principal: tx-sender}
                          {stx-amount: (+ (get-stx-reserve tx-sender)
