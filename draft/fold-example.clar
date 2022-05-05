@@ -74,6 +74,8 @@
 ;; this is not related to an actual token before initialization
 (define-data-var authorized-sip-010-token principal tx-sender)
 
+(define-data-var is-initialized bool false)
+
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
@@ -123,6 +125,7 @@
                                 (order-type uint)
                                 (token <sip-010-token>))
   (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
     (asserts! (is-eq (contract-of token)
                      (var-get authorized-sip-010-token)) ERR_TOKEN_NOT_AUTHORIZED)
     (map-insert indexed-positions {index: (var-get least-unused-index)}
@@ -184,6 +187,7 @@
 (define-public (update-position (index uint))
   (let ((position (try! (get-position index)))
         (position-owner (get sender position)))
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
     (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
     (if (try! (position-is-eligible-for-update index))
       (begin
@@ -257,16 +261,26 @@
       (ok u0))))
 
 (define-public (batch-position-maintenance)
-  (let ((chunk-indices (calculate-current-chunk-indices))
-        (charge-status-responses (map position-maintenance chunk-indices))
-        (charge-statuses (map unwrap-helper charge-status-responses))
-        (chargeable-updates-performed (fold + charge-statuses u0)))
-    ;; executor reward
-    (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
-                            chargeable-updates-performed))
-                         this-contract tx-sender))
-    (var-set last-updated-chunk
-             (+ u1 (var-get last-updated-chunk)))
-    (var-set last-updated-index
-             (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
+  (begin
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
+    (let ((chunk-indices (calculate-current-chunk-indices))
+          (charge-status-responses (map position-maintenance chunk-indices))
+          (charge-statuses (map unwrap-helper charge-status-responses))
+          (chargeable-updates-performed (fold + charge-statuses u0)))
+      ;; executor reward
+      (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
+                              chargeable-updates-performed))
+                           this-contract tx-sender))
+      (var-set last-updated-chunk
+               (+ u1 (var-get last-updated-chunk)))
+      (var-set last-updated-index
+               (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
+      (ok true))))
+
+(define-public (initialize (token <sip-010-token>))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (asserts! (not (var-get is-initialized)) ERR_CONTRACT_ALREADY_INITIALIZED)
+    (var-set authorized-sip-010-token (contract-of token))
+    (var-set is-initialized true)
     (ok true)))
