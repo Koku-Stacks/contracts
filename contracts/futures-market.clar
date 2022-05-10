@@ -79,6 +79,11 @@
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
+(define-read-only (get-authorized-sip-010-token)
+  (begin
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
+    (ok (var-get authorized-sip-010-token))))
+
 (define-read-only (get-owner)
     (ok (var-get contract-owner)))
 
