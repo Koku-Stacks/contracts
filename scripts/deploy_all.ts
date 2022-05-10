@@ -22,11 +22,15 @@ async function deploy_all_contracts() {
 
   for (const contract_name of read_deployment_order()) {
     const contract_id = await deploy_contract(contract_name);
-
     console.log(`${contract_id} successfully deployed`);
-
     contracts_id_registry[contract_name] = contract_id;
   }
+  const deployer = chain.accounts.get("deployer");
+
+  const usdaCode = readFileSync("contracts/token.clar").toString();
+
+  await chain.deployContract("usda", usdaCode, deployer.secretKey);
+  console.log("usda successfully deployed");
 
   return contracts_id_registry;
 }
