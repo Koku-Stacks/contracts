@@ -1,11 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
-
-import { principalCV } from " @stacks/transactions/dist/clarity/types/principalCV";
+import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV";
 import { chain, deploy_contract } from "./deploy_utils";
-
 import * as config from "../config";
 import { uintCV } from "@stacks/transactions";
-import { Account } from "../integration/framework/stacks.chain";
+import { Account } from "dy-finance.lib";
 
 function read_deployment_order(filename?: string): string[] {
   filename = filename ?? config.deployment_order_filename;
