@@ -39,7 +39,6 @@ depends_on = []
 path = "contracts/token.clar"
 depends_on = ["sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
 
-
 [contracts.fold-example]
 path = "draft/fold-example.clar"
 depends_on = ["token"]
