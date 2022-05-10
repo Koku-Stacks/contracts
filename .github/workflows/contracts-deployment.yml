@@ -9,8 +9,5 @@ jobs:
 
       - name: "Execute tests"
         run: |
-          cd integration
-          npm install
-          cd ..
           npm install
           npm rum deploy-all

@@ -12,6 +12,7 @@
   },
   "scripts": {
     "test": "clarinet test",
+    "integration-test": "cd integration_tests && ./run_tests",
     "deploy": "ts-node scripts/deploy_contract.ts",
     "deploy-all": "ts-node scripts/deploy_all",
     "btc-price": "ts-node scripts/btc_price.ts",
@@ -32,10 +33,11 @@
     "@stacks/cli": "4.0.0",
     "@stacks/keychain": "4.0.0",
     "@stacks/network": "4.0.0",
-    "@stacks/wallet-sdk": "4.0.0",
     "@stacks/transactions": "4.0.0",
+    "@stacks/wallet-sdk": "4.0.0",
     "axios": "^0.26.0",
     "cron": "^1.8.2",
+    "dy-finance.lib": "^0.1.1",
     "yargs": "^13.3.2"
   }
 }

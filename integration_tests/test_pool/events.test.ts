@@ -1,5 +1,5 @@
 import { STACKS_API_URL } from "../config";
-import { StacksChain } from "../framework/stacks.chain";
+import { StacksChain } from "dy-finance.lib";
 const chain = new StacksChain(STACKS_API_URL, {
   defaultFee: 100000,
 });

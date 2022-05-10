@@ -1,7 +1,7 @@
 import { uintCV } from "@stacks/transactions";
 import { fetch_btc_price } from "../btc_price_fetch";
 import * as config from "../config";
-import { StacksChain } from "../integration/framework/stacks.chain";
+import { StacksChain } from "dy-finance.lib";
 
 const cron_job = require('cron').CronJob;
 

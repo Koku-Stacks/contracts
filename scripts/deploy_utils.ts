@@ -1,4 +1,4 @@
-import { StacksChain } from "../integration/framework/stacks.chain"
+import { StacksChain } from "dy-finance.lib"
 import { readFileSync } from "fs"
 
 import * as config from "../config";

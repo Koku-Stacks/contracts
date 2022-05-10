@@ -3,4 +3,4 @@
 rm tests/*
 echo "testing $1"
 cp test_pool/$1.test.ts tests/$1.test.ts
-npm test
+npx mocha --timeout 500000
