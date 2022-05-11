@@ -90,46 +90,46 @@ async function post_deployment_transactions() {
         waitForTransactionConfirmation: true,
       }
     );
+  }
 
-    async function mint(wallet: string) {
-      await chain.callContract(
-        deployer.address,
-        usdaContract,
-        "mint",
-        [uintCV(1000000), principalCV(wallet)],
-        deployer.secretKey,
-        {
-          waitForTransactionConfirmation: true,
-        }
-      );
-    }
-
-    const checkMintContract = await checkContractAuthorization(
+  async function mint(wallet: string) {
+    await chain.callContract(
       deployer.address,
-      "token"
+      usdaContract,
+      "mint",
+      [uintCV(1000000), principalCV(wallet)],
+      deployer.secretKey,
+      {
+        waitForTransactionConfirmation: true,
+      }
     );
+  }
 
-    if (checkMintContract.value === false) {
-      await chain.callContract(
-        deployer.address,
-        usdaContract,
-        "add-authorized-contract",
-        [principalCV(deployer.address)],
-        deployer.secretKey,
-        {
-          waitForTransactionConfirmation: true,
-        }
-      );
-    }
+  const checkMintContract = await checkContractAuthorization(
+    deployer.address,
+    "token"
+  );
 
-    const accountNames = Array.from(chain.accounts.keys());
-    const accountDetails: Array<Account> = accountNames.map((name) => {
-      return chain.accounts.get(name);
-    });
+  if (checkMintContract.value === false) {
+    await chain.callContract(
+      deployer.address,
+      usdaContract,
+      "add-authorized-contract",
+      [principalCV(deployer.address)],
+      deployer.secretKey,
+      {
+        waitForTransactionConfirmation: true,
+      }
+    );
+  }
 
-    for (let i = 0; i < accountDetails.length; i++) {
-      await mint(accountDetails[i].address);
-    }
+  const accountNames = Array.from(chain.accounts.keys());
+  const accountDetails: Array<Account> = accountNames.map((name) => {
+    return chain.accounts.get(name);
+  });
+
+  for (let i = 0; i < accountDetails.length; i++) {
+    await mint(accountDetails[i].address);
   }
 }
 
