@@ -84,6 +84,8 @@
 
 (define-data-var test-mode bool false)
 
+(define-data-var current-tick uint u0)
+
 (define-read-only (initialized-in-test-mode)
   (var-get test-mode))
 
@@ -110,8 +112,17 @@
   (unwrap! ok-uint ERR_UNREACHABLE))
 
 (define-read-only (get-current-timestamp)
-  (default-to u0 (get-block-info? time (- block-height u1))))
   (if (initialized-in-test-mode)
+    (* TICK_TIME_LENGTH (var-get current-tick))
+    (default-to u0 (get-block-info? time (- block-height u1)))))
+
+(define-public (increment-tick)
+  (begin
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
+    (asserts! (initialized-in-test-mode) ERR_CONTRACT_NOT_INITIALIZED_IN_TEST_MODE)
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (var-set current-tick (+ u1 (var-get current-tick)))
+    (ok true)))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
