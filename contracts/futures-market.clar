@@ -82,6 +82,11 @@
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
+(define-data-var test-mode bool false)
+
+(define-read-only (initialized-in-test-mode)
+  (var-get test-mode))
+
 (define-read-only (get-authorized-sip-010-token)
   (begin
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
@@ -106,6 +111,7 @@
 
 (define-read-only (get-current-timestamp)
   (default-to u0 (get-block-info? time (- block-height u1))))
+  (if (initialized-in-test-mode)
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -285,10 +291,11 @@
                (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
       (ok true))))
 
-(define-public (initialize (token <sip-010-token>))
+(define-public (initialize (token <sip-010-token>) (enable-test-mode bool))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
     (asserts! (not (var-get is-initialized)) ERR_CONTRACT_ALREADY_INITIALIZED)
     (var-set authorized-sip-010-token (contract-of token))
+    (var-set test-mode enable-test-mode)
     (var-set is-initialized true)
     (ok true)))
