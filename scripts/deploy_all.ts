@@ -57,12 +57,12 @@ async function post_deployment_transactions() {
     return authorized.value;
   }
 
-  const mintingAuthorized = await checkContractAuthorization(
+  const tokenMintingAuthorized = await checkContractAuthorization(
     `${deployer.address}.minting`,
     tokenContract
   );
 
-  if (mintingAuthorized.value === false) {
+  if (tokenMintingAuthorized.value === false) {
     await chain.callContract(
       deployer.address,
       tokenContract,
@@ -105,17 +105,35 @@ async function post_deployment_transactions() {
     );
   }
 
-  const checkMintContract = await checkContractAuthorization(
+  const usdaAddressAuthorized = await checkContractAuthorization(
     deployer.address,
-    "token"
+    usdaContract
   );
 
-  if (checkMintContract.value === false) {
+  if (usdaAddressAuthorized.value === false) {
     await chain.callContract(
       deployer.address,
       usdaContract,
       "add-authorized-contract",
       [principalCV(deployer.address)],
+      deployer.secretKey,
+      {
+        waitForTransactionConfirmation: true,
+      }
+    );
+  }
+
+  const checkUSDAMintContract = await checkContractAuthorization(
+    `${deployer.address}.minting`,
+    usdaContract
+  );
+
+  if (checkUSDAMintContract.value === false) {
+    await chain.callContract(
+      deployer.address,
+      usdaContract,
+      "add-authorized-contract",
+      [principalCV(`${deployer.address}.minting`)],
       deployer.secretKey,
       {
         waitForTransactionConfirmation: true,
