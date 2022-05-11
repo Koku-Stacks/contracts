@@ -7,5 +7,6 @@ current-price
 hello
 token
 minting
+futures-market
 vault
 timestamp-vault
