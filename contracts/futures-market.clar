@@ -1,7 +1,19 @@
-(define-constant ERR_POSITION_NOT_FOUND (err u1000)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_POSITION_OWNER_ONLY (err u1001)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u1002)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_UNREACHABLE u1003) ;; FIXME adjust according to ERRORS.md and update it
+(impl-trait .owner-trait.owner-trait)
+
+(use-trait sip-010-token .sip-010-trait-ft-standard.sip-010-trait)
+
+(define-constant ERR_NOT_AUTHORIZED (err u1000))
+(define-constant ERR_NOT_NEW_OWNER (err u2000))
+(define-constant ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED (err u2001))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL (err u2002))
+(define-constant ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM (err u2003))
+(define-constant ERR_POSITION_NOT_FOUND (err u3000)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_POSITION_OWNER_ONLY (err u3001)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_TOO_SOON_TO_UPDATE_POSITION (err u3002)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_UNREACHABLE u3003) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_CONTRACT_ALREADY_INITIALIZED (err u3004)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_CONTRACT_NOT_INITIALIZED (err u3005)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_TOKEN_NOT_AUTHORIZED (err u3006)) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
@@ -59,6 +71,22 @@
 (define-data-var gas-fee uint u0) ;; in STX
 (define-data-var executor-tip uint u0) ;; in STX
 
+;; this is not related to an actual token before initialization
+(define-data-var authorized-sip-010-token principal tx-sender)
+
+(define-data-var is-initialized bool false)
+
+(define-data-var contract-owner principal tx-sender)
+(define-data-var submitted-new-owner (optional principal) none)
+
+(define-read-only (get-authorized-sip-010-token)
+  (begin
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
+    (ok (var-get authorized-sip-010-token))))
+
+(define-read-only (get-owner)
+    (ok (var-get contract-owner)))
+
 (define-read-only (get-stx-reserve (principal principal))
   (get stx-amount
        (default-to {stx-amount: u0}
@@ -76,9 +104,35 @@
 (define-read-only (get-current-timestamp)
   (default-to u0 (get-block-info? time (- block-height u1))))
 
+(define-public (submit-ownership-transfer (new-owner principal))
+  (begin
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-none (var-get submitted-new-owner)) ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED)
+    (var-set submitted-new-owner (some new-owner))
+    (ok true)))
+
+(define-public (cancel-ownership-transfer)
+  (begin
+    (asserts! (is-eq (var-get contract-owner) tx-sender) ERR_NOT_AUTHORIZED)
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL)
+    (var-set submitted-new-owner none)
+    (ok true)))
+
+(define-public (confirm-ownership-transfer)
+  (begin
+    (asserts! (is-some (var-get submitted-new-owner)) ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM)
+    (asserts! (is-eq (some tx-sender) (var-get submitted-new-owner)) ERR_NOT_NEW_OWNER)
+    (var-set contract-owner (unwrap-panic (var-get submitted-new-owner)))
+    (var-set submitted-new-owner none)
+    (ok true)))
+
 (define-public (insert-position (size uint)
-                                (order-type uint))
+                                (order-type uint)
+                                (token <sip-010-token>))
   (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
+    (asserts! (is-eq (contract-of token)
+                     (var-get authorized-sip-010-token)) ERR_TOKEN_NOT_AUTHORIZED)
     (map-insert indexed-positions {index: (var-get least-unused-index)}
                                   {sender: tx-sender,
                                    size: size,
@@ -88,10 +142,10 @@
                                    status: STATUS_ACTIVE})
     (var-set least-unused-index (+ (var-get least-unused-index) u1))
     ;; FIXME provisory call
-    (try! (contract-call? .token transfer (+ (var-get liquidation-fee)
-                                             (var-get trading-fee)
-                                             (var-get collateral))
-                                 tx-sender this-contract none))
+    (try! (contract-call? token transfer (+ (var-get liquidation-fee)
+                                            (var-get trading-fee)
+                                            (var-get collateral))
+                                tx-sender this-contract none))
     (try! (stx-transfer? total-gas-fee tx-sender this-contract))
     (map-set stx-reserve {principal: tx-sender}
                          {stx-amount: (+ (get-stx-reserve tx-sender)
@@ -138,6 +192,7 @@
 (define-public (update-position (index uint))
   (let ((position (try! (get-position index)))
         (position-owner (get sender position)))
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
     (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
     (if (try! (position-is-eligible-for-update index))
       (begin
@@ -211,16 +266,26 @@
       (ok u0))))
 
 (define-public (batch-position-maintenance)
-  (let ((chunk-indices (calculate-current-chunk-indices))
-        (charge-status-responses (map position-maintenance chunk-indices))
-        (charge-statuses (map unwrap-helper charge-status-responses))
-        (chargeable-updates-performed (fold + charge-statuses u0)))
-    ;; executor reward
-    (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
-                            chargeable-updates-performed))
-                         this-contract tx-sender))
-    (var-set last-updated-chunk
-             (+ u1 (var-get last-updated-chunk)))
-    (var-set last-updated-index
-             (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
+  (begin
+    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
+    (let ((chunk-indices (calculate-current-chunk-indices))
+          (charge-status-responses (map position-maintenance chunk-indices))
+          (charge-statuses (map unwrap-helper charge-status-responses))
+          (chargeable-updates-performed (fold + charge-statuses u0)))
+      ;; executor reward
+      (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
+                              chargeable-updates-performed))
+                           this-contract tx-sender))
+      (var-set last-updated-chunk
+               (+ u1 (var-get last-updated-chunk)))
+      (var-set last-updated-index
+               (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
+      (ok true))))
+
+(define-public (initialize (token <sip-010-token>))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (asserts! (not (var-get is-initialized)) ERR_CONTRACT_ALREADY_INITIALIZED)
+    (var-set authorized-sip-010-token (contract-of token))
+    (var-set is-initialized true)
     (ok true)))
