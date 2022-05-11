@@ -14,6 +14,7 @@
 (define-constant ERR_CONTRACT_ALREADY_INITIALIZED (err u3004)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_CONTRACT_NOT_INITIALIZED (err u3005)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_TOKEN_NOT_AUTHORIZED (err u3006)) ;; FIXME adjust according to ERRORS.md and update it
+(define-constant ERR_CONTRACT_NOT_INITIALIZED_IN_TEST_MODE (err u3007)) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
