@@ -36,6 +36,8 @@
 (define-constant POSITION_NEUTRAL 0)
 (define-constant POSITION_IN_PROFIT 1)
 
+(define-constant TICK_TIME_LENGTH u600)
+
 (define-constant this-contract (as-contract tx-sender))
 
 ;; FIXME adapt to final chunk size
