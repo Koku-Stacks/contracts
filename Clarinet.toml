@@ -39,13 +39,13 @@ depends_on = []
 path = "contracts/token.clar"
 depends_on = ["sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
 
-[contracts.fold-example]
-path = "draft/fold-example.clar"
-depends_on = ["token"]
-
 [contracts.minting]
 path = "contracts/minting.clar"
 depends_on = ["token", "owner-trait"]
+
+[contracts.futures-market]
+path = "contracts/futures-market.clar"
+depends_on = ["owner-trait", "sip-010-trait-ft-standard", "token"]
 
 [contracts.vault]
 path = "contracts/vault.clar"
