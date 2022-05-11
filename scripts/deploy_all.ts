@@ -123,24 +123,6 @@ async function post_deployment_transactions() {
     );
   }
 
-  const checkUSDAMintContract = await checkContractAuthorization(
-    `${deployer.address}.minting`,
-    usdaContract
-  );
-
-  if (checkUSDAMintContract.value === false) {
-    await chain.callContract(
-      deployer.address,
-      usdaContract,
-      "add-authorized-contract",
-      [principalCV(`${deployer.address}.minting`)],
-      deployer.secretKey,
-      {
-        waitForTransactionConfirmation: true,
-      }
-    );
-  }
-
   const accountNames = Array.from(chain.accounts.keys());
   const accountDetails: Array<Account> = accountNames.map((name) => {
     return chain.accounts.get(name);
