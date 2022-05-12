@@ -54,7 +54,7 @@ async function post_deployment_transactions() {
       [principalCV(principal)],
       deployer.address
     );
-    return authorized.value;
+    return authorized;
   }
 
   const tokenMintingAuthorized = await checkContractAuthorization(
@@ -68,7 +68,7 @@ async function post_deployment_transactions() {
       tokenContract,
       "add-authorized-contract",
       [principalCV(`${deployer.address}.minting`)],
-      deployer.secretKey,
+      deployer.secretKey
     );
   }
 
@@ -82,7 +82,7 @@ async function post_deployment_transactions() {
       tokenContract,
       "add-authorized-contract",
       [principalCV(`${deployer.address}`)],
-      deployer.secretKey,
+      deployer.secretKey
     );
   }
 
@@ -92,7 +92,7 @@ async function post_deployment_transactions() {
       usdaContract,
       "mint",
       [uintCV(1000000), principalCV(wallet)],
-      deployer.secretKey,
+      deployer.secretKey
     );
   }
 
@@ -107,7 +107,7 @@ async function post_deployment_transactions() {
       usdaContract,
       "add-authorized-contract",
       [principalCV(deployer.address)],
-      deployer.secretKey,
+      deployer.secretKey
     );
   }
 
@@ -122,7 +122,7 @@ async function post_deployment_transactions() {
       usdaContract,
       "add-authorized-contract",
       [principalCV(deployer.address)],
-      deployer.secretKey,
+      deployer.secretKey
     );
   }
 
