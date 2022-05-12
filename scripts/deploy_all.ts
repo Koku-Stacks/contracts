@@ -69,9 +69,6 @@ async function post_deployment_transactions() {
       "add-authorized-contract",
       [principalCV(`${deployer.address}.minting`)],
       deployer.secretKey,
-      {
-        waitForTransactionConfirmation: true,
-      }
     );
   }
 
@@ -86,9 +83,6 @@ async function post_deployment_transactions() {
       "add-authorized-contract",
       [principalCV(`${deployer.address}`)],
       deployer.secretKey,
-      {
-        waitForTransactionConfirmation: true,
-      }
     );
   }
 
@@ -99,9 +93,6 @@ async function post_deployment_transactions() {
       "mint",
       [uintCV(1000000), principalCV(wallet)],
       deployer.secretKey,
-      {
-        waitForTransactionConfirmation: true,
-      }
     );
   }
 
@@ -117,9 +108,6 @@ async function post_deployment_transactions() {
       "add-authorized-contract",
       [principalCV(deployer.address)],
       deployer.secretKey,
-      {
-        waitForTransactionConfirmation: true,
-      }
     );
   }
 
@@ -135,9 +123,6 @@ async function post_deployment_transactions() {
       "add-authorized-contract",
       [principalCV(deployer.address)],
       deployer.secretKey,
-      {
-        waitForTransactionConfirmation: true,
-      }
     );
   }
 
