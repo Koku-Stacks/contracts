@@ -43,6 +43,48 @@ function initialize_contract(chain: Chain, accounts: Map<string, Account>) {
     return block.receipts[0].result;
 }
 
+function mint_token_for_accounts(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get('deployer')!;
+
+    let call = chain.mineBlock([
+        Tx.contractCall(
+            token_contract,
+            "add-authorized-contract",
+            [types.principal(deployer.address)],
+            deployer.address
+        )
+    ]);
+
+    const account_principals = Array
+        .from(accounts.values())
+        .map(account => account.address);
+
+    const amount_to_mint = 100;
+
+    for (const principal_str of account_principals) {
+        call = chain.mineBlock([
+            Tx.contractCall(
+                token_contract,
+                "mint",
+                [
+                    types.uint(amount_to_mint),
+                    types.principal(principal_str)
+                ],
+                deployer.address
+            )
+        ])
+
+        const read_only_call = chain.callReadOnlyFn(
+            token_contract,
+            "get-balance",
+            [types.principal(principal_str)],
+            principal_str
+        )
+
+        read_only_call.result.expectOk().expectUint(amount_to_mint);
+    }
+}
+
 Clarinet.test({
     name: "Ensure get-authorized-sip-010-token returns error before contract initialization",
     fn(chain: Chain, accounts: Map<string, Account>) {
