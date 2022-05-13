@@ -14,7 +14,6 @@
 (define-constant ERR_CONTRACT_ALREADY_INITIALIZED (err u3004)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_CONTRACT_NOT_INITIALIZED (err u3005)) ;; FIXME adjust according to ERRORS.md and update it
 (define-constant ERR_TOKEN_NOT_AUTHORIZED (err u3006)) ;; FIXME adjust according to ERRORS.md and update it
-(define-constant ERR_CONTRACT_NOT_INITIALIZED_IN_TEST_MODE (err u3007)) ;; FIXME adjust according to ERRORS.md and update it
 
 ;; FIXME adapt to final chunk size
 (define-constant INDEX_CHUNK_SIZE u100)
@@ -35,8 +34,6 @@
 (define-constant POSITION_IN_LOSS -1)
 (define-constant POSITION_NEUTRAL 0)
 (define-constant POSITION_IN_PROFIT 1)
-
-(define-constant TICK_TIME_LENGTH u600)
 
 (define-constant this-contract (as-contract tx-sender))
 
@@ -82,12 +79,7 @@
 (define-data-var contract-owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
 
-(define-data-var test-mode bool false)
-
 (define-data-var current-tick uint u0)
-
-(define-read-only (initialized-in-test-mode)
-  (var-get test-mode))
 
 (define-read-only (get-authorized-sip-010-token)
   (begin
@@ -112,17 +104,7 @@
   (unwrap! ok-uint ERR_UNREACHABLE))
 
 (define-read-only (get-current-timestamp)
-  (if (initialized-in-test-mode)
-    (* TICK_TIME_LENGTH (var-get current-tick))
-    (default-to u0 (get-block-info? time (- block-height u1)))))
-
-(define-public (increment-tick)
-  (begin
-    (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
-    (asserts! (initialized-in-test-mode) ERR_CONTRACT_NOT_INITIALIZED_IN_TEST_MODE)
-    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
-    (var-set current-tick (+ u1 (var-get current-tick)))
-    (ok true)))
+  (default-to u0 (get-block-info? time (- block-height u1))))
 
 (define-public (submit-ownership-transfer (new-owner principal))
   (begin
@@ -302,11 +284,10 @@
                (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
       (ok true))))
 
-(define-public (initialize (token <sip-010-token>) (enable-test-mode bool))
+(define-public (initialize (token <sip-010-token>))
   (begin
     (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
     (asserts! (not (var-get is-initialized)) ERR_CONTRACT_ALREADY_INITIALIZED)
     (var-set authorized-sip-010-token (contract-of token))
-    (var-set test-mode enable-test-mode)
     (var-set is-initialized true)
     (ok true)))
