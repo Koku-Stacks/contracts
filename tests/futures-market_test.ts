@@ -5,7 +5,23 @@ const ERR_NOT_NEW_OWNER = 2000;
 const ERR_OWNERSHIP_TRANSFER_ALREADY_SUBMITTED = 2001;
 const ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL = 2002;
 const ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM = 2003;
+const ERR_POSITION_NOT_FOUND = 3000;
 const ERR_CONTRACT_NOT_INITIALIZED = 3005;
+
+const ORDER_TYPE_LONG = 1;
+const ORDER_TYPE_SHORT = 2;
+
+const STATUS_LIQUIDATED = 1;
+const STATUS_ACTIVE = 2;
+const STATUS_CLOSED = 3;
+
+const POSITION_MAX_DURATION = 10;
+
+const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
+
+const gas_fee = 1;
+
+const block_mining_time = 600; // in seconds
 
 const futures_market_contract = "futures-market";
 const token_contract = "token";
