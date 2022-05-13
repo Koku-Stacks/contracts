@@ -269,3 +269,490 @@ Clarinet.test({
         call.result.expectUint(0);
     }
 });
+
+Clarinet.test({
+    name: "Ensure get-stx-reserve returns the correct stx amount for a principal which has opened one position",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        const position_size = 1;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                "insert-position",
+                [
+                    types.uint(position_size),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        const read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            "get-stx-reserve",
+            [types.principal(userA.address)],
+            userA.address
+        );
+
+        read_only_call.result.expectUint(POSITION_MAX_DURATION * gas_fee);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-current-timestamp works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        const curr_time = () => {
+            const call = chain.callReadOnlyFn(
+                futures_market_contract,
+                'get-current-timestamp',
+                [],
+                userA.address
+            );
+
+            return call.result;
+        }
+
+        curr_time().expectUint(0)
+
+        const number_of_blocks_to_verify = 10;
+
+        for (let i = 1; i <= number_of_blocks_to_verify; i++) {
+            chain.mineEmptyBlock(1);
+
+            curr_time().expectUint(i * block_mining_time);
+        }
+    }
+});
+
+Clarinet.test({
+    name: "Ensure insert-position cannot be called before contract initialization",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_NOT_INITIALIZED);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure insert-position returns index of inserted position",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-sender works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        let read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-sender',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectPrincipal(userA.address);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-sender',
+            [types.uint(next_position_index + 1)],
+            userB.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-size works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const position_size = 1;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(position_size),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        let read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-size',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectUint(position_size);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-size',
+            [types.uint(next_position_index + 1)],
+            userB.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-updated-on-timestamp works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        // 1 block
+        initialize_contract(chain, accounts);
+
+        // 1 auth block + 10 mint blocks = 11 blocks
+        mint_token_for_accounts(chain, accounts);
+
+        let blocks_mined = 12;
+
+        const next_position_index = 1;
+
+        const position_size = 1;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(position_size),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        blocks_mined++;
+        // in the previous call (block 13), get-current-timestamp refers to block 12 timestamp
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        let read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-updated-on-timestamp',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectUint((blocks_mined - 1) * block_mining_time);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-updated-on-timestamp',
+            [types.uint(next_position_index + 1)],
+            userB.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-order-type works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const position_size = 1;
+        const position_type = ORDER_TYPE_LONG
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(position_size),
+                    types.uint(position_type),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        let read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-order-type',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectUint(position_type);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-order-type',
+            [types.uint(next_position_index + 1)],
+            userB.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
+
+// TODO skipping get-pnl tests for now as positions' pnls are hardcoded as zero at insert-position
+
+Clarinet.test({
+    name: "Ensure positions are inserted with active status",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const position_size = 1;
+        const position_type = ORDER_TYPE_LONG
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(position_size),
+                    types.uint(position_type),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        const read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-status',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectUint(STATUS_ACTIVE);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-status returns error for non existing positions",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const next_position_index = 1;
+
+        const position_size = 1;
+        const position_type = ORDER_TYPE_LONG
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(position_size),
+                    types.uint(position_type),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        const read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'get-status',
+            [types.uint(next_position_index + 1)],
+            userB.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
+
+// TODO skipping calculate-funding-fee tests as it is a simple mockup for now
+
+// TODO skipping position-profit-status tests as it is a simple mockup for now
+
+Clarinet.test({
+    name: "Ensure position-is-eligible-for-update works as expected",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        // 1 block
+        initialize_contract(chain, accounts);
+
+        // 1 auth block + 10 mint blocks = 11 blocks
+        mint_token_for_accounts(chain, accounts);
+
+        let blocks_mined = 12;
+
+        const next_position_index = 1;
+
+        const position_size = 1;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(position_size),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        blocks_mined++;
+        // in the previous call (block 13), get-current-timestamp refers to block 12 timestamp
+
+        call.receipts[0].result.expectOk().expectUint(next_position_index);
+
+        let read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'position-is-eligible-for-update',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectBool(false);
+
+        // 144 blocks for passing an update cooldown
+        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
+        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'position-is-eligible-for-update',
+            [types.uint(next_position_index)],
+            userB.address
+        );
+
+        read_only_call.result.expectOk().expectBool(true);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'position-is-eligible-for-update',
+            [types.uint(next_position_index + 1)],
+            userB.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
