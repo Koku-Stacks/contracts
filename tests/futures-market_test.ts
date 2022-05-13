@@ -10,37 +10,7 @@ const ERR_CONTRACT_NOT_INITIALIZED = 3005;
 const futures_market_contract = "futures-market";
 const token_contract = "token";
 
-function prepare_time_tick_facilities(chain: Chain, accounts: Map<string, Account>) {
-    const deployer = accounts.get('deployer')!;
-    
-    const increment_tick = (): string => {
-        const block = chain.mineBlock([
-            Tx.contractCall(
-                futures_market_contract,
-                "increment-tick",
-                [],
-                deployer.address
-            )
-        ]);
-
-        return block.receipts[0].result;
-    };
-
-    const get_current_timestamp = (): string => {
-        const call = chain.callReadOnlyFn(
-            futures_market_contract,
-            "get-current-timestamp",
-            [],
-            deployer.address
-        );
-
-        return call.result
-    };
-
-    return {inc_tick: increment_tick, curr_timestamp: get_current_timestamp};
-}
-
-function initialize_contract_in_test_mode(chain: Chain, accounts: Map<string, Account>) {
+function initialize_contract(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get('deployer')!;
 
     const block = chain.mineBlock([
@@ -49,7 +19,6 @@ function initialize_contract_in_test_mode(chain: Chain, accounts: Map<string, Ac
             'initialize',
             [
                 types.principal(`${deployer.address}.${token_contract}`),
-                types.bool(true)
             ],
             deployer.address
         )
@@ -57,70 +26,6 @@ function initialize_contract_in_test_mode(chain: Chain, accounts: Map<string, Ac
 
     return block.receipts[0].result;
 }
-
-function unit_test_setup(chain: Chain, accounts: Map<string, Account>) {
-    initialize_contract_in_test_mode(chain, accounts);
-    
-    const time_tick_facilities = prepare_time_tick_facilities(chain, accounts);
-
-    return time_tick_facilities;
-}
-
-Clarinet.test({
-    name: "Ensure initialized-in-test-mode returns false before contract initialization",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const userA = accounts.get('wallet_1')!;
-        
-        const call = chain.callReadOnlyFn(
-            futures_market_contract,
-            "initialized-in-test-mode",
-            [],
-            userA.address
-        );
-
-        call.result.expectBool(false);
-    }
-});
-
-Clarinet.test({
-    name: "Ensure initialized-in-test-mode returns true after contract is initialized in test mode",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const userA = accounts.get("wallet_1")!;
-
-        initialize_contract_in_test_mode(chain, accounts);
-
-        const call = chain.callReadOnlyFn(
-            futures_market_contract,
-            "initialized-in-test-mode",
-            [],
-            userA.address
-        );
-
-        call.result.expectBool(true);
-    }
-});
-
-Clarinet.test({
-    name: "Ensure initialized-in-test-mode returns false after contract is initialized in production mode",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const deployer = accounts.get('deployer')!;
-        const userA = accounts.get('wallet_1')!;
-
-        const block = chain.mineBlock([
-            Tx.contractCall(
-                futures_market_contract,
-                'initialize',
-                [
-                    types.principal(`${deployer.address}.${token_contract}`),
-                    types.bool(false)
-                ],
-                deployer.address
-            )
-        ]);
-
-        block.receipts[0].result.expectOk().expectBool(true);
-    }
-});
 
 Clarinet.test({
     name: "Ensure get-authorized-sip-010-token returns error before contract initialization",
@@ -144,7 +49,7 @@ Clarinet.test({
         const userA = accounts.get('wallet_1')!;
         const deployer = accounts.get('deployer')!;
 
-        initialize_contract_in_test_mode(chain, accounts);
+        initialize_contract(chain, accounts);
 
         const call = chain.callReadOnlyFn(
             futures_market_contract,
@@ -294,7 +199,7 @@ Clarinet.test({
     fn(chain: Chain, accounts: Map<string, Account>) {
         const userA = accounts.get('wallet_1')!;
 
-        initialize_contract_in_test_mode(chain, accounts);
+        initialize_contract(chain, accounts);
 
         const call = chain.callReadOnlyFn(
             futures_market_contract,
