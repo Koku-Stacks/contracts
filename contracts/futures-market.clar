@@ -65,10 +65,10 @@
 (define-data-var last-updated-index uint u0)
 (define-data-var last-updated-chunk uint u0)
 
-(define-data-var liquidation-fee uint u0) ;; in USDA
-(define-data-var trading-fee uint u0) ;; in USDA
-(define-data-var collateral uint u0) ;; in USDA
-(define-data-var gas-fee uint u0) ;; in STX
+(define-data-var liquidation-fee uint u1) ;; in USDA
+(define-data-var trading-fee uint u1) ;; in USDA
+(define-data-var collateral uint u1) ;; in USDA
+(define-data-var gas-fee uint u1) ;; in STX
 (define-data-var executor-tip uint u0) ;; in STX
 
 ;; this is not related to an actual token before initialization
