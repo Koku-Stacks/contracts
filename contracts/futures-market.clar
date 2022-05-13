@@ -131,11 +131,12 @@
 (define-public (insert-position (size uint)
                                 (order-type uint)
                                 (token <sip-010-token>))
-  (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
+  (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee)))
+        (position-index (var-get least-unused-index)))
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
     (asserts! (is-eq (contract-of token)
                      (var-get authorized-sip-010-token)) ERR_TOKEN_NOT_AUTHORIZED)
-    (map-insert indexed-positions {index: (var-get least-unused-index)}
+    (map-insert indexed-positions {index: position-index}
                                   {sender: tx-sender,
                                    size: size,
                                    order-type: order-type,
@@ -152,7 +153,7 @@
     (map-set stx-reserve {principal: tx-sender}
                          {stx-amount: (+ (get-stx-reserve tx-sender)
                                          total-gas-fee)})
-    (ok true)))
+    (ok position-index)))
 
 (define-read-only (get-position (index uint))
   (ok (unwrap! (map-get? indexed-positions {index: index})
