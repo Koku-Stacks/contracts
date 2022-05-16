@@ -193,21 +193,22 @@
            (+ last-update-timestamp POSITION_UPDATE_COOLDOWN)))))
 
 (define-public (update-position (index uint))
-  (let ((position (try! (get-position index)))
-        (position-owner (get sender position)))
+  (begin
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
-    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
-    (if (try! (position-is-eligible-for-update index))
-      (begin
-        (map-set indexed-positions {index: index}
-                                   {sender: (get sender position),
-                                    size: (get size position),
-                                    order-type: (get order-type position),
-                                    current-pnl: (get current-pnl position),
-                                    updated-on-timestamp: (get-current-timestamp),
-                                    status: (get status position)})
-        (ok true))
-      ERR_TOO_SOON_TO_UPDATE_POSITION)))
+    (let ((position (try! (get-position index)))
+          (position-owner (get sender position)))
+      (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
+      (if (try! (position-is-eligible-for-update index))
+        (begin
+          (map-set indexed-positions {index: index}
+                                     {sender: (get sender position),
+                                      size: (get size position),
+                                      order-type: (get order-type position),
+                                      current-pnl: (get current-pnl position),
+                                      updated-on-timestamp: (get-current-timestamp),
+                                      status: (get status position)})
+          (ok true))
+        ERR_TOO_SOON_TO_UPDATE_POSITION))))
 
 ;; We are keeping this for now to measure gas costs at some point in the future against a simpler implementation which is going to be used for now
 ;; (define-private (position-maintenance (index uint))
