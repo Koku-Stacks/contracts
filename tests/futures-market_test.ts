@@ -64,7 +64,7 @@ function mint_token_for_accounts(chain: Chain, accounts: Map<string, Account>) {
         .from(accounts.values())
         .map(account => account.address);
 
-    const amount_to_mint = 100;
+    const amount_to_mint = 1000;
 
     for (const principal_str of account_principals) {
         call = chain.mineBlock([
