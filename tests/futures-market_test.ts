@@ -1029,6 +1029,105 @@ Clarinet.test({
 });
 
 Clarinet.test({
+    name: "Ensure batch-position-maintenance does not update positions which were recently updated by their owners",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const positions_to_open = INDEX_CHUNK_SIZE;
+
+        open_positions(chain, accounts, userA.address, positions_to_open);
+
+        const position_index_opened_by_userA = 1;
+
+        const opened_positions = positions_to_open;
+
+        // in order to be able to update that whole chunk of created positions,
+        // we need to skip the following amount of blocks, which happens to be 144 blocks
+        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
+        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'update-position',
+                [types.uint(position_index_opened_by_userA)],
+                userA.address
+            )
+        ]);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'batch-position-maintenance',
+                [],
+                userB.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(opened_positions - 1);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure batch-position-maintenance only updates one chunk per call",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const positions_to_open = 2 * INDEX_CHUNK_SIZE;
+
+        open_positions(chain, accounts, userA.address, positions_to_open);
+
+        const opened_positions = positions_to_open;
+
+        // in order to be able to update that whole chunk of created positions,
+        // we need to skip the following amount of blocks, which happens to be 144 blocks
+        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
+        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'batch-position-maintenance',
+                [],
+                userB.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(opened_positions / 2);
+
+        const last_updated_position_index = opened_positions / 2;
+
+        let read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'position-is-eligible-for-update',
+            [types.uint(last_updated_position_index)],
+            userA.address
+        );
+        read_only_call.result.expectOk().expectBool(false);
+
+        read_only_call = chain.callReadOnlyFn(
+            futures_market_contract,
+            'position-is-eligible-for-update',
+            [types.uint(last_updated_position_index + 1)],
+            userA.address
+        );
+        read_only_call.result.expectOk().expectBool(true);
+    }
+});
+
+Clarinet.test({
     name: "Ensure initialize can only be called by contract owner",
     fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
