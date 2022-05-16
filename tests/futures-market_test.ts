@@ -17,7 +17,7 @@ const STATUS_LIQUIDATED = 1;
 const STATUS_ACTIVE = 2;
 const STATUS_CLOSED = 3;
 
-const POSITION_MAX_DURATION = 10;
+const POSITION_MAX_DURATION = 10; // in days
 
 const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
 
