@@ -272,14 +272,15 @@
 (define-public (batch-position-maintenance)
   (begin
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
-    (let ((chunk-indices (calculate-current-chunk-indices))
+    (let ((maintainer tx-sender)
+          (chunk-indices (calculate-current-chunk-indices))
           (charge-status-responses (map position-maintenance chunk-indices))
           (charge-statuses (map unwrap-helper charge-status-responses))
           (chargeable-updates-performed (fold + charge-statuses u0)))
-      ;; executor reward
-      (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
-                              chargeable-updates-performed))
-                           this-contract tx-sender))
+      ;; maintainer reward
+      (try! (as-contract (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip))
+                                           chargeable-updates-performed)
+                                        this-contract maintainer)))
       (var-set last-updated-chunk
                (+ u1 (var-get last-updated-chunk)))
       (var-set last-updated-index
