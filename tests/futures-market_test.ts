@@ -22,6 +22,8 @@ const POSITION_MAX_DURATION = 10; // in days
 
 const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
 
+const INDEX_CHUNK_SIZE = 100;
+
 const gas_fee = 1;
 
 const block_mining_time = 600; // in seconds
