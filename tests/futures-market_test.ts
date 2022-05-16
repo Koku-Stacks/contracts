@@ -758,3 +758,187 @@ Clarinet.test({
         read_only_call.result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
     }
 });
+
+Clarinet.test({
+    name: "Ensure update-position cannot be called before contract initialization",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'update-position',
+                [types.uint(1)],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_NOT_INITIALIZED);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure update-position cannot be called with unknown position index",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        const position_index = 1;
+
+        call.receipts[0].result.expectOk().expectUint(position_index);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'update-position',
+                [types.uint(position_index + 1)],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_POSITION_NOT_FOUND);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure update-position must be called by the position owner",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        const position_index = 1;
+
+        call.receipts[0].result.expectOk().expectUint(position_index);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'update-position',
+                [types.uint(position_index)],
+                userB.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_POSITION_OWNER_ONLY);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure update-position cannot update positions not eligible for update",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        const position_index = 1;
+
+        call.receipts[0].result.expectOk().expectUint(position_index);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'update-position',
+                [types.uint(position_index)],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_TOO_SOON_TO_UPDATE_POSITION);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure update-position can update position which are eligible for update",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'insert-position',
+                [
+                    types.uint(1),
+                    types.uint(ORDER_TYPE_LONG),
+                    types.principal(`${deployer.address}.${token_contract}`)
+                ],
+                userA.address
+            )
+        ]);
+
+        const position_index = 1;
+
+        call.receipts[0].result.expectOk().expectUint(position_index);
+
+        // 144 blocks for passing an update cooldown
+        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
+        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'update-position',
+                [types.uint(position_index)],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true);
+    }
+});
