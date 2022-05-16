@@ -285,7 +285,7 @@
                (+ u1 (var-get last-updated-chunk)))
       (var-set last-updated-index
                (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
-      (ok true))))
+      (ok chargeable-updates-performed))))
 
 (define-public (initialize (token <sip-010-token>))
   (begin
