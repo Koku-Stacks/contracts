@@ -974,3 +974,104 @@ Clarinet.test({
         call.receipts[0].result.expectOk().expectBool(true);
     }
 });
+
+Clarinet.test({
+    name: "Ensure batch-position-maintenance cannot be called before contract initialization",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'batch-position-maintenance',
+                [],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_NOT_INITIALIZED);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure batch-position-maintenance is able to update a whole chunk of positions eligible for update",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+        const userB = accounts.get('wallet_2')!;
+
+        initialize_contract(chain, accounts);
+
+        mint_token_for_accounts(chain, accounts);
+
+        const positions_to_open = INDEX_CHUNK_SIZE;
+
+        open_positions(chain, accounts, userA.address, positions_to_open);
+
+        const opened_positions = positions_to_open;
+
+        // in order to be able to update that whole chunk of created positions,
+        // we need to skip the following amount of blocks, which happens to be 144 blocks
+        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
+        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'batch-position-maintenance',
+                [],
+                userB.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectUint(opened_positions);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure initialize can only be called by contract owner",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+        const userA = accounts.get('wallet_1')!;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'initialize',
+                [types.principal(`${deployer.address}.${token_contract}`)],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_NOT_AUTHORIZED);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure initialize cannot be successfully called twice",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const deployer = accounts.get('deployer')!;
+
+        let call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'initialize',
+                [types.principal(`${deployer.address}.${token_contract}`)],
+                deployer.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true);
+
+        call = chain.mineBlock([
+            Tx.contractCall(
+                futures_market_contract,
+                'initialize',
+                [types.principal(`${deployer.address}.${token_contract}`)],
+                deployer.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_ALREADY_INITIALIZED);
+    }
+});
