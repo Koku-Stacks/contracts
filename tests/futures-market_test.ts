@@ -90,6 +90,35 @@ function mint_token_for_accounts(chain: Chain, accounts: Map<string, Account>) {
     }
 }
 
+function open_positions(
+    chain: Chain,
+    accounts: Map<string, Account>,
+    principal: string,
+    amount: number) {
+        const deployer = accounts.get('deployer')!;
+
+        const position_size = 1;
+
+        for (let i = 1; i <= amount; i++) {
+            const call = chain.mineBlock([
+                Tx.contractCall(
+                    futures_market_contract,
+                    'insert-position',
+                    [
+                        types.uint(position_size),
+                        types.uint(ORDER_TYPE_LONG),
+                        types.principal(`${deployer.address}.${token_contract}`)
+                    ],
+                    principal
+                )
+            ]);
+
+            call.receipts[0].result.expectOk();
+        }
+
+        return amount;
+}
+
 Clarinet.test({
     name: "Ensure get-authorized-sip-010-token returns error before contract initialization",
     fn(chain: Chain, accounts: Map<string, Account>) {
