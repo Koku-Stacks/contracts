@@ -22,8 +22,6 @@ const POSITION_MAX_DURATION = 10; // in days
 
 const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
 
-const INDEX_CHUNK_SIZE = 100;
-
 const gas_fee = 1;
 
 const block_mining_time = 600; // in seconds
@@ -88,35 +86,6 @@ function mint_token_for_accounts(chain: Chain, accounts: Map<string, Account>) {
 
         read_only_call.result.expectOk().expectUint(amount_to_mint);
     }
-}
-
-function open_positions(
-    chain: Chain,
-    accounts: Map<string, Account>,
-    principal: string,
-    amount: number) {
-        const deployer = accounts.get('deployer')!;
-
-        const position_size = 1;
-
-        for (let i = 1; i <= amount; i++) {
-            const call = chain.mineBlock([
-                Tx.contractCall(
-                    futures_market_contract,
-                    'insert-position',
-                    [
-                        types.uint(position_size),
-                        types.uint(ORDER_TYPE_LONG),
-                        types.principal(`${deployer.address}.${token_contract}`)
-                    ],
-                    principal
-                )
-            ]);
-
-            call.receipts[0].result.expectOk();
-        }
-
-        return amount;
 }
 
 Clarinet.test({
@@ -990,140 +959,6 @@ Clarinet.test({
         ]);
 
         call.receipts[0].result.expectErr().expectUint(ERR_CONTRACT_NOT_INITIALIZED);
-    }
-});
-
-Clarinet.test({
-    name: "Ensure batch-position-maintenance is able to update a whole chunk of positions eligible for update",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const userA = accounts.get('wallet_1')!;
-        const userB = accounts.get('wallet_2')!;
-
-        initialize_contract(chain, accounts);
-
-        mint_token_for_accounts(chain, accounts);
-
-        const positions_to_open = INDEX_CHUNK_SIZE;
-
-        open_positions(chain, accounts, userA.address, positions_to_open);
-
-        const opened_positions = positions_to_open;
-
-        // in order to be able to update that whole chunk of created positions,
-        // we need to skip the following amount of blocks, which happens to be 144 blocks
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
-
-        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
-
-        const call = chain.mineBlock([
-            Tx.contractCall(
-                futures_market_contract,
-                'batch-position-maintenance',
-                [],
-                userB.address
-            )
-        ]);
-
-        call.receipts[0].result.expectOk().expectUint(opened_positions);
-    }
-});
-
-Clarinet.test({
-    name: "Ensure batch-position-maintenance does not update positions which were recently updated by their owners",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const userA = accounts.get('wallet_1')!;
-        const userB = accounts.get('wallet_2')!;
-
-        initialize_contract(chain, accounts);
-
-        mint_token_for_accounts(chain, accounts);
-
-        const positions_to_open = INDEX_CHUNK_SIZE;
-
-        open_positions(chain, accounts, userA.address, positions_to_open);
-
-        const position_index_opened_by_userA = 1;
-
-        const opened_positions = positions_to_open;
-
-        // in order to be able to update that whole chunk of created positions,
-        // we need to skip the following amount of blocks, which happens to be 144 blocks
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
-
-        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
-
-        let call = chain.mineBlock([
-            Tx.contractCall(
-                futures_market_contract,
-                'update-position',
-                [types.uint(position_index_opened_by_userA)],
-                userA.address
-            )
-        ]);
-
-        call = chain.mineBlock([
-            Tx.contractCall(
-                futures_market_contract,
-                'batch-position-maintenance',
-                [],
-                userB.address
-            )
-        ]);
-
-        call.receipts[0].result.expectOk().expectUint(opened_positions - 1);
-    }
-});
-
-Clarinet.test({
-    name: "Ensure batch-position-maintenance only updates one chunk per call",
-    fn(chain: Chain, accounts: Map<string, Account>) {
-        const userA = accounts.get('wallet_1')!;
-        const userB = accounts.get('wallet_2')!;
-
-        initialize_contract(chain, accounts);
-
-        mint_token_for_accounts(chain, accounts);
-
-        const positions_to_open = 2 * INDEX_CHUNK_SIZE;
-
-        open_positions(chain, accounts, userA.address, positions_to_open);
-
-        const opened_positions = positions_to_open;
-
-        // in order to be able to update that whole chunk of created positions,
-        // we need to skip the following amount of blocks, which happens to be 144 blocks
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
-
-        chain.mineEmptyBlock(blocks_in_an_update_cooldown);
-
-        const call = chain.mineBlock([
-            Tx.contractCall(
-                futures_market_contract,
-                'batch-position-maintenance',
-                [],
-                userB.address
-            )
-        ]);
-
-        call.receipts[0].result.expectOk().expectUint(opened_positions / 2);
-
-        const last_updated_position_index = opened_positions / 2;
-
-        let read_only_call = chain.callReadOnlyFn(
-            futures_market_contract,
-            'position-is-eligible-for-update',
-            [types.uint(last_updated_position_index)],
-            userA.address
-        );
-        read_only_call.result.expectOk().expectBool(false);
-
-        read_only_call = chain.callReadOnlyFn(
-            futures_market_contract,
-            'position-is-eligible-for-update',
-            [types.uint(last_updated_position_index + 1)],
-            userA.address
-        );
-        read_only_call.result.expectOk().expectBool(true);
     }
 });
 
