@@ -69,7 +69,6 @@
 (define-data-var trading-fee uint u1) ;; in USDA
 (define-data-var collateral uint u1) ;; in USDA
 (define-data-var gas-fee uint u1) ;; in STX
-(define-data-var executor-tip uint u0) ;; in STX
 
 ;; this is not related to an actual token before initialization
 (define-data-var authorized-sip-010-token principal tx-sender)
@@ -278,7 +277,7 @@
           (charge-statuses (map unwrap-helper charge-status-responses))
           (chargeable-updates-performed (fold + charge-statuses u0)))
       ;; maintainer reward
-      (try! (as-contract (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip))
+      (try! (as-contract (stx-transfer? (* (var-get gas-fee)
                                            chargeable-updates-performed)
                                         this-contract maintainer)))
       (var-set last-updated-chunk
