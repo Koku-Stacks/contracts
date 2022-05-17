@@ -212,7 +212,7 @@ Clarinet.test({
                 'timestamp-vault',
                 'set-cooldown',
                 [
-                    types.uint(1),
+                    types.uint(20),
                 ],
                 deployer.address)
         ]);
@@ -248,7 +248,7 @@ Clarinet.test({
 
         call3.receipts[0].result.expectErr().expectUint(ERR_TOO_SOON_TO_WITHDRAW);
 
-        chain.mineEmptyBlock(100);
+        chain.mineEmptyBlock(1);
 
         const call4 = chain.mineBlock([
             Tx.contractCall(
@@ -262,6 +262,6 @@ Clarinet.test({
             )
         ]);
 
-        // call4.receipts[0].result.expectOk();
+        call4.receipts[0].result.expectOk();
     },
 });

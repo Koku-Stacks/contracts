@@ -65,11 +65,10 @@
 (define-data-var last-updated-index uint u0)
 (define-data-var last-updated-chunk uint u0)
 
-(define-data-var liquidation-fee uint u0) ;; in USDA
-(define-data-var trading-fee uint u0) ;; in USDA
-(define-data-var collateral uint u0) ;; in USDA
-(define-data-var gas-fee uint u0) ;; in STX
-(define-data-var executor-tip uint u0) ;; in STX
+(define-data-var liquidation-fee uint u1) ;; in USDA
+(define-data-var trading-fee uint u1) ;; in USDA
+(define-data-var collateral uint u1) ;; in USDA
+(define-data-var gas-fee uint u1) ;; in STX
 
 ;; this is not related to an actual token before initialization
 (define-data-var authorized-sip-010-token principal tx-sender)
@@ -129,11 +128,12 @@
 (define-public (insert-position (size uint)
                                 (order-type uint)
                                 (token <sip-010-token>))
-  (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee))))
+  (let ((total-gas-fee (* POSITION_MAX_DURATION (var-get gas-fee)))
+        (position-index (var-get least-unused-index)))
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
     (asserts! (is-eq (contract-of token)
                      (var-get authorized-sip-010-token)) ERR_TOKEN_NOT_AUTHORIZED)
-    (map-insert indexed-positions {index: (var-get least-unused-index)}
+    (map-insert indexed-positions {index: position-index}
                                   {sender: tx-sender,
                                    size: size,
                                    order-type: order-type,
@@ -150,7 +150,7 @@
     (map-set stx-reserve {principal: tx-sender}
                          {stx-amount: (+ (get-stx-reserve tx-sender)
                                          total-gas-fee)})
-    (ok true)))
+    (ok position-index)))
 
 (define-read-only (get-position (index uint))
   (ok (unwrap! (map-get? indexed-positions {index: index})
@@ -190,21 +190,22 @@
            (+ last-update-timestamp POSITION_UPDATE_COOLDOWN)))))
 
 (define-public (update-position (index uint))
-  (let ((position (try! (get-position index)))
-        (position-owner (get sender position)))
+  (begin
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
-    (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
-    (if (try! (position-is-eligible-for-update index))
-      (begin
-        (map-set indexed-positions {index: index}
-                                   {sender: (get sender position),
-                                    size: (get size position),
-                                    order-type: (get order-type position),
-                                    current-pnl: (get current-pnl position),
-                                    updated-on-timestamp: (get-current-timestamp),
-                                    status: (get status position)})
-        (ok true))
-      ERR_TOO_SOON_TO_UPDATE_POSITION)))
+    (let ((position (try! (get-position index)))
+          (position-owner (get sender position)))
+      (asserts! (is-eq tx-sender position-owner) ERR_POSITION_OWNER_ONLY)
+      (if (try! (position-is-eligible-for-update index))
+        (begin
+          (map-set indexed-positions {index: index}
+                                     {sender: (get sender position),
+                                      size: (get size position),
+                                      order-type: (get order-type position),
+                                      current-pnl: (get current-pnl position),
+                                      updated-on-timestamp: (get-current-timestamp),
+                                      status: (get status position)})
+          (ok true))
+        ERR_TOO_SOON_TO_UPDATE_POSITION))))
 
 ;; We are keeping this for now to measure gas costs at some point in the future against a simpler implementation which is going to be used for now
 ;; (define-private (position-maintenance (index uint))
@@ -268,19 +269,20 @@
 (define-public (batch-position-maintenance)
   (begin
     (asserts! (var-get is-initialized) ERR_CONTRACT_NOT_INITIALIZED)
-    (let ((chunk-indices (calculate-current-chunk-indices))
+    (let ((maintainer tx-sender)
+          (chunk-indices (calculate-current-chunk-indices))
           (charge-status-responses (map position-maintenance chunk-indices))
           (charge-statuses (map unwrap-helper charge-status-responses))
           (chargeable-updates-performed (fold + charge-statuses u0)))
-      ;; executor reward
-      (try! (stx-transfer? (* (+ (var-get gas-fee) (var-get executor-tip)
-                              chargeable-updates-performed))
-                           this-contract tx-sender))
+      ;; maintainer reward
+      (try! (as-contract (stx-transfer? (* (var-get gas-fee)
+                                           chargeable-updates-performed)
+                                        this-contract maintainer)))
       (var-set last-updated-chunk
                (+ u1 (var-get last-updated-chunk)))
       (var-set last-updated-index
                (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
-      (ok true))))
+      (ok chargeable-updates-performed))))
 
 (define-public (initialize (token <sip-010-token>))
   (begin
