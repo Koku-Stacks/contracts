@@ -33,7 +33,9 @@
   (+ (* index u2) u1))
 
 (define-read-only (priority-position)
-  (get-position PRIORITY_INDEX))
+  (begin
+    (asserts! (>= (var-get heap-size) u1) ERR_EMPTY_HEAP)
+    (ok (get-position PRIORITY_INDEX))))
 
 (define-private (max-heapify-core (index uint))
   (let ((left-index
