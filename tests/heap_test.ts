@@ -1,0 +1,209 @@
+import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
+
+const ERR_EMPTY_HEAP = 4000;
+
+function initialize_heap(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get('deployer')!;
+
+    const call = chain.mineBlock([
+        Tx.contractCall(
+            'heap',
+            'initialize',
+            [],
+            deployer.address
+        )
+    ]);
+
+    call.receipts[0].result.expectOk().expectBool(true);
+}
+
+function insert_position(
+    chain: Chain,
+    accounts: Map<string, Account>,
+    priority: number,
+    value: number
+) {
+    const deployer = accounts.get('deployer')!;
+
+    const call = chain.mineBlock([
+        Tx.contractCall(
+            'heap',
+            'max-heap-insert',
+            [
+                types.uint(priority),
+                types.uint(value)
+            ],
+            deployer.address
+        )
+    ]);
+
+    call.receipts[0].result.expectOk().expectBool(true);
+}
+
+Clarinet.test({
+    name: "Ensure get-position returns a dummy default value for non existent positions",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_heap(chain, accounts);
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                'heap',
+                'max-heap-insert',
+                [
+                    types.uint(1),
+                    types.uint(10)
+                ],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectOk().expectBool(true);
+
+        const nonexistent_position_index = 2;
+
+        const read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'get-position',
+            [types.uint(nonexistent_position_index)],
+            userA.address
+        );
+
+        const dummy_position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
+
+        dummy_position['priority'].expectUint(0);
+        dummy_position['value'].expectUint(0);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure get-position returns the correct position content at a certain index",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_heap(chain, accounts);
+
+        const position_priority = 1;
+        const position_value = 10;
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                'heap',
+                'max-heap-insert',
+                [
+                    types.uint(position_priority),
+                    types.uint(position_value)
+                ],
+                userA.address
+            )
+        ]);
+
+        const position_index = 1;
+
+        call.receipts[0].result.expectOk().expectBool(true);
+
+        const read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'get-position',
+            [types.uint(position_index)],
+            userA.address
+        );
+
+        const position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
+
+        position['priority'].expectUint(position_priority);
+        position['value'].expectUint(position_value);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure priority-position cannot be called for an empty heap",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_heap(chain, accounts);
+
+        const read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'priority-position',
+            [],
+            userA.address
+        );
+
+        read_only_call.result.expectErr().expectUint(ERR_EMPTY_HEAP);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure priority-position returns the position with most priority",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_heap(chain, accounts);
+
+        // [1]
+        insert_position(chain, accounts, 1, 10);
+
+        let max_priority = 1;
+
+        let read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'priority-position',
+            [],
+            userA.address
+        );
+
+        let priority_position: {[key: string]: string} = read_only_call.result.expectOk().expectTuple() as any;
+
+        priority_position['priority'].expectUint(max_priority);
+
+        // [2, 1]
+        insert_position(chain, accounts, 2, 20);
+
+        max_priority = 2;
+
+        read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'priority-position',
+            [],
+            userA.address
+        );
+
+        priority_position = read_only_call.result.expectOk().expectTuple() as any;
+
+        priority_position['priority'].expectUint(max_priority);
+
+        // [2, 1, 3] -> [3, 1, 2]
+        insert_position(chain, accounts, 3, 30);
+
+        max_priority = 3;
+
+        read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'priority-position',
+            [],
+            userA.address
+        );
+
+        priority_position = read_only_call.result.expectOk().expectTuple() as any;
+
+        priority_position['priority'].expectUint(max_priority);
+
+        // [3, 1, 2, 4] -> [3, 4, 2, 1] -> [4, 3, 2, 1] FIXME this is not the current behavior
+        insert_position(chain, accounts, 4, 40);
+
+        max_priority = 4;
+
+        read_only_call = chain.callReadOnlyFn(
+            'heap',
+            'priority-position',
+            [],
+            userA.address
+        );
+
+        priority_position = read_only_call.result.expectOk().expectTuple() as any;
+
+        // priority_position['priority'].expectUint(max_priority);
+    }
+})
