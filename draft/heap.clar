@@ -134,6 +134,24 @@
 (define-private (populate-heap)
   (map populate-heap-step HEAP_INDICES))
 
+(define-public (heap-extract-max)
+  (begin
+    (asserts! (>= (var-get heap-size) u1) ERR_EMPTY_HEAP)
+    (let ((max-position (get-position PRIORITY_INDEX))
+          (last-leaf-position (get-position (var-get heap-size))))
+      (map-set heap {index: PRIORITY_INDEX} last-leaf-position)
+      (var-set heap-size (- (var-get heap-size) u1))
+      (max-heapify-depth-1 PRIORITY_INDEX)
+      (ok max-position))))
+
+(define-public (max-heap-insert (priority uint) (value uint))
+  (begin
+    (asserts! (< (var-get heap-size) MAX_HEAP_SIZE) ERR_FULL_HEAP)
+    (var-set heap-size (+ (var-get heap-size) u1))
+    (map-set heap {index: (var-get heap-size)} {priority: priority, value: value})
+    (heap-move-up-depth-5 (var-get heap-size))
+    (ok true)))
+
 (define-public (initialize)
   (begin
     (populate-heap)
