@@ -1,18 +1,24 @@
+(define-constant ERR_EMPTY_HEAP (err u4000)) ;; FIXME adjust error code according to ERRORS.md
+(define-constant ERR_FULL_HEAP (err u4001)) ;; FIXME adjust error code according to ERRORS.md
+
+;; indices for a heap of height 4
+(define-constant HEAP_INDICES
+  (list
+    u1
+    u2  u3
+    u4  u5  u6  u7
+    u8  u9 u10 u11 u12 u13 u14 u15
+   u16 u17 u18 u19 u20 u21 u22 u23 u24 u25 u26 u27 u28 u29 u30 u31))
+
+(define-constant PRIORITY_INDEX u1)
+
+(define-constant MAX_HEAP_SIZE u31)
+
 (define-map heap {index: uint}
                  {priority: uint,
                   value: uint})
 
 (define-data-var heap-size uint u0)
-
-;; indices for a heap of height 4
-(define-constant HEAP_INDICES
-  (list
-     u1  u2  u3  u4  u5  u6  u7  u8  u9 u10
-    u11 u12 u13 u14 u15 u16 u17 u18 u19 u20
-    u21 u22 u23 u24 u25 u26 u27 u28 u29 u30
-    u31))
-
-(define-constant PRIORITY_INDEX u1)
 
 (define-read-only (get-position (index uint))
   (default-to {priority: u0, value: u0} (map-get? heap {index: index})))
