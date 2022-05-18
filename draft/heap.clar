@@ -86,6 +86,12 @@
       u0)))
 
 (define-private (max-heapify-depth-3 (index uint))
+  (let ((return-index (max-heapify-core index)))
+    (if (not (is-eq return-index u0))
+      (max-heapify-depth-4 return-index)
+      u0)))
+
+(define-private (max-heapify-depth-4 (index uint))
   (max-heapify-core index))
 
 (define-private (populate-heap-step (index uint))
