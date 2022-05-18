@@ -15,7 +15,7 @@ const ERR_SENDER_NOT_ENOUGH_BALANCE = 1;
 const ERR_ZERO_CALL = 1;
 const ERR_SENDER_RECIPIENT_SAME = 2;
 const ERR_AMOUNT_NOT_POSITIVE = 3;
-const ERR_SENDER_IS_NOT_HOLDER = 3001;
+const ERR_SENDER_IS_NOT_HOLDER = 4;
 
 Clarinet.test({
     name: "Ensure that set-contract-lock can only be called by owner",

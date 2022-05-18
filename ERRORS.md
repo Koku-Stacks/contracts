@@ -22,7 +22,7 @@
 | Error                                     | Code        | Description                                                    |
 | :---                                      |    :----:   |    :----------------------------------------------------:      |
 | ERR_NOT_AUTHORIZED                        | 3000        | Current user/owner is not authorised                           |
-| ERR_TOKEN_HOLDER_ONLY                     | 3001        | Can only be called by token holder only                        |
+| ERR_TOKEN_HOLDER_ONLY                     | 4           | Can only be called by token holder only                        |
 | ERR_NOT_APPROVED_TOKEN                    | 3002        | Token not approved to deposit or withdraw                      |
 | ERR_NOT_ENOUGH_BALANCE                    | 3003        | Not enough balance/token to withdraw                           |
 | ERR_INVALID_OPTION_TYPE                   | 3004        | Invalid option from buying option for tokens                   |
