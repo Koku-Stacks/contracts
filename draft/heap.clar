@@ -94,6 +94,40 @@
 (define-private (max-heapify-depth-4 (index uint))
   (max-heapify-core index))
 
+(define-private (heap-move-up-core (index uint))
+  (let ((index-position (get-position index))
+        (p-index (parent-index index))
+        (p-index-position (get-position p-index)))
+    (if (and (> index PRIORITY_INDEX)
+             (> (get priority index-position)
+                (get priority p-index-position)))
+      (begin
+        (map-set heap {index: index} p-index-position)
+        (map-set heap {index: p-index} index-position)
+        p-index)
+      u0)))
+
+(define-private (heap-move-up-depth-5 (index uint))
+  (let ((return-index (heap-move-up-core index)))
+    (if (not (is-eq return-index u0))
+      (heap-move-up-depth-4 index)
+      u0)))
+
+(define-private (heap-move-up-depth-4 (index uint))
+  (let ((return-index (heap-move-up-core index)))
+    (if (not (is-eq return-index u0))
+      (heap-move-up-depth-3 index)
+      u0)))
+
+(define-private (heap-move-up-depth-3 (index uint))
+  (let ((return-index (heap-move-up-core index)))
+    (if (not (is-eq return-index u0))
+      (heap-move-up-depth-2 index)
+      u0)))
+
+(define-private (heap-move-up-depth-2 (index uint))
+  (heap-move-up-core index))
+
 (define-private (populate-heap-step (index uint))
   (map-insert heap {index: index} {priority: u0, value: u0}))
 
