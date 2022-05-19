@@ -110,19 +110,19 @@
 (define-private (heap-move-up-depth-5 (index uint))
   (let ((return-index (heap-move-up-core index)))
     (if (not (is-eq return-index u0))
-      (heap-move-up-depth-4 index)
+      (heap-move-up-depth-4 return-index)
       u0)))
 
 (define-private (heap-move-up-depth-4 (index uint))
   (let ((return-index (heap-move-up-core index)))
     (if (not (is-eq return-index u0))
-      (heap-move-up-depth-3 index)
+      (heap-move-up-depth-3 return-index)
       u0)))
 
 (define-private (heap-move-up-depth-3 (index uint))
   (let ((return-index (heap-move-up-core index)))
     (if (not (is-eq return-index u0))
-      (heap-move-up-depth-2 index)
+      (heap-move-up-depth-2 return-index)
       u0)))
 
 (define-private (heap-move-up-depth-2 (index uint))
