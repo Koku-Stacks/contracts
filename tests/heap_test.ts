@@ -162,8 +162,10 @@ Clarinet.test({
 
         initialize_heap(chain, accounts);
 
-        // [1]
         insert_position(chain, accounts, 1, 10);
+
+        // [1]
+        verify_priority_position(chain, accounts, 1, 1);
 
         let max_priority = 1;
 
@@ -178,8 +180,11 @@ Clarinet.test({
 
         priority_position['priority'].expectUint(max_priority);
 
-        // [2, 1]
         insert_position(chain, accounts, 2, 20);
+
+        // [2, 1]
+        verify_priority_position(chain, accounts, 1, 2);
+        verify_priority_position(chain, accounts, 2, 1);
 
         max_priority = 2;
 
@@ -194,8 +199,12 @@ Clarinet.test({
 
         priority_position['priority'].expectUint(max_priority);
 
-        // [2, 1, 3] -> [3, 1, 2]
         insert_position(chain, accounts, 3, 30);
+
+        // [2, 1, 3] -> [3, 1, 2]
+        verify_priority_position(chain, accounts, 1, 3);
+        verify_priority_position(chain, accounts, 2, 1);
+        verify_priority_position(chain, accounts, 3, 2);
 
         max_priority = 3;
 
@@ -210,8 +219,13 @@ Clarinet.test({
 
         priority_position['priority'].expectUint(max_priority);
 
-        // [3, 1, 2, 4] -> [3, 4, 2, 1] -> [4, 3, 2, 1] FIXME this is not the current behavior
         insert_position(chain, accounts, 4, 40);
+
+        // [3, 1, 2, 4] -> [3, 4, 2, 1] -> [4, 3, 2, 1]
+        verify_priority_position(chain, accounts, 1, 4);
+        verify_priority_position(chain, accounts, 2, 3);
+        verify_priority_position(chain, accounts, 3, 2);
+        verify_priority_position(chain, accounts, 4, 1);
 
         max_priority = 4;
 
@@ -224,6 +238,41 @@ Clarinet.test({
 
         priority_position = read_only_call.result.expectOk().expectTuple() as any;
 
-        // priority_position['priority'].expectUint(max_priority);
+        priority_position['priority'].expectUint(max_priority);
     }
-})
+});
+
+Clarinet.test({
+    name: "Ensure heap-extract-max cannot be called for an empty heap",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_heap(chain, accounts);
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+                'heap',
+                'heap-extract-max',
+                [],
+                userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_EMPTY_HEAP);
+    }
+});
+
+Clarinet.test({
+    name: "Ensure heap-extract-max always returns the position with most priority",
+    fn(chain: Chain, accounts: Map<string, Account>) {
+        const userA = accounts.get('wallet_1')!;
+
+        initialize_heap(chain, accounts);
+
+        const priorities = [12, 15, 2, 6, 19, 3, 5, 8];
+        const sorted_priorities = [19, 15, 12, 8, 6, 5, 3, 2]
+        const constant_value = 0;
+
+        
+    }
+});
