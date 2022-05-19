@@ -129,7 +129,7 @@ Clarinet.test({
     async fn(chain: Chain, accounts: Map<string, Account>) {
         const deployer = accounts.get('deployer')!;
         const userA = accounts.get('wallet_1')!;
-        const token = `${deployer.address}.token1`;
+        const token = `${deployer.address}.token-copy`;
 
         let call = chain.mineBlock([
             Tx.contractCall(
