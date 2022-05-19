@@ -7,7 +7,7 @@ const ERR_NO_OWNERSHIP_TRANSFER_TO_CANCEL = 2002;
 const ERR_NO_OWNERSHIP_TRANSFER_TO_CONFIRM = 2003;
 const ERR_MINTER_ALREADY_AUTHORIZED = 3000;
 const ERR_MINTER_NOT_AUTHORIZED = 3001;
-const ERR_INSUFFICIENT_TOKENS_TO_MINT = 108;
+const ERR_INSUFFICIENT_TOKENS_TO_MINT = 3008;
 
 Clarinet.test({
     name: "Ensure that submit ownership can only be called by owner",
