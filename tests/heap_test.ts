@@ -40,6 +40,26 @@ function insert_position(
     call.receipts[0].result.expectOk().expectBool(true);
 }
 
+function verify_priority_position(
+    chain: Chain,
+    accounts: Map<string, Account>,
+    position_index: number,
+    priority: number
+) {
+    const deployer = accounts.get('deployer')!;
+
+    const read_only_call = chain.callReadOnlyFn(
+        'heap',
+        'get-position',
+        [types.uint(position_index)],
+        deployer.address
+    );
+
+    const position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
+
+    position['priority'].expectUint(priority);
+}
+
 Clarinet.test({
     name: "Ensure get-position returns a dummy default value for non existent positions",
     fn(chain: Chain, accounts: Map<string, Account>) {
