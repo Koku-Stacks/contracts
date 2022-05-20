@@ -43,6 +43,7 @@ async function post_deployment_transactions() {
   const deployer = chain.accounts.get("deployer")!;
   const tokenContract = "token";
   const usdaContract = "usda";
+  const vaultContract = "vault";
   async function checkContractAuthorization(
     principal: string,
     contractName: string
@@ -133,6 +134,19 @@ async function post_deployment_transactions() {
 
   for (let i = 0; i < accountDetails.length; i++) {
     await mint(accountDetails[i].address);
+  }
+
+  try {
+    await chain.callContract(
+      deployer.address,
+      vaultContract,
+      "set-approved-token",
+      [principalCV(`${usdaContract}.usda`)],
+      deployer.secretKey
+    );
+    console.log("set approved token");
+  } catch (e) {
+    console.log("error setting approved token`");
   }
 }
 
