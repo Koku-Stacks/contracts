@@ -136,17 +136,18 @@ async function post_deployment_transactions() {
     await mint(accountDetails[i].address);
   }
 
-  try {
-    await chain.callContract(
-      deployer.address,
-      vaultContract,
-      "set-approved-token",
-      [principalCV(`${usdaContract}.usda`)],
-      deployer.secretKey
-    );
+  const setApprovedUSDA = await chain.callContract(
+    deployer.address,
+    vaultContract,
+    "set-approved-token",
+    [principalCV(`${deployer.address}.usda`)],
+    deployer.secretKey
+  );
+
+  if (setApprovedUSDA.error) {
+    console.log("error setting approved");
+  } else {
     console.log("set approved token");
-  } catch (e) {
-    console.log("error setting approved token`");
   }
 }
 
