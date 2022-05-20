@@ -15,6 +15,8 @@ const contractName = "token";
 const sipContractName = "sip-010-trait-ft-standard";
 const burnTrait = "burn-trait";
 const mintTrait = "mint-trait";
+const ERR_CONTRACT_OWNER_ONLY = "1001";
+
 
 describe("token contract", () => {
   before(async () => {
@@ -126,7 +128,7 @@ describe("token contract", () => {
     const wrongUpdateResultResponse = await chain.getTransactionResponse(wrongUpdateResult.txid);
     expect(wrongUpdateResultResponse).to.be.ok;
     expect(wrongUpdateResultResponse.success).to.be.false;
-    expect(wrongUpdateResultResponse.value.value).to.be.eq("103");
+    expect(wrongUpdateResultResponse.value.value).to.be.eq(ERR_CONTRACT_OWNER_ONLY);
 
     // double check that value wasn't changed
     const doubleCheckResult = await chain.callReadOnlyFn(
