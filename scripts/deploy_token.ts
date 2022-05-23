@@ -21,7 +21,7 @@ const contract_path3 = "traits/sip-010-trait-ft-standard";
 const contract_path4 = "token";
 const contract_name1 = "mint-trait";
 const contract_name2 = "burn-trait";
-const contract_name3 = "sip-010-trait";
+const contract_name3 = "sip-010-trait-ft-standard";
 const contract_name4 = "token";
 
 const chain = new StacksChain(networkEndPoint, {
