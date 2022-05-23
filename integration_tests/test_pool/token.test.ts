@@ -427,6 +427,8 @@ describe("token contract", () => {
 
   it("deposit", async () => {
     const deployer = chain.accounts.get("deployer")!;
+    const userA = chain.accounts.get("wallet_1")!;
+
     const token = `${contractAddress}.usda`;
     await chain
       .callContract(
@@ -434,7 +436,7 @@ describe("token contract", () => {
         contractName,
         "deposit",
         [principalCV(token), uintCV(1000), noneCV()],
-        deployer.address
+        userA.address
       )
       .then((tx) => {
         console.log("transaction:");
