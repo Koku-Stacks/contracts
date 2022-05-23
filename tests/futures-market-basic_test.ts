@@ -22,7 +22,10 @@ const POSITION_MAX_DURATION = 10; // in days
 
 const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
 
-const INDEX_CHUNK_SIZE = 100;
+const INDEX_CHUNK_SIZE =
+// ref-4
+20
+;
 
 const gas_fee = 1;
 

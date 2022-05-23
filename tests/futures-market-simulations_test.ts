@@ -4,7 +4,10 @@ const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
 
 const ORDER_TYPE_LONG = 1;
 
-const INDEX_CHUNK_SIZE = 100;
+const INDEX_CHUNK_SIZE =
+// ref-1
+20
+;
 
 const block_mining_time = 600; // in seconds
 
