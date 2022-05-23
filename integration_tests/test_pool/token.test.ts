@@ -5,7 +5,6 @@ import * as fs from "fs";
 import * as path from "path";
 import { CONTRACT_FOLDER, TRAITS_FOLDER, STACKS_API_URL } from "../config";
 import { StacksChain } from "dy-finance.lib";
-
 const chain = new StacksChain(STACKS_API_URL, {
   defaultFee: 100000,
 });
@@ -16,7 +15,6 @@ const sipContractName = "sip-010-trait-ft-standard";
 const burnTrait = "burn-trait";
 const mintTrait = "mint-trait";
 const ERR_CONTRACT_OWNER_ONLY = "1001";
-
 
 describe("token contract", () => {
   before(async () => {
@@ -51,17 +49,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    await chain.deployContract(
-      burnTrait,
-      burnTraitCode,
-      deployer.secretKey
-    );
+    await chain.deployContract(burnTrait, burnTraitCode, deployer.secretKey);
 
-    await chain.deployContract(
-      mintTrait,
-      mintTraitCode,
-      deployer.secretKey
-    );
+    await chain.deployContract(mintTrait, mintTraitCode, deployer.secretKey);
 
     const contractId = await chain.deployContract(
       contractName,
@@ -99,7 +89,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    const updateResultResponse = await chain.getTransactionResponse(updateResult.txid);
+    const updateResultResponse = await chain.getTransactionResponse(
+      updateResult.txid
+    );
     expect(updateResultResponse).to.be.ok;
     expect(updateResultResponse.success).to.be.true;
 
@@ -125,10 +117,14 @@ describe("token contract", () => {
       wallet1.secretKey
     );
 
-    const wrongUpdateResultResponse = await chain.getTransactionResponse(wrongUpdateResult.txid);
+    const wrongUpdateResultResponse = await chain.getTransactionResponse(
+      wrongUpdateResult.txid
+    );
     expect(wrongUpdateResultResponse).to.be.ok;
     expect(wrongUpdateResultResponse.success).to.be.false;
-    expect(wrongUpdateResultResponse.value.value).to.be.eq(ERR_CONTRACT_OWNER_ONLY);
+    expect(wrongUpdateResultResponse.value.value).to.be.eq(
+      ERR_CONTRACT_OWNER_ONLY
+    );
 
     // double check that value wasn't changed
     const doubleCheckResult = await chain.callReadOnlyFn(
@@ -230,7 +226,7 @@ describe("token contract", () => {
       deployer.address
     );
 
-    if(isAuthorizedContract.value == false){
+    if (isAuthorizedContract.value == false) {
       // authorize contract
       const authorizeContract = await chain.callContract(
         contractAddress,
@@ -239,8 +235,10 @@ describe("token contract", () => {
         [principalCV(deployer.address)],
         deployer.secretKey
       );
-  
-      const authorizeContractResponse = await chain.getTransactionResponse(authorizeContract.txid);
+
+      const authorizeContractResponse = await chain.getTransactionResponse(
+        authorizeContract.txid
+      );
       expect(authorizeContractResponse).to.be.ok;
       expect(authorizeContractResponse.success).to.be.true;
       console.log("NOT AUTHORIZED");
@@ -257,7 +255,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    const goodMintCallResponse = await chain.getTransactionResponse(goodMintCall.txid);
+    const goodMintCallResponse = await chain.getTransactionResponse(
+      goodMintCall.txid
+    );
     expect(goodMintCallResponse).to.be.ok;
     expect(goodMintCallResponse.success).to.be.true;
 
@@ -269,7 +269,9 @@ describe("token contract", () => {
       wallet1.secretKey
     );
 
-    const badMintCallResponse = await chain.getTransactionResponse(badMintCall.txid);
+    const badMintCallResponse = await chain.getTransactionResponse(
+      badMintCall.txid
+    );
     expect(badMintCallResponse).to.be.ok;
     expect(badMintCallResponse.success).to.be.false;
 
@@ -281,7 +283,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    const mintCallToOtherWalletResponse = await chain.getTransactionResponse(mintCallToOtherWallet.txid);
+    const mintCallToOtherWalletResponse = await chain.getTransactionResponse(
+      mintCallToOtherWallet.txid
+    );
     expect(mintCallToOtherWalletResponse).to.be.ok;
     expect(mintCallToOtherWalletResponse.success).to.be.true;
 
@@ -330,11 +334,18 @@ describe("token contract", () => {
       contractAddress,
       contractName,
       "transfer",
-      [uintCV(50), principalCV(deployer.address), principalCV(wallet1.address), noneCV()],
+      [
+        uintCV(50),
+        principalCV(deployer.address),
+        principalCV(wallet1.address),
+        noneCV(),
+      ],
       deployer.secretKey
     );
 
-    const deployerTransferResponse = await chain.getTransactionResponse(deployerTransfer.txid);
+    const deployerTransferResponse = await chain.getTransactionResponse(
+      deployerTransfer.txid
+    );
     expect(deployerTransferResponse).to.be.ok;
     expect(deployerTransferResponse.success).to.be.true;
 
@@ -361,7 +372,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    const goodBurnCallResponse = await chain.getTransactionResponse(goodBurnCall.txid);
+    const goodBurnCallResponse = await chain.getTransactionResponse(
+      goodBurnCall.txid
+    );
     expect(goodBurnCallResponse).to.be.ok;
     expect(goodBurnCallResponse.success).to.be.true;
 
@@ -373,7 +386,9 @@ describe("token contract", () => {
       deployer.secretKey
     );
 
-    const zeroBurnCallResponse = await chain.getTransactionResponse(zeroBurnCall.txid);
+    const zeroBurnCallResponse = await chain.getTransactionResponse(
+      zeroBurnCall.txid
+    );
     expect(zeroBurnCallResponse).to.be.ok;
     expect(zeroBurnCallResponse.success).to.be.false;
     expect(zeroBurnCallResponse.value.value).to.be.equal("1");
@@ -408,5 +423,22 @@ describe("token contract", () => {
     expect(+updatedwallet1Balance.value.value).to.be.equal(
       +initialwallet1Balance.value.value + 50 + 50
     );
+  });
+
+  it("deposit", async () => {
+    const deployer = chain.accounts.get("deployer")!;
+    const token = `${contractAddress}.usda`;
+    await chain
+      .callContract(
+        deployer.address,
+        contractName,
+        "deposit",
+        [principalCV(token), uintCV(1000), noneCV()],
+        deployer.address
+      )
+      .then((tx) => {
+        console.log("transaction:");
+        console.log(tx);
+      });
   });
 });
