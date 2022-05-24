@@ -60,6 +60,23 @@ function verify_priority_position(
     position['priority'].expectUint(priority);
 }
 
+function extract_max(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get('deployer')!;
+
+    const call = chain.mineBlock([
+        Tx.contractCall(
+            'heap',
+            'heap-extract-max',
+            [],
+            deployer.address
+        )
+    ]);
+
+    const position: {[key: string]: string} = call.receipts[0].result.expectOk().expectTuple() as any;
+
+    return position['priority'];
+}
+
 Clarinet.test({
     name: "Ensure get-position returns a dummy default value for non existent positions",
     fn(chain: Chain, accounts: Map<string, Account>) {
