@@ -286,10 +286,152 @@ Clarinet.test({
 
         initialize_heap(chain, accounts);
 
-        const priorities = [12, 15, 2, 6, 19, 3, 5, 8];
-        const sorted_priorities = [19, 15, 12, 8, 6, 5, 3, 2]
         const constant_value = 0;
 
-        
+        insert_position(chain, accounts, 12, constant_value);
+
+        // [12]
+        verify_priority_position(chain, accounts, 1, 12);
+
+        insert_position(chain, accounts, 15, constant_value);
+
+        // [12] -> [12, 15] -> [15, 12]
+        verify_priority_position(chain, accounts, 1, 15);
+        verify_priority_position(chain, accounts, 2, 12);
+
+        insert_position(chain, accounts, 2, constant_value);
+
+        // [15, 12] -> [15, 12, 2]
+        verify_priority_position(chain, accounts, 1, 15);
+        verify_priority_position(chain, accounts, 2, 12);
+        verify_priority_position(chain, accounts, 3, 2);
+
+        insert_position(chain, accounts, 6, constant_value);
+
+        // [15, 12, 2] -> [15, 12, 2, 6]
+        verify_priority_position(chain, accounts, 1, 15);
+        verify_priority_position(chain, accounts, 2, 12);
+        verify_priority_position(chain, accounts, 3, 2);
+        verify_priority_position(chain, accounts, 4, 6);
+
+        insert_position(chain, accounts, 19, constant_value);
+
+        // [15, 12, 2, 6] -> [15, 12, 2, 6, 19] -> [15, 19, 2, 6, 12] -> [19, 15, 2, 6, 12]
+        verify_priority_position(chain, accounts, 1, 19);
+        verify_priority_position(chain, accounts, 2, 15);
+        verify_priority_position(chain, accounts, 3, 2);
+        verify_priority_position(chain, accounts, 4, 6);
+        verify_priority_position(chain, accounts, 5, 12);
+
+        insert_position(chain, accounts, 3, constant_value);
+
+        // [19, 15, 2, 6, 12] -> [19, 15, 2, 6, 12, 3] -> [19, 15, 3, 6, 12, 2]
+        verify_priority_position(chain, accounts, 1, 19);
+        verify_priority_position(chain, accounts, 2, 15);
+        verify_priority_position(chain, accounts, 3, 3);
+        verify_priority_position(chain, accounts, 4, 6);
+        verify_priority_position(chain, accounts, 5, 12);
+        verify_priority_position(chain, accounts, 6, 2);
+
+        insert_position(chain, accounts, 5, constant_value);
+
+        // [19, 15, 3, 6, 12, 2] -> [19, 15, 3, 6, 12, 2, 5] -> [19, 15, 5, 6, 12, 2, 3]
+        verify_priority_position(chain, accounts, 1, 19);
+        verify_priority_position(chain, accounts, 2, 15);
+        verify_priority_position(chain, accounts, 3, 5);
+        verify_priority_position(chain, accounts, 4, 6);
+        verify_priority_position(chain, accounts, 5, 12);
+        verify_priority_position(chain, accounts, 6, 2);
+        verify_priority_position(chain, accounts, 7, 3);
+
+        insert_position(chain, accounts, 8, constant_value);
+
+        // [19, 15, 5, 6, 12, 2, 3] -> [19, 15, 5, 6, 12, 2, 3, 8] -> [19, 15, 5, 8, 12, 2, 3, 6]
+        verify_priority_position(chain, accounts, 1, 19);
+        verify_priority_position(chain, accounts, 2, 15);
+        verify_priority_position(chain, accounts, 3, 5);
+        verify_priority_position(chain, accounts, 4, 8);
+        verify_priority_position(chain, accounts, 5, 12);
+        verify_priority_position(chain, accounts, 6, 2);
+        verify_priority_position(chain, accounts, 7, 3);
+        verify_priority_position(chain, accounts, 8, 6);
+
+        let max_priority_position = extract_max(chain, accounts);
+
+        max_priority_position.expectUint(19);
+
+        // [19, 15, 5, 8, 12, 2, 3, 6] -> [6, 15, 5, 8, 12, 2, 3] -> [15, 6, 5, 8, 12, 2, 3] -> [15, 12, 5, 8, 6, 2, 3]
+        verify_priority_position(chain, accounts, 1, 15);
+        verify_priority_position(chain, accounts, 2, 12);
+        verify_priority_position(chain, accounts, 3, 5);
+        verify_priority_position(chain, accounts, 4, 8);
+        verify_priority_position(chain, accounts, 5, 6);
+        verify_priority_position(chain, accounts, 6, 2);
+        verify_priority_position(chain, accounts, 7, 3);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(15);
+
+        // [15, 12, 5, 8, 6, 2, 3] -> [3, 12, 5, 8, 6, 2] -> [12, 3, 5, 8, 6, 2] -> [12, 8, 5, 3, 6, 2]
+        verify_priority_position(chain, accounts, 1, 12);
+        verify_priority_position(chain, accounts, 2, 8);
+        verify_priority_position(chain, accounts, 3, 5);
+        verify_priority_position(chain, accounts, 4, 3);
+        verify_priority_position(chain, accounts, 5, 6);
+        verify_priority_position(chain, accounts, 6, 2);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(12);
+
+        // [12, 8, 5, 3, 6, 2] -> [2, 8, 5, 3, 6] -> [8, 2, 5, 3, 6] -> [8, 6, 5, 3, 2]
+        verify_priority_position(chain, accounts, 1, 8);
+        verify_priority_position(chain, accounts, 2, 6);
+        verify_priority_position(chain, accounts, 3, 5);
+        verify_priority_position(chain, accounts, 4, 3);
+        verify_priority_position(chain, accounts, 5, 2);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(8);
+
+        // [8, 6, 5, 3, 2] -> [2, 6, 5, 3] -> [6, 2, 5, 3] -> [6, 3, 5, 2]
+        verify_priority_position(chain, accounts, 1, 6);
+        verify_priority_position(chain, accounts, 2, 3);
+        verify_priority_position(chain, accounts, 3, 5);
+        verify_priority_position(chain, accounts, 4, 2);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(6);
+
+        // [6, 3, 5, 2] -> [2, 3, 5] -> [5, 3, 2]
+        verify_priority_position(chain, accounts, 1, 5);
+        verify_priority_position(chain, accounts, 2, 3);
+        verify_priority_position(chain, accounts, 3, 2);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(5);
+
+        // [5, 3, 2] -> [2, 3] -> [3, 2]
+        verify_priority_position(chain, accounts, 1, 3);
+        verify_priority_position(chain, accounts, 2, 2);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(3);
+
+        // [3, 2] -> [2]
+        verify_priority_position(chain, accounts, 1, 2);
+
+        max_priority_position = extract_max(chain, accounts);
+        max_priority_position.expectUint(2);
+
+        const call = chain.mineBlock([
+            Tx.contractCall(
+            'heap',
+            'heap-extract-max',
+            [],
+            userA.address
+            )
+        ]);
+
+        call.receipts[0].result.expectErr().expectUint(ERR_EMPTY_HEAP);
     }
 });
