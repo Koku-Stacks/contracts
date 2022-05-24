@@ -65,11 +65,13 @@
                   (> (get priority right-position)
                      (get priority largest-against-left-position)))
             right-index
-            largest-against-left)))
+            largest-against-left))
+        (largest-position
+         (get-position largest)))
     (if (not (is-eq largest largest-initial))
       (begin
+        (map-set heap {index: largest-initial} largest-position)
         (map-set heap {index: largest} largest-initial-position)
-        (map-set heap {index: largest-initial} (get-position largest))
         largest)
       u0)))
 
