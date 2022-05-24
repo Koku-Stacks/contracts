@@ -17,7 +17,7 @@
     "deploy-all": "ts-node scripts/deploy_all",
     "btc-price": "ts-node scripts/btc_price.ts",
     "gas-cost": "ts-node scripts/estimate_costs.ts",
-    "bmu-chunk-size": "ts-node scripts/batch-position-maintenance_change_chunk_size",
+    "bpm-chunk-size": "ts-node scripts/batch-position-maintenance_change_chunk_size",
     "generate-key": "ts-node scripts/keys_generation.ts"
   },
   "devDependencies": {
