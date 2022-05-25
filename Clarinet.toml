@@ -39,6 +39,8 @@ depends_on = []
 path = "draft/max-heap.clar"
 depends_on = []
 
+[contracts.min-heap]
+path = "draft/min-heap.clar"
 depends_on = []
 
 [contracts.token]
