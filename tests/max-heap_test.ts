@@ -7,7 +7,7 @@ function initialize_heap(chain: Chain, accounts: Map<string, Account>) {
 
     const call = chain.mineBlock([
         Tx.contractCall(
-            'heap',
+            'max-heap',
             'initialize',
             [],
             deployer.address
@@ -27,7 +27,7 @@ function insert_position(
 
     const call = chain.mineBlock([
         Tx.contractCall(
-            'heap',
+            'max-heap',
             'max-heap-insert',
             [
                 types.uint(priority),
@@ -49,7 +49,7 @@ function verify_priority_position(
     const deployer = accounts.get('deployer')!;
 
     const read_only_call = chain.callReadOnlyFn(
-        'heap',
+        'max-heap',
         'get-position',
         [types.uint(position_index)],
         deployer.address
@@ -65,7 +65,7 @@ function extract_max(chain: Chain, accounts: Map<string, Account>) {
 
     const call = chain.mineBlock([
         Tx.contractCall(
-            'heap',
+            'max-heap',
             'heap-extract-max',
             [],
             deployer.address
@@ -86,7 +86,7 @@ Clarinet.test({
 
         const call = chain.mineBlock([
             Tx.contractCall(
-                'heap',
+                'max-heap',
                 'max-heap-insert',
                 [
                     types.uint(1),
@@ -101,7 +101,7 @@ Clarinet.test({
         const nonexistent_position_index = 2;
 
         const read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'get-position',
             [types.uint(nonexistent_position_index)],
             userA.address
@@ -126,7 +126,7 @@ Clarinet.test({
 
         const call = chain.mineBlock([
             Tx.contractCall(
-                'heap',
+                'max-heap',
                 'max-heap-insert',
                 [
                     types.uint(position_priority),
@@ -141,7 +141,7 @@ Clarinet.test({
         call.receipts[0].result.expectOk().expectBool(true);
 
         const read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'get-position',
             [types.uint(position_index)],
             userA.address
@@ -162,7 +162,7 @@ Clarinet.test({
         initialize_heap(chain, accounts);
 
         const read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'priority-position',
             [],
             userA.address
@@ -187,7 +187,7 @@ Clarinet.test({
         let max_priority = 1;
 
         let read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'priority-position',
             [],
             userA.address
@@ -206,7 +206,7 @@ Clarinet.test({
         max_priority = 2;
 
         read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'priority-position',
             [],
             userA.address
@@ -226,7 +226,7 @@ Clarinet.test({
         max_priority = 3;
 
         read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'priority-position',
             [],
             userA.address
@@ -247,7 +247,7 @@ Clarinet.test({
         max_priority = 4;
 
         read_only_call = chain.callReadOnlyFn(
-            'heap',
+            'max-heap',
             'priority-position',
             [],
             userA.address
@@ -268,7 +268,7 @@ Clarinet.test({
 
         const call = chain.mineBlock([
             Tx.contractCall(
-                'heap',
+                'max-heap',
                 'heap-extract-max',
                 [],
                 userA.address
@@ -425,7 +425,7 @@ Clarinet.test({
 
         const call = chain.mineBlock([
             Tx.contractCall(
-            'heap',
+            'max-heap',
             'heap-extract-max',
             [],
             userA.address
