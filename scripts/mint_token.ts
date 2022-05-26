@@ -6,7 +6,7 @@ import { principalCV } from "@stacks/transactions/dist/clarity/types/principalCV
 // input parameters:
 const testnet = true;
 const secretKey = "INPUT_YOUR_KEY_HERE";
-const amountToMint = 0; // input number of tokens here
+const amountToMint = 100000000; // input number of tokens here, including 6 decimals
 const destinationAddressToMint = "INPUT_YOUR_ADDRESS_HERE";
 
 /////////////////////////////
@@ -56,8 +56,7 @@ const password = "testing_password";
                 [principalCV(deployerAddress)],
                 wallet.accounts[0].stxPrivateKey
             );
-
-            await chain.getTransactionResponse(authorizeContract.txid);
+            console.log("done:", authorizeContract);
           } else {
             console.log("AUTHORIZED");
           }
