@@ -15,13 +15,13 @@
 (define-constant MAX_HEAP_SIZE u31)
 
 (define-map heap {index: uint}
-                 {priority: uint,
+                 {price: uint,
                   value: uint})
 
 (define-data-var heap-size uint u0)
 
 (define-read-only (get-position (index uint))
-  (default-to {priority: u0, value: u0} (map-get? heap {index: index})))
+  (default-to {price: u0, value: u0} (map-get? heap {index: index})))
 
 (define-read-only (parent-index (index uint))
   (/ index u2))
@@ -53,8 +53,8 @@
         (largest-against-left
          (if (and (<= left-index
                       (var-get heap-size))
-                  (> (get priority left-position)
-                     (get priority largest-initial-position)))
+                  (> (get price left-position)
+                     (get price largest-initial-position)))
             left-index
             largest-initial))
         (largest-against-left-position
@@ -62,8 +62,8 @@
         (largest
          (if (and (<= right-index
                       (var-get heap-size))
-                  (> (get priority right-position)
-                     (get priority largest-against-left-position)))
+                  (> (get price right-position)
+                     (get price largest-against-left-position)))
             right-index
             largest-against-left))
         (largest-position
@@ -101,8 +101,8 @@
         (p-index (parent-index index))
         (p-index-position (get-position p-index)))
     (if (and (> index PRIORITY_INDEX)
-             (> (get priority index-position)
-                (get priority p-index-position)))
+             (> (get price index-position)
+                (get price p-index-position)))
       (begin
         (map-set heap {index: index} p-index-position)
         (map-set heap {index: p-index} index-position)
@@ -131,7 +131,7 @@
   (heap-move-up-core index))
 
 (define-private (populate-heap-step (index uint))
-  (map-insert heap {index: index} {priority: u0, value: u0}))
+  (map-insert heap {index: index} {price: u0, value: u0}))
 
 (define-private (populate-heap)
   (map populate-heap-step HEAP_INDICES))
@@ -146,11 +146,11 @@
       (max-heapify-depth-1 PRIORITY_INDEX)
       (ok max-position))))
 
-(define-public (max-heap-insert (priority uint) (value uint))
+(define-public (max-heap-insert (price uint) (value uint))
   (begin
     (asserts! (< (var-get heap-size) MAX_HEAP_SIZE) ERR_FULL_HEAP)
     (var-set heap-size (+ (var-get heap-size) u1))
-    (map-set heap {index: (var-get heap-size)} {priority: priority, value: value})
+    (map-set heap {index: (var-get heap-size)} {price: price, value: value})
     (heap-move-up-depth-5 (var-get heap-size))
     (ok true)))
 

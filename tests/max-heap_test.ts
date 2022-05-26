@@ -44,7 +44,7 @@ function verify_priority_position(
     chain: Chain,
     accounts: Map<string, Account>,
     position_index: number,
-    priority: number
+    price: number
 ) {
     const deployer = accounts.get('deployer')!;
 
@@ -57,7 +57,7 @@ function verify_priority_position(
 
     const position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
 
-    position['priority'].expectUint(priority);
+    position['price'].expectUint(price);
 }
 
 function extract_max(chain: Chain, accounts: Map<string, Account>) {
@@ -74,7 +74,7 @@ function extract_max(chain: Chain, accounts: Map<string, Account>) {
 
     const position: {[key: string]: string} = call.receipts[0].result.expectOk().expectTuple() as any;
 
-    return position['priority'];
+    return position['price'];
 }
 
 Clarinet.test({
@@ -109,7 +109,7 @@ Clarinet.test({
 
         const dummy_position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
 
-        dummy_position['priority'].expectUint(0);
+        dummy_position['price'].expectUint(0);
         dummy_position['value'].expectUint(0);
     }
 });
@@ -149,7 +149,7 @@ Clarinet.test({
 
         const position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
 
-        position['priority'].expectUint(position_priority);
+        position['price'].expectUint(position_priority);
         position['value'].expectUint(position_value);
     }
 });
@@ -195,7 +195,7 @@ Clarinet.test({
 
         let priority_position: {[key: string]: string} = read_only_call.result.expectOk().expectTuple() as any;
 
-        priority_position['priority'].expectUint(max_priority);
+        priority_position['price'].expectUint(max_priority);
 
         insert_position(chain, accounts, 2, 20);
 
@@ -214,7 +214,7 @@ Clarinet.test({
 
         priority_position = read_only_call.result.expectOk().expectTuple() as any;
 
-        priority_position['priority'].expectUint(max_priority);
+        priority_position['price'].expectUint(max_priority);
 
         insert_position(chain, accounts, 3, 30);
 
@@ -234,7 +234,7 @@ Clarinet.test({
 
         priority_position = read_only_call.result.expectOk().expectTuple() as any;
 
-        priority_position['priority'].expectUint(max_priority);
+        priority_position['price'].expectUint(max_priority);
 
         insert_position(chain, accounts, 4, 40);
 
@@ -255,7 +255,7 @@ Clarinet.test({
 
         priority_position = read_only_call.result.expectOk().expectTuple() as any;
 
-        priority_position['priority'].expectUint(max_priority);
+        priority_position['price'].expectUint(max_priority);
     }
 });
 
