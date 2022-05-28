@@ -409,4 +409,5 @@ describe("token contract", () => {
       +initialwallet1Balance.value.value + 50 + 50
     );
   });
+
 });
