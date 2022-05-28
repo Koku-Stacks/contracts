@@ -626,7 +626,7 @@ Clarinet.test({
         const wallet1 = accounts.get('wallet_1')!;
 
         let uri = chain.callReadOnlyFn('token', 'get-token-uri', [], wallet1.address);
-        uri.result.expectOk().expectSome().expectUtf8('www.token.com');
+        uri.result.expectOk().expectSome().expectUtf8('');
 
         const newUri = 'www.token.org';
 
