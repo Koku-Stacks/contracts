@@ -68,7 +68,9 @@ Whereas 1 STX = 1000000 microSTX or 1 microSTX = 1 / 1000000
 Follow the usage example
 
     # general usage to measure gas cost
+    npm run bpm-chunk-size <chunk size>
     npm run gas-cost
+    # then paste the results in gas-cost report under batch-position-maintenance calls into [report.ipynb](report.ipynb) and see charts of the report.
 
 ### btc price
 

@@ -4,7 +4,10 @@ const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
 
 const ORDER_TYPE_LONG = 1;
 
-const INDEX_CHUNK_SIZE = 100;
+const INDEX_CHUNK_SIZE =
+// ref-1
+20
+;
 
 const block_mining_time = 600; // in seconds
 
@@ -44,7 +47,7 @@ function mint_token_for_accounts(chain: Chain, accounts: Map<string, Account>) {
         .from(accounts.values())
         .map(account => account.address);
 
-    const amount_to_mint = 1000;
+    const amount_to_mint = 10000;
 
     for (const principal_str of account_principals) {
         call = chain.mineBlock([
