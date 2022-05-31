@@ -53,8 +53,8 @@
         (smallest-against-left
          (if (and (<= left-index
                       (var-get heap-size))
-                  (< (get price left-position)
-                     (get price smallest-initial-position)))
+                  (<= (get price left-position)
+                      (get price smallest-initial-position)))
             left-index
             smallest-initial))
         (smallest-against-left-position
@@ -62,8 +62,8 @@
         (smallest
          (if (and (<= right-index
                       (var-get heap-size))
-                  (< (get price right-position)
-                     (get price smallest-against-left-position)))
+                  (<= (get price right-position)
+                      (get price smallest-against-left-position)))
             right-index
             smallest-against-left))
         (smallest-position
@@ -101,8 +101,8 @@
         (p-index (parent-index index))
         (p-index-position (get-position p-index)))
     (if (and (> index PRIORITY_INDEX)
-             (< (get price index-position)
-                (get price p-index-position)))
+             (<= (get price index-position)
+                 (get price p-index-position)))
       (begin
         (map-set heap {index: index} p-index-position)
         (map-set heap {index: p-index} index-position)
