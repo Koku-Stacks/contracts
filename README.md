@@ -72,18 +72,6 @@ Follow the usage example
     npm run gas-cost
     # then paste the results in gas-cost report under batch-position-maintenance calls into [report.ipynb](report.ipynb) and see charts of the report.
 
-### btc price
-
-Its base invocation command is `npm run btc-price`. One optional parameter can be passed, namely `--service`.
-
-When the base command is invoked, exactly one price update is performed.
-When the optional parameter `--service` is passed, one price update is performed every minute until the command is exited with C-c.
-
-    # general usage: performs exactly one price update
-    npm run btc-price
-    # run as a service: performs one price update every minute
-    npm run btc-price -- --service
-
 ### keys generation
 
 Its base invocation command is `npm run generate-key`. It does not accept any parameters.
