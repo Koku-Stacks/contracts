@@ -80,7 +80,7 @@
 ;; internal storage
 (define-data-var owner principal tx-sender)
 (define-data-var submitted-new-owner (optional principal) none)
-(define-data-var token-uri (string-utf8 256) u"www.token.com")
+(define-data-var token-uri (string-utf8 256) u"")
 (define-data-var token-name (string-ascii 32) "dYrivaNative")
 (define-data-var token-symbol (string-ascii 32) "DYV")
 

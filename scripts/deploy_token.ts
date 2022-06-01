@@ -63,13 +63,15 @@ const password = "testing_password";
             wallet.accounts[0].stxPrivateKey
         );
         // 3
-        console.log("Deploying contract:", contract_name3);
-        contract_code = readFileSync(`contracts/${contract_path3}.clar`).toString();
-        smartContractId = await chain.deployContract(
-            contract_name3,
-            contract_code,
-            wallet.accounts[0].stxPrivateKey
-        );
+        if(testnet) {
+            console.log("Deploying contract:", contract_name3);
+            contract_code = readFileSync(`contracts/${contract_path3}.clar`).toString();
+            smartContractId = await chain.deployContract(
+                contract_name3,
+                contract_code,
+                wallet.accounts[0].stxPrivateKey
+            );
+        }
         // 4
         console.log("Deploying contract:", contract_name4);
         contract_code = readFileSync(`contracts/${contract_path4}.clar`).toString();

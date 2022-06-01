@@ -150,3 +150,8 @@ Mint is allowed only within **remaining-tokens-to-mint** limit.
 (define-public (burn (amount uint))
 ```
 Everyone is allowed to burn his own token but not tokens of others.
+
+### token deployment to mainnet
+```
+git apply token_mainnet.patch
+```
