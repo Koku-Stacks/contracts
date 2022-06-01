@@ -35,13 +35,17 @@ depends_on = []
 path = "contracts/traits/sip013-trait-sft-standard.clar"
 depends_on = []
 
-[contracts.max-heap]
-path = "contracts/max-heap.clar"
+[contracts.min-heap-storage]
+path = "contracts/min-heap-storage.clar"
 depends_on = []
 
-[contracts.min-heap]
-path = "contracts/min-heap.clar"
+[contracts.max-heap-storage]
+path = "contracts/max-heap-storage.clar"
 depends_on = []
+
+[contracts.heaps]
+path = "contracts/heaps.clar"
+depends_on = ["min-heap-storage", "max-heap-storage"]
 
 [contracts.token]
 path = "contracts/token.clar"
