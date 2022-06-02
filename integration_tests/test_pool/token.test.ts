@@ -468,7 +468,7 @@ describe("token contract", () => {
 
     for (let i = 1; i <= positions_to_open; i++) {
       const position_size = 1;
-      const insertPosition = await chain.callContract(
+      const call = await chain.callContract(
         deployer.address,
         futures_market_contract,
         "insert-position",
@@ -480,7 +480,7 @@ describe("token contract", () => {
         userA.address
       );
 
-      expect(insertPosition).to.be.ok;
+      expect(call).to.be.ok;
     }
 
     const batchPositionMaintenance = await chain.callContract(
