@@ -12,10 +12,12 @@ describe("futures position", () => {
   });
 
   let contractAddress: string;
-  const contractName = "token";
   const sipContractName = "sip-010-trait-ft-standard";
   const burnTrait = "burn-trait";
   const mintTrait = "mint-trait";
+  const tokenContractName = "token";
+  const futuresMarketContractName = "futures-market";
+
   before(async () => {
     await chain.loadAccounts();
 
@@ -36,8 +38,13 @@ describe("futures position", () => {
       { encoding: "utf8" }
     );
 
-    const contractCode = fs.readFileSync(
-      path.join(CONTRACT_FOLDER, `${contractName}.clar`),
+    const tokenContractCode = fs.readFileSync(
+      path.join(CONTRACT_FOLDER, `${tokenContractName}.clar`),
+      { encoding: "utf8" }
+    );
+
+    const futuresMarketContractCode = fs.readFileSync(
+      path.join(CONTRACT_FOLDER, `${futuresMarketContractName}.clar`),
       { encoding: "utf8" }
     );
 
@@ -52,9 +59,11 @@ describe("futures position", () => {
 
     await chain.deployContract(mintTrait, mintTraitCode, deployer.secretKey);
 
+    await chain.deployContract(tokenContractName, tokenContractCode, deployer.secretKey);
+
     const contractId = await chain.deployContract(
-      contractName,
-      contractCode,
+      futuresMarketContractName,
+      futuresMarketContractCode,
       deployer.secretKey
     );
 
@@ -65,8 +74,6 @@ describe("futures position", () => {
     const userA = chain.accounts.get("wallet_1")!;
     const userB = chain.accounts.get("wallet_2")!;
     const deployer = chain.accounts.get("deployer")!;
-    const token_contract = "token";
-    const futures_market_contract = "futures-market";
     const amount_to_mint = 10000;
     const INDEX_CHUNK_SIZE = 20;
     const positions_to_open = INDEX_CHUNK_SIZE;
@@ -74,20 +81,20 @@ describe("futures position", () => {
 
     // initialize contract
     await chain.callContract(
-      deployer.address,
-      futures_market_contract,
+      contractAddress,
+      futuresMarketContractName,
       "initialize",
-      [principalCV(`${deployer.address}.${token_contract}`)],
-      deployer.address
+      [principalCV(`${deployer.address}.${tokenContractName}`)],
+      deployer.secretKey
     );
 
     //mint token for accounts
     await chain.callContract(
       deployer.address,
-      token_contract,
+      tokenContractName,
       "add-authorized-contract",
       [principalCV(deployer.address)],
-      deployer.address
+      deployer.secretKey
     );
 
     const account_principals = Array.from(chain.accounts.values()).map(
@@ -95,40 +102,46 @@ describe("futures position", () => {
     );
 
     for (const principal_str of account_principals) {
+      const balanceBefore = await chain.callReadOnlyFn(
+        deployer.address,
+        tokenContractName,
+        "get-balance",
+        [principalCV(principal_str)],
+        principal_str
+      );
+
       await chain.callContract(
         deployer.address,
-        token_contract,
+        tokenContractName,
         "mint",
         [uintCV(amount_to_mint), principalCV(principal_str)],
-        deployer.address
+        deployer.secretKey
       );
 
       const balance = await chain.callReadOnlyFn(
         deployer.address,
-        token_contract,
+        tokenContractName,
         "get-balance",
         [principalCV(principal_str)],
         principal_str
       );
 
       expect(balance).to.be.ok;
-      expect(String(balance.value.value).split("n")[0]).to.be(
-        String(`${amount_to_mint}`)
-      );
+      expect(+balance.value.value).to.be.equal(+balanceBefore.value.value + amount_to_mint);
     }
 
     for (let i = 1; i <= positions_to_open; i++) {
       const position_size = 1;
       const insertPosition = await chain.callContract(
         deployer.address,
-        futures_market_contract,
+        futuresMarketContractName,
         "insert-position",
         [
           uintCV(position_size),
           uintCV(ORDER_TYPE_LONG),
-          principalCV(`${deployer.address}.${token_contract}`),
+          principalCV(`${deployer.address}.${tokenContractName}`),
         ],
-        userA.address
+        userA.secretKey
       );
 
       expect(insertPosition).to.be.ok;
@@ -136,13 +149,13 @@ describe("futures position", () => {
 
     const batchPositionMaintenance = await chain.callContract(
       deployer.address,
-      futures_market_contract,
+      futuresMarketContractName,
       "batch-position-maintenance",
       [],
-      userB.address
+      userB.secretKey
     );
 
     expect(batchPositionMaintenance).to.be.ok;
-    expect(String(batchPositionMaintenance)).to.be.equal(`1`);
-  });
+    expect(batchPositionMaintenance).to.be.equal(1);
+  }).timeout(1000000);
 });
