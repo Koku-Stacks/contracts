@@ -164,8 +164,8 @@ describe("futures position", () => {
     );
 
     expect(batchPositionMaintenance).to.be.ok;
-    const result = await chain.waitTransaction(batchPositionMaintenance.txid);
+    const result = await chain.getTransactionResponse(batchPositionMaintenance.txid);
+    expect(result).to.be.ok;
     expect(result.success).to.be.true;
-
   }).timeout(10000000);
 });
