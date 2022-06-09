@@ -270,15 +270,18 @@ u1 u2 u3 u4 u5 u6 u7 u8 u9 u10 u11 u12 u13 u14 u15 u16 u17 u18 u19 u20
           (charge-status-responses (map position-maintenance chunk-indices))
           (charge-statuses (map unwrap-helper charge-status-responses))
           (chargeable-updates-performed (fold + charge-statuses u0)))
-      ;; maintainer reward
-      (try! (as-contract (stx-transfer? (* (var-get gas-fee)
-                                           chargeable-updates-performed)
-                                        this-contract maintainer)))
-      (var-set last-updated-chunk
+      (if (> chargeable-updates-performed u0)
+        (begin
+          ;; maintainer reward
+          (try! (as-contract (stx-transfer? (* (var-get gas-fee)
+                                               chargeable-updates-performed)
+                                            this-contract maintainer)))
+          (var-set last-updated-chunk
                (+ u1 (var-get last-updated-chunk)))
-      (var-set last-updated-index
+          (var-set last-updated-index
                (+ INDEX_CHUNK_SIZE (var-get last-updated-index)))
-      (ok chargeable-updates-performed))))
+          (ok chargeable-updates-performed))
+      (ok u0) ))))
 
 (define-public (initialize (token <sip-010-token>))
   (begin
