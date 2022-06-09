@@ -15,6 +15,7 @@ describe("futures position", () => {
   const sipContractName = "sip-010-trait-ft-standard";
   const burnTrait = "burn-trait";
   const mintTrait = "mint-trait";
+  const ownerTrait = "owner-trait";
   const tokenContractName = "token";
   const futuresMarketContractName = "futures-market";
 
@@ -30,6 +31,11 @@ describe("futures position", () => {
 
     const burnTraitCode = fs.readFileSync(
       path.join(TRAITS_FOLDER, `${burnTrait}.clar`),
+      { encoding: "utf8" }
+    );
+
+    const ownerTraitCode = fs.readFileSync(
+      path.join(TRAITS_FOLDER, `${ownerTrait}.clar`),
       { encoding: "utf8" }
     );
 
@@ -58,6 +64,8 @@ describe("futures position", () => {
     await chain.deployContract(burnTrait, burnTraitCode, deployer.secretKey);
 
     await chain.deployContract(mintTrait, mintTraitCode, deployer.secretKey);
+
+    await chain.deployContract(ownerTrait, ownerTraitCode, deployer.secretKey);
 
     await chain.deployContract(tokenContractName, tokenContractCode, deployer.secretKey);
 
@@ -156,6 +164,8 @@ describe("futures position", () => {
     );
 
     expect(batchPositionMaintenance).to.be.ok;
-    expect(batchPositionMaintenance).to.be.equal(1);
-  }).timeout(1000000);
+    const result = await chain.waitTransaction(batchPositionMaintenance.txid);
+    expect(result.success).to.be.true;
+
+  }).timeout(10000000);
 });
