@@ -165,6 +165,7 @@ describe("futures position", () => {
 
     expect(batchPositionMaintenance).to.be.ok;
     const result = await chain.getTransactionResponse(batchPositionMaintenance.txid);
+    expect(+result.value.value).to.be.equal(0);
     expect(result).to.be.ok;
     expect(result.success).to.be.true;
   }).timeout(10000000);
