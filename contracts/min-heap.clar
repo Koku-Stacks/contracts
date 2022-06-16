@@ -19,6 +19,12 @@
                   value: uint})
 
 (define-data-var heap-size uint u0)
+(define-data-var authorized-order-book principal tx-sender)
+
+(define-public (set-authorized-order-book (order-book principal))
+  (begin
+    (var-set authorized-order-book order-book)
+    (ok true)))
 
 (define-read-only (get-position (index uint))
   (default-to {price: u0, value: u0} (map-get? heap {index: index})))
