@@ -44,6 +44,10 @@ async function post_deployment_transactions() {
   const tokenContract = "token";
   const usdaContract = "usda";
   const vaultContract = "vault";
+  const maxHeapContract = "max-heap";
+  const minHeapContract = "min-heap";
+  const orderBookConctract = "order-book";
+
   async function checkContractAuthorization(
     principal: string,
     contractName: string
@@ -141,6 +145,38 @@ async function post_deployment_transactions() {
     vaultContract,
     "set-approved-token",
     [principalCV(`${deployer.address}.usda`)],
+    deployer.secretKey
+  );
+
+  await chain.callContract(
+    deployer.address,
+    maxHeapContract,
+    "initialize",
+    [],
+    deployer.secretKey
+  );
+
+  await chain.callContract(
+    deployer.address,
+    minHeapContract,
+    "initialize",
+    [],
+    deployer.secretKey
+  );
+
+  await chain.callContract(
+    deployer.address,
+    maxHeapContract,
+    "set-authorized-order-book",
+    [principalCV(`${deployer.address}.${orderBookConctract}`)],
+    deployer.secretKey
+  );
+
+  await chain.callContract(
+    deployer.address,
+    minHeapContract,
+    "set-authorized-order-book",
+    [principalCV(`${deployer.address}.${orderBookConctract}`)],
     deployer.secretKey
   );
 }
