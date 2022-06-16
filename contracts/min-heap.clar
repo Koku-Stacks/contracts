@@ -1,5 +1,6 @@
 (define-constant ERR_EMPTY_HEAP (err u4000)) ;; FIXME adjust error code according to ERRORS.md
 (define-constant ERR_FULL_HEAP (err u4001)) ;; FIXME adjust error code according to ERRORS.md
+(define-constant ERR_NOT_AUTHORIZED (err u1000))
 
 ;; indices for a heap of height 4
 (define-constant HEAP_INDICES
@@ -19,6 +20,14 @@
                   value: uint})
 
 (define-data-var heap-size uint u0)
+(define-data-var authorized-order-book principal tx-sender)
+(define-data-var contract-owner principal tx-sender)
+
+(define-public (set-authorized-order-book (order-book principal))
+  (begin
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_NOT_AUTHORIZED)
+    (var-set authorized-order-book order-book)
+    (ok true)))
 
 (define-read-only (get-position (index uint))
   (default-to {price: u0, value: u0} (map-get? heap {index: index})))
