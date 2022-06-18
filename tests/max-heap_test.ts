@@ -58,6 +58,15 @@ function verify_priority_position(
     const position: {[key: string]: string} = read_only_call.result.expectTuple() as any;
 
     position['price'].expectUint(price);
+
+    const get_orders_call = chain.callReadOnlyFn(
+        'max-heap',
+        'get-orders',
+        [],
+        deployer.address
+    );
+
+    get_orders_call.result.expectOk();
 }
 
 function extract_max(chain: Chain, accounts: Map<string, Account>) {
