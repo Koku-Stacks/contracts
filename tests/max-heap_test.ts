@@ -66,7 +66,9 @@ function verify_priority_position(
         deployer.address
     );
 
-    get_orders_call.result.expectOk();
+    const order_list = get_orders_call.result.expectOk().expectList();
+    const order: {[key: string]: string} = order_list[position_index - 1].expectTuple() as any;
+    order['price'].expectUint(price);
 }
 
 function extract_max(chain: Chain, accounts: Map<string, Account>) {
