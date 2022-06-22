@@ -11,7 +11,8 @@ describe("order book", () => {
   });
 
   let contractAddress: string;
-  const tokenContractName = "max-heap";
+  const maxHeapContractName = "max-heap";
+  const minHeapContractName = "min-heap";
 
   before(async () => {
     await chain.loadAccounts();
@@ -19,15 +20,15 @@ describe("order book", () => {
     const deployer = chain.accounts.get("deployer")!;
 
     const tokenContractCode = fs.readFileSync(
-      path.join(CONTRACT_FOLDER, `${tokenContractName}.clar`),
+      path.join(CONTRACT_FOLDER, `${maxHeapContractName}.clar`),
       { encoding: "utf8" }
     );
-    const contractId = await chain.deployContract(tokenContractName, tokenContractCode, deployer.secretKey);
+    const contractId = await chain.deployContract(maxHeapContractName, tokenContractCode, deployer.secretKey);
 
     contractAddress = contractId.split(".")[0];
   });
 
-  it("batch position maintanence", async () => {
+  it("max heap testing", async () => {
     const deployer = chain.accounts.get("deployer")!;
     const INDEX_CHUNK_SIZE = 20;
     const positions_to_open = INDEX_CHUNK_SIZE;
@@ -35,7 +36,7 @@ describe("order book", () => {
     // initialize contract
     await chain.callContract(
       contractAddress,
-      tokenContractName,
+      maxHeapContractName,
       "initialize",
       [],
       deployer.secretKey
@@ -45,7 +46,7 @@ describe("order book", () => {
       const position_size = 1;
       const insertPosition = await chain.callContract(
         contractAddress,
-        "max-heap",
+        maxHeapContractName,
         "max-heap-insert",
         [
           uintCV(i),
@@ -59,7 +60,61 @@ describe("order book", () => {
 
     const all_orders_tx = await chain.callContract(
       contractAddress,
-      "max-heap",
+      maxHeapContractName,
+      "get-orders",
+      [],
+      deployer.secretKey
+    );
+
+    const all_orders = await chain.getTransactionResponse(all_orders_tx.txid);
+
+    all_orders.value.value.forEach(element => {
+      const price = +element.value.price.value;
+      const volume = +element.value.value.value;
+
+      if(price !== 0 && volume !== 0){
+        expect(price + 1).to.be.equal(volume);
+      }
+      else {
+        expect(price).to.be.equal(volume);
+      }
+    });
+  }).timeout(10000000);
+
+
+  it("min heap testing", async () => {
+    const deployer = chain.accounts.get("deployer")!;
+    const INDEX_CHUNK_SIZE = 20;
+    const positions_to_open = INDEX_CHUNK_SIZE;
+
+    // initialize contract
+    await chain.callContract(
+      contractAddress,
+      minHeapContractName,
+      "initialize",
+      [],
+      deployer.secretKey
+    );
+
+    for (let i = 1; i <= positions_to_open; i++) {
+      const position_size = 1;
+      const insertPosition = await chain.callContract(
+        contractAddress,
+        minHeapContractName,
+        "min-heap-insert",
+        [
+          uintCV(i),
+          uintCV(position_size + i),
+        ],
+        deployer.secretKey
+      );
+
+      expect(insertPosition).to.be.ok;
+    }
+
+    const all_orders_tx = await chain.callContract(
+      contractAddress,
+      minHeapContractName,
       "get-orders",
       [],
       deployer.secretKey
