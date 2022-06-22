@@ -5,6 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { CONTRACT_FOLDER, TRAITS_FOLDER, STACKS_API_URL } from "../config";
 import { StacksChain } from "dy-finance.lib";
+const POSITION_UPDATE_COOLDOWN = 60000; // ms
 
 describe("futures position", () => {
   const chain = new StacksChain(STACKS_API_URL, {
@@ -154,6 +155,8 @@ describe("futures position", () => {
 
       expect(insertPosition).to.be.ok;
     }
+
+    await new Promise(r => setTimeout(r, POSITION_UPDATE_COOLDOWN));
 
     const batchPositionMaintenance = await chain.callContract(
       deployer.address,

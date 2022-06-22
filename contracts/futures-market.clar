@@ -22,7 +22,7 @@ u20
 )
 
 ;; FIXME adjust to final update cooldown value
-(define-constant POSITION_UPDATE_COOLDOWN u86400) ;; seconds in a day
+(define-constant POSITION_UPDATE_COOLDOWN u60) ;; seconds
 
 ;; FIXME adjust to proper final value
 (define-constant POSITION_MAX_DURATION u10) ;; number of days a position can be held
