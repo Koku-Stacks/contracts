@@ -167,3 +167,6 @@
   (begin
     (populate-heap)
     (ok true)))
+
+(define-public (get-orders)
+  (ok (map get-position HEAP_INDICES)))
