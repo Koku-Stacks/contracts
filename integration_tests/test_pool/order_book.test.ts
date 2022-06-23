@@ -19,11 +19,18 @@ describe("order book", () => {
 
     const deployer = chain.accounts.get("deployer")!;
 
-    const tokenContractCode = fs.readFileSync(
+    const maxHeapContractCode = fs.readFileSync(
       path.join(CONTRACT_FOLDER, `${maxHeapContractName}.clar`),
       { encoding: "utf8" }
     );
-    const contractId = await chain.deployContract(maxHeapContractName, tokenContractCode, deployer.secretKey);
+
+    await chain.deployContract(maxHeapContractName, maxHeapContractCode, deployer.secretKey);
+
+    const minHeapContractCode = fs.readFileSync(
+      path.join(CONTRACT_FOLDER, `${minHeapContractName}.clar`),
+      { encoding: "utf8" }
+    );
+    const contractId = await chain.deployContract(minHeapContractName, minHeapContractCode, deployer.secretKey);
 
     contractAddress = contractId.split(".")[0];
   });
