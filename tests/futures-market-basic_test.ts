@@ -20,7 +20,7 @@ const STATUS_CLOSED = 3;
 
 const POSITION_MAX_DURATION = 10; // in days
 
-const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
+const POSITION_UPDATE_COOLDOWN = 600; // seconds
 
 const INDEX_CHUNK_SIZE =
 // ref-4

@@ -1,6 +1,6 @@
 import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.14.0/index.ts';
 
-const POSITION_UPDATE_COOLDOWN = 86400; // seconds in a day
+const POSITION_UPDATE_COOLDOWN = 600; // seconds
 
 const ORDER_TYPE_LONG = 1;
 
