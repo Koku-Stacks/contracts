@@ -31,6 +31,11 @@ const gas_fee = 1;
 
 const block_mining_time = 600; // in seconds
 
+// in order to be able to update that whole chunk of created positions,
+// we need to skip the following amount of blocks
+// (for example per day it would be 144 blocks)
+const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
 const futures_market_contract = "futures-market";
 const token_contract = "token";
 
@@ -769,9 +774,6 @@ Clarinet.test({
 
         read_only_call.result.expectOk().expectBool(false);
 
-        // 144 blocks for passing an update cooldown
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
-
         chain.mineEmptyBlock(blocks_in_an_update_cooldown);
 
         read_only_call = chain.callReadOnlyFn(
@@ -960,9 +962,6 @@ Clarinet.test({
 
         call.receipts[0].result.expectOk().expectUint(position_index);
 
-        // 144 blocks for passing an update cooldown
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
-
         chain.mineEmptyBlock(blocks_in_an_update_cooldown);
 
         call = chain.mineBlock([
@@ -1014,10 +1013,6 @@ Clarinet.test({
 
         const opened_positions = positions_to_open;
 
-        // in order to be able to update that whole chunk of created positions,
-        // we need to skip the following amount of blocks, which happens to be 144 blocks
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
-
         chain.mineEmptyBlock(blocks_in_an_update_cooldown);
 
         let call = chain.mineBlock([
@@ -1057,10 +1052,6 @@ Clarinet.test({
         open_positions(chain, accounts, userA.address, positions_to_open);
 
         const opened_positions = positions_to_open;
-
-        // in order to be able to update that whole chunk of created positions,
-        // we need to skip the following amount of blocks, which happens to be 144 blocks
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
 
         chain.mineEmptyBlock(blocks_in_an_update_cooldown);
 

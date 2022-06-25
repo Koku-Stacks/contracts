@@ -11,6 +11,12 @@ const INDEX_CHUNK_SIZE =
 
 const block_mining_time = 600; // in seconds
 
+
+// in order to be able to update that whole chunk of created positions,
+// we need to skip the following amount of blocks
+// (for example per day it would be 144 blocks)
+const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
+
 const futures_market_contract = "futures-market";
 const token_contract = "token";
 
@@ -117,10 +123,6 @@ Clarinet.test({
         open_positions(chain, accounts, userA.address, positions_to_open);
 
         const opened_positions = positions_to_open;
-
-        // in order to be able to update that whole chunk of created positions,
-        // we need to skip the following amount of blocks, which happens to be 144 blocks
-        const blocks_in_an_update_cooldown = POSITION_UPDATE_COOLDOWN / block_mining_time;
 
         chain.mineEmptyBlock(blocks_in_an_update_cooldown);
 
