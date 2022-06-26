@@ -22,7 +22,7 @@ u20
 )
 
 ;; FIXME adjust to final update cooldown value
-(define-constant POSITION_UPDATE_COOLDOWN u60) ;; seconds
+(define-constant POSITION_UPDATE_COOLDOWN u600) ;; seconds, 600 = 1 block. This is the minimal possible cooldown
 
 ;; FIXME adjust to proper final value
 (define-constant POSITION_MAX_DURATION u10) ;; number of days a position can be held
