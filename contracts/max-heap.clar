@@ -170,3 +170,13 @@
 
 (define-public (get-orders)
   (ok (map get-position HEAP_INDICES)))
+
+(define-public (head-change-volume (volume uint))
+  (begin
+    (asserts! (>= (var-get heap-size) u1) ERR_EMPTY_HEAP)
+    (asserts! (is-eq tx-sender (var-get authorized-order-book)) ERR_NOT_AUTHORIZED)
+    (map-set heap {index: u0} {price: (get price (get-position u0)), value: volume})
+    (ok true)))
+
+(define-read-only (get-price)
+  (ok (get price (try! (priority-position)))))
