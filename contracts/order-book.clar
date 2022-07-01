@@ -6,3 +6,8 @@
   (begin
     (try! (as-contract (contract-call? .max-heap max-heap-insert price value)))
     (ok true)))
+
+(define-public (placeAsk (price uint) (value uint))
+  (begin
+    (try! (as-contract (contract-call? .min-heap max-heap-insert price value)))
+    (ok true)))
