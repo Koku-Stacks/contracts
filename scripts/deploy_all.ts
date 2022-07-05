@@ -100,10 +100,13 @@ async function post_deployment_transactions() {
     );
   }
 
-  async function mint(wallet: string) {
+  async function mint(
+    wallet: string,
+    contractName: string
+  ) {
     await chain.callContract(
       deployer.address,
-      usdaContract,
+      contractName,
       "mint",
       [uintCV(1000000), principalCV(wallet)],
       deployer.secretKey
@@ -146,7 +149,8 @@ async function post_deployment_transactions() {
   });
 
   for (let i = 0; i < accountDetails.length; i++) {
-    await mint(accountDetails[i].address);
+    await mint(accountDetails[i].address, usdaContract);
+    await mint(accountDetails[i].address, wbtcContract);
   }
 
   await chain.callContract(
