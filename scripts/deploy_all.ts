@@ -155,6 +155,14 @@ async function post_deployment_transactions() {
 
   await chain.callContract(
     deployer.address,
+    orderBookConctract,
+    "initialize",
+    [principalCV(`${deployer.address}.${usdaContract}`), principalCV(`${deployer.address}.${wbtcContract}`)],
+    deployer.secretKey
+  );
+
+  await chain.callContract(
+    deployer.address,
     vaultContract,
     "set-approved-token",
     [principalCV(`${deployer.address}.usda`)],
