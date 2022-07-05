@@ -23,3 +23,11 @@
   (begin
     (try! (as-contract (contract-call? .min-heap min-heap-insert price value)))
     (ok true)))
+
+(define-public (executeMarketBuy (volume uint))
+  (begin
+    (ok true)))
+
+(define-public (executeMarketSell (volume uint))
+  (begin
+    (ok true)))
