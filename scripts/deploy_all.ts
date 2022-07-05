@@ -35,6 +35,14 @@ async function deploy_all_contracts() {
   contracts_id_registry["usda"] = usda_contract_id;
   console.log("usda successfully deployed");
 
+  const wbtc_contract_id = await chain.deployContract(
+    "wbtc",
+    usdaCode,
+    deployer.secretKey
+  );
+  contracts_id_registry["wbtc"] = wbtc_contract_id;
+  console.log("wbtc successfully deployed");
+
   return contracts_id_registry;
 }
 
@@ -43,6 +51,7 @@ async function post_deployment_transactions() {
   const deployer = chain.accounts.get("deployer")!;
   const tokenContract = "token";
   const usdaContract = "usda";
+  const wbtcContract = "wbtc";
   const vaultContract = "vault";
   const maxHeapContract = "max-heap";
   const minHeapContract = "min-heap";
