@@ -125,6 +125,21 @@ async function post_deployment_transactions() {
     );
   }
 
+  const wbtcAddressAuthorized = await checkContractAuthorization(
+    deployer.address,
+    wbtcContract
+  );
+
+  if (wbtcAddressAuthorized.value === false) {
+    await chain.callContract(
+      deployer.address,
+      wbtcContract,
+      "add-authorized-contract",
+      [principalCV(deployer.address)],
+      deployer.secretKey
+    );
+  }
+
   const accountNames = Array.from(chain.accounts.keys());
   const accountDetails: Array<Account> = accountNames.map((name) => {
     return chain.accounts.get(name);
