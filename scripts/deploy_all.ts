@@ -35,6 +35,14 @@ async function deploy_all_contracts() {
   contracts_id_registry["usda"] = usda_contract_id;
   console.log("usda successfully deployed");
 
+  const wbtc_contract_id = await chain.deployContract(
+    "wbtc",
+    usdaCode,
+    deployer.secretKey
+  );
+  contracts_id_registry["wbtc"] = wbtc_contract_id;
+  console.log("wbtc successfully deployed");
+
   return contracts_id_registry;
 }
 
@@ -43,6 +51,7 @@ async function post_deployment_transactions() {
   const deployer = chain.accounts.get("deployer")!;
   const tokenContract = "token";
   const usdaContract = "usda";
+  const wbtcContract = "wbtc";
   const vaultContract = "vault";
   const maxHeapContract = "max-heap";
   const minHeapContract = "min-heap";
@@ -91,10 +100,13 @@ async function post_deployment_transactions() {
     );
   }
 
-  async function mint(wallet: string) {
+  async function mint(
+    wallet: string,
+    contractName: string
+  ) {
     await chain.callContract(
       deployer.address,
-      usdaContract,
+      contractName,
       "mint",
       [uintCV(1000000), principalCV(wallet)],
       deployer.secretKey
@@ -116,15 +128,15 @@ async function post_deployment_transactions() {
     );
   }
 
-  const checkUSDAMintContract = await checkContractAuthorization(
+  const wbtcAddressAuthorized = await checkContractAuthorization(
     deployer.address,
-    usdaContract
+    wbtcContract
   );
 
-  if (checkUSDAMintContract.value === false) {
+  if (wbtcAddressAuthorized.value === false) {
     await chain.callContract(
       deployer.address,
-      usdaContract,
+      wbtcContract,
       "add-authorized-contract",
       [principalCV(deployer.address)],
       deployer.secretKey
@@ -137,8 +149,17 @@ async function post_deployment_transactions() {
   });
 
   for (let i = 0; i < accountDetails.length; i++) {
-    await mint(accountDetails[i].address);
+    await mint(accountDetails[i].address, usdaContract);
+    await mint(accountDetails[i].address, wbtcContract);
   }
+
+  await chain.callContract(
+    deployer.address,
+    orderBookConctract,
+    "initialize",
+    [principalCV(`${deployer.address}.${usdaContract}`), principalCV(`${deployer.address}.${wbtcContract}`)],
+    deployer.secretKey
+  );
 
   await chain.callContract(
     deployer.address,

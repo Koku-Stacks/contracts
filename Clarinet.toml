@@ -43,6 +43,10 @@ depends_on = []
 path = "contracts/min-heap.clar"
 depends_on = []
 
+[contracts.order-book]
+path = "contracts/order-book.clar"
+depends_on = ["sip-010-trait-ft-standard", "min-heap", "max-heap"]
+
 [contracts.token]
 path = "contracts/token.clar"
 depends_on = ["sip-010-trait-ft-standard", "mint-trait", "burn-trait"]
