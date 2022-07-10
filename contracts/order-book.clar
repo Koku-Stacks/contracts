@@ -7,6 +7,7 @@
 ;; this is not related to an actual token before initialization
 (define-data-var authorized-usda-token principal tx-sender)
 (define-data-var authorized-wbtc-token principal tx-sender)
+(define-data-var clearing-price uint u0)
 
 (define-public (initialize (usda <sip-010-token>) (wbtc <sip-010-token>))
   (begin
@@ -26,8 +27,13 @@
 
 (define-public (executeMarketBuy (volume uint))
   (begin
+    (var-set clearing-price (+ u1 (var-get clearing-price)))
     (ok true)))
 
 (define-public (executeMarketSell (volume uint))
   (begin
+    (var-set clearing-price (+ u1 (var-get clearing-price)))
     (ok true)))
+
+(define-read-only (get-clearing-price)
+  (var-get clearing-price))
